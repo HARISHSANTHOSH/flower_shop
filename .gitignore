@@ -1,3 +1,11 @@
 /venv
 /dbsqlite3
 /env
+
+# Python Bytecode and Cache Files
+__pycache__/
+*.pyc
+
+# Django
+# Ignore cache directories inside migrations (but keep the .py files)
+*/migrations/__pycache__/

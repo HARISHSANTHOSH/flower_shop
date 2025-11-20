@@ -13,9 +13,14 @@ class Flower(models.Model):
 	name = models.CharField(max_length=100)
 	description = models.CharField(max_length=200)
 	price = models.DecimalField(
-        max_digits=10,        # Maximum total number of digits allowed (e.g., 99,999,999.99)
-        decimal_places=2,     # Number of digits to store after the decimal point
-        default=0.00          # Good practice to set a default value
+        max_digits=10,      
+        decimal_places=2,    
+        default=0.00         
+    )
+	image = models.ImageField(
+        upload_to='flowers/', 
+        blank=True,           
+        null=True            
     )
 	category = models.ForeignKey(
 		Category,
