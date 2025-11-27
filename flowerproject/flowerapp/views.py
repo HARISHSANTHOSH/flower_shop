@@ -5,6 +5,8 @@ from rest_framework import status
 from django.shortcuts import render
 from flowerapp import models, serializers
 from django.db.models import Q
+from django.db import transaction
+from .tasks import send_order_confirmation_email
 from .pagination import FlowerPagination
 from rest_framework.permissions import (
     AllowAny,
@@ -52,3 +54,37 @@ def flower_page(request):
 
 def login_page(request):
     return render(request, "login.html")
+<<<<<<< Updated upstream
+=======
+
+
+class BuyNowAPIView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        user=request.user
+        customer, created = models.Customer.objects.get_or_create(user=user)
+        flower_ids=request.data.get("flowers",[])
+
+        if not flower_ids:
+            return Response("No flowers found")
+
+        order=models.Order.objects.create(customer=customer)
+        total=0
+
+        for fl_id in flower_ids:
+            flower=models.Flower.objects.get(id=fl_id)
+            item= models.OrderItem.objects.create(
+                order=order,
+                flower=flower,
+                quantity=1,
+                unit_price=flower.price
+            )
+            total +=item.get_total_price()
+            
+        order.total_amount=total
+        order.save()
+        transaction.on_commit(
+            lambda: send_order_confirmation_email.delay(order.id)
+        )
+        return Response({"order_id":order.id,"total":total,"status":order.status})
+>>>>>>> Stashed changes
