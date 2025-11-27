@@ -1,122 +1,270 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
-    <title>Flower Manager</title>
+    <title>Bloom Haven</title>
+    <style>
+        .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2b8a3e;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-weight: 500;
+}
+.toast.error { background: #e74c3c; }
+
+        body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; color: #333; }
+        nav { background: #4a6cf7; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { margin: 0; font-size: 1.5rem; }
+        nav a { color: #fff; text-decoration: none; margin-left: 16px; font-weight: 500; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+
+        .filters-panel {
+            background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 20px;
+        }
+
+        .filters-panel label { display: flex; flex-direction: column; font-size: 14px; }
+        .filters-panel select { margin-top: 4px; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
+
+        .flower-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; }
+        .flower-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease; }
+        .flower-card:hover { transform: translateY(-3px); }
+        .flower-card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
+        .flower-card .details { padding: 12px 14px; }
+        .flower-card h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
+        .flower-card p { margin: 0 0 8px 0; font-size: 0.9rem; color: #555; }
+        .flower-card .price { font-weight: bold; color: #2b8a3e; font-size: 1rem; }
+
+        #paginationControls { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 12px; }
+        #paginationControls button { padding: 6px 12px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; }
+        #paginationControls button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        @media (max-width: 900px) { .flower-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 550px) { 
+            .flower-grid { grid-template-columns: 1fr; }
+            .filters-panel { flex-direction: column; align-items: stretch; }
+            .filters-panel label { width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
-<h2>Add Flower</h2>
+<nav>
+    <h1>Bloom Haven</h1>
+    <div>
+        <a href="#">Home</a>
+        <a href="#">Categories</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </div>
+</nav>
 
-<form id="flowerForm">
-    <input type="text" id="name" placeholder="Flower Name" required />
-    <input type="number" id="price" placeholder="Price" required />
-    <button type="submit">Add Flower</button>
-</form>
+<div class="container">
+    <!-- Filters Panel -->
+    <div class="filters-panel">
+        <label>
+            Category
+            <select id="categoryFilter">
+                <option value="">All</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
 
-<hr>
+        <label>
+            Price
+            <select id="priceFilter">
+                <option value="">All</option>
+                <option value="0-100">₹0 - ₹100</option>
+                <option value="101-500">₹101 - ₹500</option>
+                <option value="501-1000">₹501 - ₹1000</option>
+                <option value="1001-5000">₹1001+</option>
+            </select>
+        </label>
+    </div>
 
-<h2>Flower List</h2>
+    <ul id="flowerGrid" class="flower-grid"></ul>
 
-<div style="margin-bottom: 10px;">
-    <label>
-        Category:
-        <select id="categoryFilter">
-            <option value="">All</option>
-            {% for cat in categories %}
-            <option value="{{ cat.id }}">{{ cat.name }}</option>
-            {% endfor %}
-        </select>
-    </label>
-
-    <label style="margin-left: 10px;">
-        Search:
-        <input type="text" id="searchInput" placeholder="Name or description" />
-    </label>
-
-    <button id="applyFilterBtn">Apply</button>
+    <div id="paginationControls">
+        <button id="prevBtn" disabled>Previous</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" disabled>Next</button>
+    </div>
 </div>
-
-<ul id="flowerList"></ul>
-
-<div id="paginationControls" style="margin-top: 10px;">
-    <button id="prevBtn" disabled>Previous</button>
-    <span id="pageInfo"></span>
-    <button id="nextBtn" disabled>Next</button>
-</div>
-
-<div id="debugUrl" style="margin-top: 10px; font-size: 12px; color: #555;"></div>
 
 <script>
 const API_URL = "http://127.0.0.1:8000/flowerapp/api/v1/flowers/";
+const PLACEHOLDER_IMAGES = [
+    "/media/flowers/IMG20250917130730.jpg",
+    "/media/flowers/IMG20251120162642.jpg",
+    "/media/flowers/IMG20251120162648.jpg",
+    "/media/flowers/IMG20251120162658.jpg",
+    "/media/flowers/IMG20251120162701.jpg",
+    "/media/flowers/IMG20251120162704.jpg",
+    "/media/flowers/IMG20251120162950.jpg"
+];
+
 let currentPage = 1;
-let currentFilters = {
-    category: "",
-    search: ""
-};
+let currentFilters = { category: "", price: "" };
 
-/* ======================================
-   JWT helper
-====================================== */
-function getAuthHeaders() {
-    const token = localStorage.getItem("access_token");
+function resolveFlowerImage(flower) {
+    if(flower.image){
+        const origin = window.location.origin;
+        return flower.image.startsWith("/") ? `${origin}${flower.image}` : `${origin}/${flower.image}`;
+    }
+    const identifier = flower.id || flower.name || Math.random();
+    const index = Math.abs(typeof identifier==="number"?identifier:identifier.toString().split("").reduce((acc,ch)=>acc+ch.charCodeAt(0),0)) % PLACEHOLDER_IMAGES.length;
+    return PLACEHOLDER_IMAGES[index];
+}
+async function refreshAccessToken() {
+    const refresh = localStorage.getItem("refresh_token");
 
-    if (!token) {
-        alert("JWT token missing. Please login.");
-        throw new Error("No access token");
+    if (!refresh) {
+        throw new Error("No refresh token");
     }
 
+    const res = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh })
+    });
+
+    if (!res.ok) {
+        localStorage.clear();
+        window.location.href = "/login/";
+        throw new Error("Refresh token expired");
+    }
+
+    const data = await res.json();
+    localStorage.setItem("access_token", data.access);
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem("access_token");
     return {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
     };
 }
+async function authFetch(url, options = {}) {
+    options.headers = getAuthHeaders();
 
-/* ======================================
-   GET flowers
-====================================== */
-function fetchFlowers(page = 1) {
+    let response = await fetch(url, options);
+
+    if (response.status === 401) {
+        await refreshAccessToken();
+        options.headers = getAuthHeaders(); // new token
+        response = await fetch(url, options);
+    }
+
+    return response;
+}
+
+
+
+function showToast(message, type="success") {
+    const toast = document.createElement("div");
+    toast.textContent = message;
+    toast.className = `toast ${type}`; // add CSS styles
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+async function fetchFlowers(page = 1) {
     currentPage = page;
 
-    // Build URL with page query param
     const url = new URL(API_URL);
     url.searchParams.set("page", page);
+    if (currentFilters.category) url.searchParams.set("category", currentFilters.category);
+    if (currentFilters.price) url.searchParams.set("price", currentFilters.price);
 
-    if (currentFilters.category) {
-        url.searchParams.set("category", currentFilters.category);
-    }
-    if (currentFilters.search) {
-        url.searchParams.set("search", currentFilters.search);
-    }
+    try {
+        // ✅ Use authFetch instead of fetch
+        const res = await authFetch(url);
 
-    console.log("Fetching URL:", url.toString());
-    const debug = document.getElementById("debugUrl");
-    if (debug) {
-        debug.textContent = `Last API call: ${url.toString()}`;
-    }
+        if (!res.ok) throw new Error("Request failed");
 
-    fetch(url, {
-        headers: getAuthHeaders()
-    })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error("Unauthorized / Forbidden");
-        }
-        return res.json();
-    })
-    .then(data => {
-        const list = document.getElementById("flowerList");
-        list.innerHTML = "";
+        const data = await res.json();
 
-        // DRF pagination returns { count, next, previous, results: [...] }
+        const grid = document.getElementById("flowerGrid");
+        grid.innerHTML = "";
+
         const flowers = Array.isArray(data) ? data : data.results || [];
 
-        flowers.forEach(flower => {
-            const li = document.createElement("li");
-            li.innerText = `${flower.name} - ₹${flower.price}`;
-            list.appendChild(li);
-        });
+        if (!flowers.length) {
+            const empty = document.createElement("li");
+            empty.className = "flower-card";
+            empty.innerHTML = `<div class="details"><strong>No flowers found.</strong></div>`;
+            grid.appendChild(empty);
+        } else {
+            flowers.forEach(flower => {
+                const li = document.createElement("li");
+                li.className = "flower-card";
 
-        // Update pagination controls
+                const img = document.createElement("img");
+                img.src = resolveFlowerImage(flower);
+                img.alt = flower.name;
+                img.loading = "lazy";
+
+                const details = document.createElement("div");
+                details.className = "details";
+                details.innerHTML = `
+                    <h3>${flower.name}</h3>
+                    <p>${flower.description || "No description."}</p>
+                    <div class="price">₹${flower.price}</div>
+                `;
+                // ✅ Add buttons here
+                const buttonsDiv = document.createElement("div");
+                buttonsDiv.style.display = "flex";
+                buttonsDiv.style.gap = "10px";
+                buttonsDiv.style.marginTop = "8px";
+
+                const addToCartBtn = document.createElement("button");
+                addToCartBtn.textContent = "Add to Cart";
+                addToCartBtn.className = "add-to-cart";
+                addToCartBtn.addEventListener("click", () => {
+                    // simple cart logic
+                    alert(`Added ${flower.name} to cart`);
+                });
+
+                const buyNowBtn = document.createElement("button");
+                buyNowBtn.textContent = "Buy Now";
+                buyNowBtn.className = "buy-now";
+                buyNowBtn.addEventListener("click", async () => {
+                    // call buy-now API
+                    try {
+                        const res = await authFetch("http://127.0.0.1:8000/flowerapp/api/buy-now/", {
+                            method: "POST",
+                            body: JSON.stringify({ flowers: [flower.id] })
+                        });
+                        const data = await res.json();
+                        alert(`Order placed! Order ID: ${data.order_id}`);
+                    } catch (err) {
+                        console.error(err);
+                        alert("Failed to place order");
+                    }
+                });
+
+                buttonsDiv.appendChild(addToCartBtn);
+                buttonsDiv.appendChild(buyNowBtn);
+
+                details.appendChild(buttonsDiv);  // append buttons below price
+
+                li.appendChild(img);
+                li.appendChild(details);
+                grid.appendChild(li);
+            });
+        }
+
+        // ✅ Pagination (unchanged)
         const prevBtn = document.getElementById("prevBtn");
         const nextBtn = document.getElementById("nextBtn");
         const pageInfo = document.getElementById("pageInfo");
@@ -128,73 +276,34 @@ function fetchFlowers(page = 1) {
         prevBtn.disabled = !data.previous;
         nextBtn.disabled = !data.next;
         pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    })
-    .catch(err => {
+
+    } catch (err) {
         console.error(err);
-        alert("Failed to load flowers");
-    });
+        alert("Session expired. Please login again.");
+        window.location.href = "/login/";
+    }
 }
 
-/* ======================================
-   POST flower
-====================================== */
-document.getElementById("flowerForm").addEventListener("submit", function(e) {
-    e.preventDefault();
 
-    const data = {
-        name: document.getElementById("name").value,
-        price: document.getElementById("price").value
-    };
 
-    fetch(API_URL, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data)
-    })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error("Permission denied");
-        }
-        return res.json();
-    })
-    .then(() => {
-        fetchFlowers();
-        this.reset();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("You are not authorized to add flowers");
-    });
+
+// **Auto filter on dropdown change**
+document.getElementById("categoryFilter").addEventListener("change", e=>{
+    currentFilters.category = e.target.value;
+    fetchFlowers(1);
 });
-
-/* ======================================
-   Filter handlers
-====================================== */
-
-document.getElementById("applyFilterBtn").addEventListener("click", function() {
-    const categorySelect = document.getElementById("categoryFilter");
-    const searchInput = document.getElementById("searchInput");
-
-    currentFilters.category = categorySelect.value;
-    currentFilters.search = searchInput.value.trim();
-
+document.getElementById("priceFilter").addEventListener("change", e=>{
+    currentFilters.price = e.target.value;
     fetchFlowers(1);
 });
 
-/* ======================================
-   Pagination button handlers + Initial load
-====================================== */
 
-document.getElementById("prevBtn").addEventListener("click", function() {
-    if (currentPage > 1) {
-        fetchFlowers(currentPage - 1);
-    }
-});
 
-document.getElementById("nextBtn").addEventListener("click", function() {
-    fetchFlowers(currentPage + 1);
-});
+// Pagination
+document.getElementById("prevBtn").addEventListener("click", ()=>{ if(currentPage>1) fetchFlowers(currentPage-1); });
+document.getElementById("nextBtn").addEventListener("click", ()=> fetchFlowers(currentPage+1));
 
+// Initial fetch
 fetchFlowers(1);
 </script>
 
