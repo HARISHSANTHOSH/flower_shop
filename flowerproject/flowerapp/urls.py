@@ -1,8 +1,11 @@
 from django.urls import path
-from .views import FlowerListCreateAPIView
+from .views import FlowerListCreateAPIView, flower_page,login_page
 
 
 urlpatterns = [
-	path('api/v1/flowers/',FlowerListCreateAPIView.as_view())
+	path('api/v1/flowers/', FlowerListCreateAPIView.as_view()),
+	path('flowers/', flower_page, name='flower_page'),
+	path('login/', login_page, name='login_page'),
+	
 ]
 

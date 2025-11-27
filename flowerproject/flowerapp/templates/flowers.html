@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flower Manager</title>
+</head>
+<body>
+
+<h2>Add Flower</h2>
+
+<form id="flowerForm">
+    <input type="text" id="name" placeholder="Flower Name" required />
+    <input type="number" id="price" placeholder="Price" required />
+    <button type="submit">Add Flower</button>
+</form>
+
+<hr>
+
+<h2>Flower List</h2>
+
+<div style="margin-bottom: 10px;">
+    <label>
+        Category:
+        <select id="categoryFilter">
+            <option value="">All</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label style="margin-left: 10px;">
+        Search:
+        <input type="text" id="searchInput" placeholder="Name or description" />
+    </label>
+
+    <button id="applyFilterBtn">Apply</button>
+</div>
+
+<ul id="flowerList"></ul>
+
+<div id="paginationControls" style="margin-top: 10px;">
+    <button id="prevBtn" disabled>Previous</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn" disabled>Next</button>
+</div>
+
+<div id="debugUrl" style="margin-top: 10px; font-size: 12px; color: #555;"></div>
+
+<script>
+const API_URL = "http://127.0.0.1:8000/flowerapp/api/v1/flowers/";
+let currentPage = 1;
+let currentFilters = {
+    category: "",
+    search: ""
+};
+
+/* ======================================
+   JWT helper
+====================================== */
+function getAuthHeaders() {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        alert("JWT token missing. Please login.");
+        throw new Error("No access token");
+    }
+
+    return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    };
+}
+
+/* ======================================
+   GET flowers
+====================================== */
+function fetchFlowers(page = 1) {
+    currentPage = page;
+
+    // Build URL with page query param
+    const url = new URL(API_URL);
+    url.searchParams.set("page", page);
+
+    if (currentFilters.category) {
+        url.searchParams.set("category", currentFilters.category);
+    }
+    if (currentFilters.search) {
+        url.searchParams.set("search", currentFilters.search);
+    }
+
+    console.log("Fetching URL:", url.toString());
+    const debug = document.getElementById("debugUrl");
+    if (debug) {
+        debug.textContent = `Last API call: ${url.toString()}`;
+    }
+
+    fetch(url, {
+        headers: getAuthHeaders()
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Unauthorized / Forbidden");
+        }
+        return res.json();
+    })
+    .then(data => {
+        const list = document.getElementById("flowerList");
+        list.innerHTML = "";
+
+        // DRF pagination returns { count, next, previous, results: [...] }
+        const flowers = Array.isArray(data) ? data : data.results || [];
+
+        flowers.forEach(flower => {
+            const li = document.createElement("li");
+            li.innerText = `${flower.name} - ₹${flower.price}`;
+            list.appendChild(li);
+        });
+
+        // Update pagination controls
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const pageInfo = document.getElementById("pageInfo");
+
+        const pageSize = flowers.length || 1;
+        const totalCount = data.count ?? flowers.length;
+        const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+        prevBtn.disabled = !data.previous;
+        nextBtn.disabled = !data.next;
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load flowers");
+    });
+}
+
+/* ======================================
+   POST flower
+====================================== */
+document.getElementById("flowerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const data = {
+        name: document.getElementById("name").value,
+        price: document.getElementById("price").value
+    };
+
+    fetch(API_URL, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data)
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Permission denied");
+        }
+        return res.json();
+    })
+    .then(() => {
+        fetchFlowers();
+        this.reset();
+    })
+    .catch(err => {
+        console.error(err);
+        alert("You are not authorized to add flowers");
+    });
+});
+
+/* ======================================
+   Filter handlers
+====================================== */
+
+document.getElementById("applyFilterBtn").addEventListener("click", function() {
+    const categorySelect = document.getElementById("categoryFilter");
+    const searchInput = document.getElementById("searchInput");
+
+    currentFilters.category = categorySelect.value;
+    currentFilters.search = searchInput.value.trim();
+
+    fetchFlowers(1);
+});
+
+/* ======================================
+   Pagination button handlers + Initial load
+====================================== */
+
+document.getElementById("prevBtn").addEventListener("click", function() {
+    if (currentPage > 1) {
+        fetchFlowers(currentPage - 1);
+    }
+});
+
+document.getElementById("nextBtn").addEventListener("click", function() {
+    fetchFlowers(currentPage + 1);
+});
+
+fetchFlowers(1);
+</script>
+
+</body>
+</html>
