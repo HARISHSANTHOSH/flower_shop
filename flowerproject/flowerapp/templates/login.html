@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Admin Login</h2>
+
+<form id="loginForm">
+  <input id="username" placeholder="Username" required />
+  <input id="password" type="password" placeholder="Password" required />
+  <button type="submit">Login</button>
+</form>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  fetch("http://127.0.0.1:8000/api/token/", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Login failed");
+    return res.json();
+  })
+  .then(data => {
+    localStorage.setItem("access_token", data.access);
+    localStorage.setItem("refresh_token", data.refresh);
+    window.location.href = "/flowerapp/flowers/";
+  })
+  .catch(() => alert("Invalid credentials"));
+});
+</script>
+
+</body>
+</html>
