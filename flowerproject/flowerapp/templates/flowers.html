@@ -159,7 +159,7 @@ async function authFetch(url, options = {}) {
 
     let response = await fetch(url, options);
 
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
         await refreshAccessToken();
         options.headers = getAuthHeaders(); // new token
         response = await fetch(url, options);

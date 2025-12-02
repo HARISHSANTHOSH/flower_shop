@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.db import transaction
 from .tasks import send_order_confirmation_email
 from .pagination import FlowerPagination
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import SignupSerializer
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -17,7 +19,7 @@ from rest_framework.permissions import (
 
 
 class FlowerListCreateAPIView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 	
     def get(self, request):
         flowers = (
@@ -64,6 +66,8 @@ def flower_page(request):
 def login_page(request):
     return render(request, "login.html")
 
+def signup_page(request):
+    return render(request, "signup.html")
 
 class BuyNowAPIView(APIView):
     permission_classes=[IsAuthenticated]
@@ -95,3 +99,21 @@ class BuyNowAPIView(APIView):
         )
         return Response({"order_id":order.id,"total":total,"status":order.status})
 
+
+class SignupAPIView(APIView):
+    serializer_class = SignupSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "user": {
+                "username": user.username,
+                "email": user.email,
+            },
+            "refresh": str(refresh),
+            "access": str(refresh.access_token)
+        }, status=status.HTTP_201_CREATED)
