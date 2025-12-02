@@ -1,37 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Bloom Haven</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #4a6cf7;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4a6cf7;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3b54d1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2b8a3e;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 9999;
+            font-weight: 500;
+        }
+        .toast.error { background: #e74c3c; }
+    </style>
+</head>
 <body>
 
-<h2>Admin Login</h2>
-
-<form id="loginForm">
-  <input id="username" placeholder="Username" required />
-  <input id="password" type="password" placeholder="Password" required />
-  <button type="submit">Login</button>
-</form>
+<div class="login-container">
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input id="username" placeholder="Username" required />
+        <input id="password" type="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+    </form>
+</div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+function showToast(message, type="success") {
+    const toast = document.createElement("div");
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
 
-  fetch("http://127.0.0.1:8000/api/token/", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      username: username.value,
-      password: password.value
-    })
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Login failed");
-    return res.json();
-  })
-  .then(data => {
-    localStorage.setItem("access_token", data.access);
-    localStorage.setItem("refresh_token", data.refresh);
-    window.location.href = "/flowerapp/flowers/";
-  })
-  .catch(() => alert("Invalid credentials"));
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const res = await fetch("http://127.0.0.1:8000/api/token/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) throw new Error("Invalid credentials");
+
+        const data = await res.json();
+
+        // Save JWT tokens
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+
+        showToast(`Welcome back, ${username}!`);
+        window.location.href = "http://127.0.0.1:8000/flowerapp/flowers/";
+
+    } catch (err) {
+        console.error(err);
+        showToast("Invalid username or password", "error");
+    }
 });
 </script>
 
