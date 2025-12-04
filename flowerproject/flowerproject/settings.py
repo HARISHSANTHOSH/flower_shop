@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'flowerapp',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -49,6 +54,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -133,13 +139,52 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 
-
+SITE_ID = 1
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of allauth
+    'django.contrib.auth.backends.ModelBackend',
+    # allauth specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+LOGIN_REDIRECT_URL = 'flowerapp/flowers' # Redirect URL after successful login
+# Optional: Provider-specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+# settings.py
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'optional'  # Change to 'none' temporarily to test
+ACCOUNT_UNIQUE_EMAIL = False  # Temporarily set to False for debugging
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SESSION_COOKIE_DOMAIN = None  # Not '.localhost' or '.127.0.0.1'
+SESSION_COOKIE_SECURE = False  # True in production only
+SESSION_COOKIE_SAMESITE = 'Lax'  # Or 'None' if using cross-domain
+# Handle email conflicts gracefully
+SOCIALACCOUNT_QUERY_EMAIL = True
+# settings.py
+SESSION_COOKIE_SAMESITE = 'Lax'  # Not 'Strict' for OAuth
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# settings.py
+
