@@ -117,3 +117,44 @@ class SignupAPIView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token)
         }, status=status.HTTP_201_CREATED)
+
+
+class AddToCartAPIView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        user=request.user
+        customer, created = models.Customer.objects.get_or_create(user=user)
+        flower_ids=request.data.get("flowers",[])
+
+        if not flower_ids:
+            return Response("No flowers found")
+
+        order=models.Order.objects.create(customer=customer)
+        total=0
+
+        for fl_id in flower_ids:
+            flower=models.Flower.objects.get(id=fl_id)
+            item= models.OrderItem.objects.create(
+                order=order,
+                flower=flower,
+                quantity=1,
+                unit_price=flower.price
+            )
+            total +=item.get_total_price()
+        order.total_amount=total
+        order.save()
+        return Response({"order_id":order.id,"total":total,"status":order.status})
+
+class ViewCartAPIView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        user=request.user
+        print("user",user)
+        customer, created = models.Customer.objects.get_or_create(user=user)
+        print("customer",customer)
+        order = models.Order.objects.filter(customer=customer,status= 'Pending').first()
+        print("orders",order)
+        if not order:
+            return Response("No cart found")
+        serializer=serializers.OrderItemSerializer(order.items.all(),many=True)
+        return Response(serializer.data)

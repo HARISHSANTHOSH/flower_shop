@@ -22,6 +22,18 @@
         nav { background: #4a6cf7; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
         nav h1 { margin: 0; font-size: 1.5rem; }
         nav a { color: #fff; text-decoration: none; margin-left: 16px; font-weight: 500; }
+        nav button#viewcart {
+            margin-right: 16px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #fff;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+        }
+        nav button#viewcart:hover {
+            background: rgba(255,255,255,0.15);
+        }
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
 
@@ -59,6 +71,7 @@
 <nav>
     <h1>Bloom Haven</h1>
     <div>
+        <button id="viewcart">viewcart</button>
         <a href="#">Home</a>
         <a href="#">Categories</a>
         <a href="#">About</a>
@@ -124,6 +137,8 @@ function resolveFlowerImage(flower) {
     const index = Math.abs(typeof identifier==="number"?identifier:identifier.toString().split("").reduce((acc,ch)=>acc+ch.charCodeAt(0),0)) % PLACEHOLDER_IMAGES.length;
     return PLACEHOLDER_IMAGES[index];
 }
+ 
+
 async function refreshAccessToken() {
     const refresh = localStorage.getItem("refresh_token");
 
@@ -146,6 +161,7 @@ async function refreshAccessToken() {
     const data = await res.json();
     localStorage.setItem("access_token", data.access);
 }
+
 
 function getAuthHeaders() {
     const token = localStorage.getItem("access_token");
@@ -230,9 +246,20 @@ async function fetchFlowers(page = 1) {
                 const addToCartBtn = document.createElement("button");
                 addToCartBtn.textContent = "Add to Cart";
                 addToCartBtn.className = "add-to-cart";
-                addToCartBtn.addEventListener("click", () => {
-                    // simple cart logic
-                    alert(`Added ${flower.name} to cart`);
+                addToCartBtn.addEventListener("click", async () => {
+                    try {
+                        const res = await authFetch("http://127.0.0.1:8000/flowerapp/api/add-to-cart/", {
+                            method: "POST",
+                            body: JSON.stringify({ flowers: [flower.id] })
+                        });
+                        const data = await res.json();
+                        alert(`Added ${flower.name} to cart`);
+                        fetchFlowers(currentPage);
+                        showToast(`${flower.name} added to cart`, "success");
+                    } catch (err) {
+                        console.error(err);
+                        showToast("Failed to add to cart", "error");
+                    }
                 });
 
                 const buyNowBtn = document.createElement("button");
@@ -302,6 +329,38 @@ document.getElementById("priceFilter").addEventListener("change", e=>{
 // Pagination
 document.getElementById("prevBtn").addEventListener("click", ()=>{ if(currentPage>1) fetchFlowers(currentPage-1); });
 document.getElementById("nextBtn").addEventListener("click", ()=> fetchFlowers(currentPage+1));
+
+// View Cart (show current pending order items)
+const viewcart = document.getElementById("viewcart");
+if (viewcart) {
+    viewcart.addEventListener("click", async () => {
+        try {
+            const res = await authFetch("http://127.0.0.1:8000/flowerapp/api/view-cart/", {
+                method: "GET",
+            });
+            if (!res.ok) {
+                throw new Error("Failed to load cart");
+            }
+            const items = await res.json();
+            if (!Array.isArray(items) || items.length === 0) {
+                alert("Your cart is empty.");
+                return;
+            }
+
+            const summary = items.map((item, idx) => {
+                const name = item.flower_name || (item.flower && item.flower.name) || `Item ${idx + 1}`;
+                const qty = item.quantity ?? 1;
+                const total = item.total_price ?? item.unit_price ?? "";
+                return `${name} x ${qty}${total !== "" ? ` = ₹${total}` : ""}`;
+            }).join("\n");
+
+            alert("Your cart:\n" + summary);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to load cart");
+        }
+    });
+}
 
 // Initial fetch
 fetchFlowers(1);
