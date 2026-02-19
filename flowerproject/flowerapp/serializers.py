@@ -3,6 +3,11 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
 class CategorySerializer(serializers.ModelSerializer):
 	class Meta:
 		model =models.Category
@@ -48,7 +53,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Order
-        fields = ['id', 'customer', 'customer_username', 'order_date', 'status', 'total_amount', 'delivery_address', 'items']
+        fields = ['id', 'customer', 'customer_username', 'order_date', 'status', 'total_amount', 'items']
         read_only_fields = ['total_amount', 'order_date', 'customer'] # Customer is often set automatically on creation
 
 

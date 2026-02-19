@@ -1,6 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 # Create your models here.
+
+
+
+class Profile(models.Model):
+    ROLE_CHOICES = (
+        ('superadmin', 'Super Admin'),
+        ('customer', 'Customer'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
+
+    def __str__(self):
+        return f"{self.user.username} ({self.role})"
+
+
+# Signal to create/update Profile automatically
+@receiver(post_save, sender=User)
+def create_or_update_profile(sender, instance, created, **kwargs):
+    if created:
+        # Create profile for new user
+        Profile.objects.create(user=instance)
+    else:
+        # Save existing profile when User is updated
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
 
 class Category(models.Model):
 	name=models.CharField(max_length=100)
@@ -60,7 +88,10 @@ class Order(models.Model):
         default='Pending'
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
+    created_at = models.DateTimeField(auto_now_add=True)
     # ... other fields
+    class Meta:
+        ordering = ['-created_at'] 
     
     def __str__(self):
         return f"Order #{self.id} - {self.status}"

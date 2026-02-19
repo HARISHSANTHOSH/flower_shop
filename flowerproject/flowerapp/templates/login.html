@@ -154,15 +154,26 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
 
-        showToast(`Welcome back, ${username}!`, "success");
+        const profileRes = await fetch("http://127.0.0.1:8000/flowerapp/api/me/", {
+        headers: { "Authorization": `Bearer ${data.access}` }
+    });
+    console.log("Token being sent:", data.access); // check if token exists
+    console.log("Profile response status:", profileRes.status);
+    const profile = await profileRes.json();
 
-        setTimeout(() => {
+    showToast(`Welcome back, ${username}!`, "success");
+
+    setTimeout(() => {
+        if (profile.role === "superadmin") {
+            window.location.href = "http://127.0.0.1:8000/flowerapp/admin/orders/";
+        } else {
             window.location.href = "http://127.0.0.1:8000/flowerapp/flowers/";
-        }, 1500);
+        }
+    }, 1500);
 
-    } catch (err) {
-        console.error(err);
-        showToast("Login failed. Please check your details.", "error");
+} catch (err) {
+    console.error(err);
+    showToast("Login failed. Please check your details.", "error");
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "Login";
