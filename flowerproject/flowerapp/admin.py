@@ -48,3 +48,12 @@ class OrderItemAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user']
     search_fields = ['user__username']
+
+
+@admin.register(models.Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ['customer', 'created_at']
+
+@admin.register(models.CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ['cart', 'flower', 'quantity']

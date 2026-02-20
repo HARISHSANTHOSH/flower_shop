@@ -243,3 +243,108 @@ class OrderDetailAPIView(APIView):
         order.save(update_fields=['status'])  # only updates status column, nothing else
 
         return Response({'id': order.id, 'status': order.status})
+
+
+class CartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_cart(self, request):
+        customer = get_object_or_404(models.Customer, user=request.user)
+        cart, _  = models.Cart.objects.get_or_create(customer=customer)
+        return cart
+
+    def get(self, request):
+        cart       = self.get_cart(request)
+        serializer = serializers.CartSerializer(cart)
+        return Response(serializer.data)
+
+    def post(self, request):
+        cart      = self.get_cart(request)
+        flower_id = request.data.get('flower_id')
+        quantity  = int(request.data.get('quantity', 1))
+
+        if not flower_id:
+            return Response({'error': 'flower_id is required'}, status=400)
+
+        flower = get_object_or_404(models.Flower, pk=flower_id)
+
+        existing_qty = 0
+        existing_item = None
+        try:
+            existing_item = models.CartItem.objects.get(cart=cart, flower=flower)
+            existing_qty  = existing_item.quantity
+        except models.CartItem.DoesNotExist:
+            pass
+
+        # stock check against total (existing + new)
+        total_qty = existing_qty + quantity
+        if flower.stock < total_qty:
+            return Response(
+                {'error': f'Only {flower.stock} units available. You already have {existing_qty} in cart.'},
+                status=400
+            )
+
+        # add or increment
+        if existing_item:
+            existing_item.quantity = total_qty
+            existing_item.save(update_fields=['quantity'])
+            created = False
+        else:
+            models.CartItem.objects.create(cart=cart, flower=flower, quantity=quantity)
+            created = True
+
+        serializer = serializers.CartSerializer(cart)
+        return Response(serializer.data, status=201 if created else 200)
+
+
+class CartItemAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_item(self, request, item_id):
+        customer = get_object_or_404(models.Customer, user=request.user)
+        cart     = get_object_or_404(models.Cart, customer=customer)
+        return get_object_or_404(models.CartItem, pk=item_id, cart=cart)
+
+    def patch(self, request, item_id):
+        item     = self.get_item(request, item_id)
+        quantity = request.data.get('quantity')
+
+        if quantity is None:
+            return Response({'error': 'quantity is required'}, status=400)
+
+        quantity = int(quantity)
+        if quantity <= 0:
+            item.delete()
+            return Response({'message': 'Item removed'}, status=200)
+
+        if item.flower.stock < quantity:
+            return Response(
+                {'error': f'Only {item.flower.stock} units available'},
+                status=400
+            )
+
+        item.quantity = quantity
+        item.save(update_fields=['quantity'])
+        return Response(serializers.CartItemSerializer(item).data)
+
+    def delete(self, request, item_id):
+        item = self.get_item(request, item_id)
+        item.delete()
+        return Response({'message': 'Item removed'}, status=200)
+
+
+
+class CustomerOrderListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        customer = get_object_or_404(models.Customer, user=request.user)
+
+        orders = models.Order.objects.filter(
+            customer=customer
+        ).prefetch_related(
+            Prefetch('items', queryset=models.OrderItem.objects.select_related('flower'))
+        ).order_by('-created_at')
+
+        serializer = serializers.OrderSerializer(orders, many=True)
+        return Response(serializer.data)

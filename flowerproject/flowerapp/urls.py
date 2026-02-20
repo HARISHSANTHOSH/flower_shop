@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView
 
 
 urlpatterns = [
@@ -13,7 +13,10 @@ urlpatterns = [
 	path('signin/',login_page,name='signin') ,
 	path('api/v1/orders/',OrderListAPIView.as_view(),name='orders'),
 	path('admin/orders/', admin_orders_page, name='admin-orders-page'),
-	path('api/v1/orders/<int:pk>/', OrderDetailAPIView.as_view())
+	path('api/v1/orders/<int:pk>/', OrderDetailAPIView.as_view()),
+	path('api/v1/cart/',               CartAPIView.as_view()),
+    path('api/v1/cart/<int:item_id>/', CartItemAPIView.as_view()),
+	path('api/v1/my-orders/', CustomerOrderListAPIView.as_view()),
 	
 ]
 
