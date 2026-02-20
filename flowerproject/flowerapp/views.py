@@ -8,6 +8,7 @@ from rest_framework import status
 from django.shortcuts import render
 from flowerapp import models, serializers
 from django.db.models import Q, Sum
+from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
 from django.db import transaction
 from .tasks import send_order_confirmation_email
@@ -223,3 +224,22 @@ class OrderListAPIView(APIView):
         
 def admin_orders_page(request):
     return render(request, 'admin_orders.html')
+
+
+
+class OrderDetailAPIView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def patch(self, request, pk):
+        order = get_object_or_404(models.Order, pk=pk)
+
+        new_status = request.data.get('status')
+
+        allowed = ['pending', 'processing', 'delivered', 'cancelled']
+        if not new_status or new_status.lower() not in allowed:
+            return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
+
+        order.status = new_status.lower()
+        order.save(update_fields=['status'])  # only updates status column, nothing else
+
+        return Response({'id': order.id, 'status': order.status})

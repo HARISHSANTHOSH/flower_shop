@@ -1,311 +1,1123 @@
-<!DOCTYPE html>
 {% load static %}
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bloom Heaven</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #2b8a3e;
-    color: #fff;
-    padding: 12px 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    z-index: 9999;
-    font-weight: 500;
-}
-.toast.error { background: #e74c3c; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body { font-family: Arial, sans-serif; margin: 0; background: #f5f6fa; color: #333; }
-        nav { background: #4a6cf7; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
-        nav h1 { margin: 0; font-size: 1.5rem; }
-        nav a { color: #fff; text-decoration: none; margin-left: 16px; font-weight: 500; }
-
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
-
-        .filters-panel {
-            background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 20px;
+        :root {
+            --cream:     #faf7f2;
+            --warm:      #f2ede4;
+            --brown:     #3d2b1f;
+            --brown-mid: #6b4c3b;
+            --green:     #2d5a3d;
+            --green-hi:  #3d7a52;
+            --green-lo:  rgba(45,90,61,.1);
+            --gold:      #c4923a;
+            --gold-lo:   rgba(196,146,58,.12);
+            --text:      #2a1f17;
+            --muted:     #8a7060;
+            --border:    rgba(61,43,31,.12);
+            --white:     #ffffff;
+            --radius:    14px;
+            --shadow:    0 4px 24px rgba(61,43,31,.10);
+            --shadow-lg: 0 12px 48px rgba(61,43,31,.16);
         }
 
-        .filters-panel label { display: flex; flex-direction: column; font-size: 14px; }
-        .filters-panel select { margin-top: 4px; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; }
+        html { scroll-behavior: smooth; }
 
-        .flower-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; }
-        .flower-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s ease; }
-        .flower-card:hover { transform: translateY(-3px); }
-        .flower-card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
-        .flower-card .details { padding: 12px 14px; }
-        .flower-card h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
-        .flower-card p { margin: 0 0 8px 0; font-size: 0.9rem; color: #555; }
-        .flower-card .price { font-weight: bold; color: #2b8a3e; font-size: 1rem; }
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+        }
 
-        #paginationControls { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 12px; }
-        #paginationControls button { padding: 6px 12px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; }
-        #paginationControls button:disabled { opacity: 0.4; cursor: not-allowed; }
+        /* ── Navbar ── */
+        nav {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            backdrop-filter: blur(12px);
+        }
 
-        @media (max-width: 900px) { .flower-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 550px) { 
-            .flower-grid { grid-template-columns: 1fr; }
-            .filters-panel { flex-direction: column; align-items: stretch; }
-            .filters-panel label { width: 100%; }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-brand .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--green);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .nav-brand h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--brown);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 8px;
+            transition: color .2s, background .2s;
+        }
+        .nav-links a:hover { color: var(--brown); background: var(--warm); }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-btn {
+            background: var(--green);
+            border: none;
+            border-radius: 10px;
+            color: var(--white);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 9px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background .2s, transform .1s;
+            position: relative;
+        }
+        .cart-btn:hover { background: var(--green-hi); }
+        .cart-btn:active { transform: scale(.97); }
+        .cart-count {
+            background: var(--gold);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            height: 18px;
+            width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -6px;
+            right: -6px;
+        }
+
+        .orders-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--brown-mid);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 9px 18px;
+            transition: border-color .2s, background .2s;
+        }
+        .orders-btn:hover { border-color: var(--brown-mid); background: var(--warm); }
+
+        /* ── Hero ── */
+        .hero {
+            background: linear-gradient(135deg, var(--green) 0%, #1a3d2a 100%);
+            padding: 64px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-tag {
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 100px;
+            color: rgba(255,255,255,.9);
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: .08em;
+            margin-bottom: 20px;
+            padding: 5px 16px;
+            text-transform: uppercase;
+        }
+        .hero h2 {
+            color: var(--white);
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 14px;
+        }
+        .hero h2 em { font-style: italic; color: #a8d5b5; }
+        .hero p {
+            color: rgba(255,255,255,.75);
+            font-size: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ── Main ── */
+        .main { max-width: 1280px; margin: 0 auto; padding: 36px 24px 60px; }
+
+        /* ── Filters ── */
+        .filters-bar {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+        }
+        .filters-bar .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+        .filter-select {
+            background: var(--warm);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 32px 8px 12px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a7060' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            transition: border-color .2s;
+        }
+        .filter-select:focus { border-color: var(--green); }
+
+        .results-info {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ── Grid ── */
+        .flower-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            list-style: none;
+        }
+
+        .flower-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: transform .25s, box-shadow .25s;
+            animation: fadeUp .4s ease both;
+        }
+        .flower-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-img-wrap {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            background: var(--warm);
+        }
+        .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .4s ease;
+        }
+        .flower-card:hover .card-img-wrap img { transform: scale(1.06); }
+
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            padding: 3px 8px;
+            text-transform: uppercase;
+        }
+        .stock-in    { background: var(--green-lo); color: var(--green); border: 1px solid rgba(45,90,61,.2); }
+        .stock-low   { background: var(--gold-lo);  color: var(--gold);  border: 1px solid rgba(196,146,58,.2); }
+        .stock-out   { background: rgba(0,0,0,.06); color: var(--muted); border: 1px solid var(--border); }
+
+        .card-category {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(255,255,255,.92);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--brown-mid);
+            padding: 3px 8px;
+        }
+
+        .card-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
+
+        .card-body h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--brown);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .card-body p {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            flex: 1;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+        .price {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--green);
+        }
+        .price span {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--muted);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .btn-cart {
+            flex: 1;
+            background: var(--green-lo);
+            border: 1px solid rgba(45,90,61,.2);
+            border-radius: 8px;
+            color: var(--green);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            transition: background .2s, transform .1s;
+        }
+        .btn-cart:hover { background: rgba(45,90,61,.18); }
+        .btn-cart:active { transform: scale(.97); }
+        .btn-cart:disabled { opacity: .4; cursor: not-allowed; }
+
+        .btn-buy {
+            flex: 1;
+            background: var(--green);
+            border: none;
+            border-radius: 8px;
+            color: var(--white);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px;
+            transition: background .2s, transform .1s;
+        }
+        .btn-buy:hover { background: var(--green-hi); }
+        .btn-buy:active { transform: scale(.97); }
+        .btn-buy:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── Pagination ── */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 40px;
+        }
+        .page-btn {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--brown-mid);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 10px 22px;
+            transition: border-color .2s, background .2s, transform .1s;
+        }
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-lo);
+        }
+        .page-btn:active:not(:disabled) { transform: scale(.97); }
+        .page-btn:disabled { opacity: .35; cursor: not-allowed; }
+        .page-info {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            grid-column: 1 / -1;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            color: var(--brown);
+            margin-bottom: 8px;
+        }
+        .empty-state p { color: var(--muted); font-size: 14px; }
+
+        /* ── Skeleton loader ── */
+        .skeleton-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .skel {
+            background: linear-gradient(90deg, var(--warm) 25%, #e8e2d8 50%, var(--warm) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+        .skel-img  { height: 200px; }
+        .skel-body { padding: 16px 18px; }
+        .skel-line { border-radius: 4px; margin-bottom: 10px; }
+        .skel-line.title { height: 18px; width: 70%; }
+        .skel-line.desc  { height: 13px; width: 100%; }
+        .skel-line.desc2 { height: 13px; width: 60%; }
+        .skel-line.price { height: 20px; width: 40%; margin-top: 14px; }
+        .skel-btns { display: flex; gap: 8px; margin-top: 14px; }
+        .skel-btn  { flex: 1; height: 38px; border-radius: 8px; }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Cart Drawer ── */
+        .overlay {
+            background: rgba(42,31,23,.5);
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            position: fixed;
+            transition: opacity .3s;
+            z-index: 200;
+            backdrop-filter: blur(4px);
+        }
+        .overlay.open { opacity: 1; pointer-events: all; }
+
+        .cart-drawer {
+            background: var(--white);
+            bottom: 0;
+            box-shadow: -8px 0 48px rgba(42,31,23,.16);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            transform: translateX(100%);
+            transition: transform .35s cubic-bezier(.4,0,.2,1);
+            width: min(420px, 100vw);
+            z-index: 201;
+        }
+        .cart-drawer.open { transform: translateX(0); }
+
+        .drawer-header {
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 24px;
+        }
+        .drawer-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--brown);
+        }
+        .drawer-close {
+            background: var(--warm);
+            border: none;
+            border-radius: 8px;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 18px;
+            height: 36px;
+            width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s;
+        }
+        .drawer-close:hover { background: var(--border); color: var(--brown); }
+
+        .drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+        .cart-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        .cart-empty .icon { font-size: 40px; margin-bottom: 12px; }
+        .cart-empty p { font-size: 14px; }
+
+        .cart-item {
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+        }
+        .cart-item img {
+            border-radius: 8px;
+            height: 60px;
+            object-fit: cover;
+            width: 60px;
+            flex-shrink: 0;
+        }
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--brown);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cart-item-info .item-price {
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 500;
+            margin-top: 3px;
+        }
+        .item-qty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .qty-btn {
+            background: var(--warm);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--brown);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            height: 26px;
+            width: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s;
+        }
+        .qty-btn:hover { background: var(--border); }
+        .qty-num { font-size: 13px; font-weight: 600; color: var(--brown); min-width: 20px; text-align: center; }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color .15s;
+        }
+        .remove-btn:hover { color: #e74c3c; }
+
+        .drawer-footer {
+            border-top: 1px solid var(--border);
+            padding: 20px 24px;
+        }
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .cart-total span { font-size: 14px; color: var(--muted); font-weight: 500; }
+        .cart-total strong { font-size: 22px; font-weight: 600; color: var(--green); }
+
+        .checkout-btn {
+            background: var(--green);
+            border: none;
+            border-radius: 10px;
+            color: var(--white);
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px;
+            width: 100%;
+            transition: background .2s, transform .1s;
+        }
+        .checkout-btn:hover { background: var(--green-hi); }
+        .checkout-btn:active { transform: scale(.98); }
+        .checkout-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ── Toast ── */
+        .toast-container {
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            position: fixed;
+            right: 24px;
+            z-index: 999;
+        }
+        .toast {
+            align-items: center;
+            background: var(--brown);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.2);
+            color: var(--white);
+            display: flex;
+            font-size: 13px;
+            font-weight: 500;
+            gap: 10px;
+            padding: 12px 18px;
+            animation: toastIn .3s ease both, toastOut .3s ease 2.7s both;
+        }
+        .toast.success .toast-icon { color: #6ee7a0; }
+        .toast.error   .toast-icon { color: #fca5a5; }
+        .toast.info    .toast-icon { color: #93c5fd; }
+        @keyframes toastIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            nav { padding: 0 16px; }
+            .hero { padding: 40px 20px; }
+            .main { padding: 24px 16px 48px; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav>
-    <h1>Bloom Heaven</h1>
-    <div>
+    <a href="#" class="nav-brand">
+        <div class="logo-icon">🌸</div>
+        <h1>Bloom Heaven</h1>
+    </a>
+    <div class="nav-links">
         <a href="#">Home</a>
-        <a href="#">Categories</a>
         <a href="#">About</a>
         <a href="#">Contact</a>
-        <button type="submit">View Cart</button>
+    </div>
+    <div class="nav-actions">
+        <button class="orders-btn" onclick="window.location.href='/orders/'">My Orders</button>
+        <button class="cart-btn" id="cartToggle">
+            🛒 Cart
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
     </div>
 </nav>
-<div class="container">
-    <!-- Filters Panel -->
-    <div class="filters-panel">
-        <label>
-            Category
-            <select id="categoryFilter">
-                <option value="">All</option>
-                {% for cat in categories %}
-                <option value="{{ cat.id }}">{{ cat.name }}</option>
-                {% endfor %}
-            </select>
-        </label>
 
-        <label>
-            Price
-            <select id="priceFilter">
-                <option value="">All</option>
-                <option value="0-100">₹0 - ₹100</option>
-                <option value="101-500">₹101 - ₹500</option>
-                <option value="501-1000">₹501 - ₹1000</option>
-                <option value="1001-5000">₹1001+</option>
-            </select>
-        </label>
-    </div>
-
-    <ul id="flowerGrid" class="flower-grid"></ul>
-
-    <div id="paginationControls">
-        <button id="prevBtn" disabled>Previous</button>
-        <span id="pageInfo"></span>
-        <button id="nextBtn" disabled>Next</button>
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-content">
+        <span class="hero-tag">Fresh Daily Delivery</span>
+        <h2>Nature's finest,<br><em>delivered to your door</em></h2>
+        <p>Handpicked flowers for every moment — birthdays, anniversaries, or just because.</p>
     </div>
 </div>
 
+<!-- Main Content -->
+<div class="main">
+    <!-- Filters -->
+    <div class="filters-bar">
+        <span class="filter-label">Filter</span>
+        <select class="filter-select" id="categoryFilter">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <select class="filter-select" id="priceFilter">
+            <option value="">All Prices</option>
+            <option value="0-100">Under ₹100</option>
+            <option value="101-500">₹101 – ₹500</option>
+            <option value="501-1000">₹501 – ₹1000</option>
+            <option value="1001-5000">₹1001+</option>
+        </select>
+        <span class="results-info" id="resultsInfo">Loading…</span>
+    </div>
+
+    <!-- Grid -->
+    <ul class="flower-grid" id="flowerGrid"></ul>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <button class="page-btn" id="prevBtn" disabled>← Previous</button>
+        <span class="page-info" id="pageInfo">—</span>
+        <button class="page-btn" id="nextBtn" disabled>Next →</button>
+    </div>
+</div>
+
+<!-- Cart Drawer Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Cart Drawer -->
+<div class="cart-drawer" id="cartDrawer">
+    <div class="drawer-header">
+        <h2>Your Cart</h2>
+        <button class="drawer-close" id="cartClose">✕</button>
+    </div>
+    <div class="drawer-body" id="cartBody">
+        <div class="cart-empty">
+            <div class="icon">🌿</div>
+            <p>Your cart is empty.<br>Add some beautiful flowers!</p>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <div class="cart-total">
+            <span>Total</span>
+            <strong id="cartTotal">₹0.00</strong>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn" disabled>Place Order</button>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
-const API_URL = "http://127.0.0.1:8000/flowerapp/api/v1/flowers/";
-const PLACEHOLDER_IMAGES = [
-    "/media/flowers/IMG20250917130730.jpg",
-    "/media/flowers/IMG20251120162642.jpg",
-    "/media/flowers/IMG20251120162648.jpg",
-    "/media/flowers/IMG20251120162658.jpg",
-    "/media/flowers/IMG20251120162701.jpg",
-    "/media/flowers/IMG20251120162704.jpg",
-    "/media/flowers/IMG20251120162950.jpg"
-];
+    const API_BASE = 'http://127.0.0.1:8000/flowerapp';
+    const PLACEHOLDER = [
+        '/media/flowers/IMG20250917130730.jpg',
+        '/media/flowers/IMG20251120162642.jpg',
+        '/media/flowers/IMG20251120162648.jpg',
+        '/media/flowers/IMG20251120162658.jpg',
+        '/media/flowers/IMG20251120162704.jpg',
+        '/media/flowers/IMG20251120162950.jpg',
+    ];
 
-let currentPage = 1;
-let currentFilters = { category: "", price: "" };
+    // ── Cart state (in-memory until Cart API is built) ────────────────────────
+    let cart = {}; // { flowerId: { flower, quantity } }
 
-function resolveFlowerImage(flower) {
-    if(flower.image){
-        const origin = window.location.origin;
-        return flower.image.startsWith("/") ? `${origin}${flower.image}` : `${origin}/${flower.image}`;
-    }
-    const identifier = flower.id || flower.name || Math.random();
-    const index = Math.abs(typeof identifier==="number"?identifier:identifier.toString().split("").reduce((acc,ch)=>acc+ch.charCodeAt(0),0)) % PLACEHOLDER_IMAGES.length;
-    return PLACEHOLDER_IMAGES[index];
-}
-async function refreshAccessToken() {
-    const refresh = localStorage.getItem("refresh_token");
+    // ── Page state ─────────────────────────────────────────────────────────────
+    let currentPage = 1;
+    let totalPages  = 1;
+    let filters     = { category: '', price: '' };
 
-    if (!refresh) {
-        throw new Error("No refresh token");
-    }
-
-    const res = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh })
-    });
-
-    if (!res.ok) {
-        localStorage.clear();
-        window.location.href = "/login/";
-        throw new Error("Refresh token expired");
-    }
-
-    const data = await res.json();
-    localStorage.setItem("access_token", data.access);
-}
-
-function getAuthHeaders() {
-    const token = localStorage.getItem("access_token");
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-    };
-}
-async function authFetch(url, options = {}) {
-    options.headers = getAuthHeaders();
-
-    let response = await fetch(url, options);
-
-    if (response.status === 401 || response.status === 403) {
-        await refreshAccessToken();
-        options.headers = getAuthHeaders(); // new token
-        response = await fetch(url, options);
-    }
-
-    return response;
-}
-
-
-
-function showToast(message, type="success") {
-    const toast = document.createElement("div");
-    toast.textContent = message;
-    toast.className = `toast ${type}`; // add CSS styles
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-async function fetchFlowers(page = 1) {
-    currentPage = page;
-
-    const url = new URL(API_URL);
-    url.searchParams.set("page", page);
-    if (currentFilters.category) url.searchParams.set("category", currentFilters.category);
-    if (currentFilters.price) url.searchParams.set("price", currentFilters.price);
-
-    try {
-        // ✅ Use authFetch instead of fetch
-        const res = await authFetch(url);
-
-        if (!res.ok) throw new Error("Request failed");
-
+    // ── Auth helpers ───────────────────────────────────────────────────────────
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem('refresh_token');
+        if (!refresh) { window.location.href = '/signin/'; throw new Error('No refresh'); }
+        const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh })
+        });
+        if (!res.ok) { localStorage.clear(); window.location.href = '/signin/'; throw new Error('Expired'); }
         const data = await res.json();
+        localStorage.setItem('access_token', data.access);
+    }
 
-        const grid = document.getElementById("flowerGrid");
-        grid.innerHTML = "";
+    function getHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        };
+    }
 
-        const flowers = Array.isArray(data) ? data : data.results || [];
+    async function authFetch(url, opts = {}) {
+        opts.headers = getHeaders();
+        let res = await fetch(url, opts);
+        if (res.status === 401) {
+            await refreshAccessToken();
+            opts.headers = getHeaders();
+            res = await fetch(url, opts);
+        }
+        return res;
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+        const icons = { success: '✓', error: '✕', info: 'ℹ' };
+        const container = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<span class="toast-icon">${icons[type]}</span>${msg}`;
+        container.appendChild(t);
+        setTimeout(() => t.remove(), 3100);
+    }
+
+    // ── Image helper ───────────────────────────────────────────────────────────
+    function resolveImage(flower) {
+        if (flower.image) {
+            return flower.image.startsWith('/') ? `${window.location.origin}${flower.image}` : flower.image;
+        }
+        const seed = typeof flower.id === 'number' ? flower.id : flower.name.charCodeAt(0);
+        return PLACEHOLDER[Math.abs(seed) % PLACEHOLDER.length];
+    }
+
+    // ── Stock helpers ──────────────────────────────────────────────────────────
+    function stockBadge(flower) {
+        const s = flower.stock ?? 999;
+        if (s === 0)  return { cls: 'stock-out', label: 'Out of Stock' };
+        if (s <= 10)  return { cls: 'stock-low', label: `Only ${s} left` };
+        return { cls: 'stock-in', label: 'In Stock' };
+    }
+
+    // ── Skeleton loaders ───────────────────────────────────────────────────────
+    function renderSkeletons(n = 8) {
+        const grid = document.getElementById('flowerGrid');
+        grid.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            grid.innerHTML += `
+                <li class="skeleton-card">
+                    <div class="skel skel-img"></div>
+                    <div class="skel-body">
+                        <div class="skel skel-line title"></div>
+                        <div class="skel skel-line desc"></div>
+                        <div class="skel skel-line desc2"></div>
+                        <div class="skel skel-line price"></div>
+                        <div class="skel-btns">
+                            <div class="skel skel-btn"></div>
+                            <div class="skel skel-btn"></div>
+                        </div>
+                    </div>
+                </li>`;
+        }
+    }
+
+    // ── Fetch & render flowers ─────────────────────────────────────────────────
+    async function fetchFlowers(page = 1) {
+        currentPage = page;
+        renderSkeletons();
+
+        const url = new URL(`${API_BASE}/api/v1/flowers/`);
+        url.searchParams.set('page', page);
+        if (filters.category) url.searchParams.set('category', filters.category);
+        if (filters.price)    url.searchParams.set('price', filters.price);
+
+        try {
+            const res = await authFetch(url.toString());
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+
+            const flowers = Array.isArray(data) ? data : (data.results || []);
+            const total   = data.count ?? flowers.length;
+            const pgSize  = data.results ? (data.results.length || 10) : flowers.length;
+            totalPages    = Math.max(1, Math.ceil(total / (pgSize || 10)));
+
+            document.getElementById('resultsInfo').textContent =
+                `${total} flower${total !== 1 ? 's' : ''} found`;
+
+            renderFlowers(flowers);
+            updatePagination(data.previous, data.next);
+
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to load flowers', 'error');
+        }
+    }
+
+    function renderFlowers(flowers) {
+        const grid = document.getElementById('flowerGrid');
+        grid.innerHTML = '';
 
         if (!flowers.length) {
-            const empty = document.createElement("li");
-            empty.className = "flower-card";
-            empty.innerHTML = `<div class="details"><strong>No flowers found.</strong></div>`;
-            grid.appendChild(empty);
-        } else {
-            flowers.forEach(flower => {
-                const li = document.createElement("li");
-                li.className = "flower-card";
-
-                const img = document.createElement("img");
-                img.src = resolveFlowerImage(flower);
-                img.alt = flower.name;
-                img.loading = "lazy";
-
-                const details = document.createElement("div");
-                details.className = "details";
-                details.innerHTML = `
-                    <h3>${flower.name}</h3>
-                    <p>${flower.description || "No description."}</p>
-                    <div class="price">₹${flower.price}</div>
-                `;
-                // ✅ Add buttons here
-                const buttonsDiv = document.createElement("div");
-                buttonsDiv.style.display = "flex";
-                buttonsDiv.style.gap = "10px";
-                buttonsDiv.style.marginTop = "8px";
-
-                const addToCartBtn = document.createElement("button");
-                addToCartBtn.textContent = "Add to Cart";
-                addToCartBtn.className = "add-to-cart";
-                addToCartBtn.addEventListener("click", () => {
-                    // simple cart logic
-                    alert(`Added ${flower.name} to cart`);
-                });
-
-                const buyNowBtn = document.createElement("button");
-                buyNowBtn.textContent = "Buy Now";
-                buyNowBtn.className = "buy-now";
-                buyNowBtn.addEventListener("click", async () => {
-                    // call buy-now API
-                    try {
-                        const res = await authFetch("http://127.0.0.1:8000/flowerapp/api/buy-now/", {
-                            method: "POST",
-                            body: JSON.stringify({ flowers: [flower.id] })
-                        });
-                        const data = await res.json();
-                        alert(`Order placed! Order ID: ${data.order_id}`);
-                    } catch (err) {
-                        console.error(err);
-                        alert("Failed to place order");
-                    }
-                });
-
-                buttonsDiv.appendChild(addToCartBtn);
-                buttonsDiv.appendChild(buyNowBtn);
-
-                details.appendChild(buttonsDiv);  // append buttons below price
-
-                li.appendChild(img);
-                li.appendChild(details);
-                grid.appendChild(li);
-            });
+            grid.innerHTML = `
+                <li class="empty-state">
+                    <div class="icon">🌾</div>
+                    <h3>No flowers found</h3>
+                    <p>Try adjusting your filters</p>
+                </li>`;
+            return;
         }
 
-        // ✅ Pagination (unchanged)
-        const prevBtn = document.getElementById("prevBtn");
-        const nextBtn = document.getElementById("nextBtn");
-        const pageInfo = document.getElementById("pageInfo");
+        flowers.forEach((flower, idx) => {
+            const badge    = stockBadge(flower);
+            const outOfStock = (flower.stock ?? 999) === 0;
+            const imgSrc   = resolveImage(flower);
 
-        const pageSize = flowers.length || 1;
-        const totalCount = data.count ?? flowers.length;
-        const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+            const li = document.createElement('li');
+            li.className = 'flower-card';
+            li.style.animationDelay = `${idx * 0.05}s`;
 
-        prevBtn.disabled = !data.previous;
-        nextBtn.disabled = !data.next;
-        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            li.innerHTML = `
+                <div class="card-img-wrap">
+                    <img src="${imgSrc}" alt="${flower.name}" loading="lazy">
+                    <span class="stock-badge ${badge.cls}">${badge.label}</span>
+                    ${flower.category_name ? `<span class="card-category">${flower.category_name}</span>` : ''}
+                </div>
+                <div class="card-body">
+                    <h3>${flower.name}</h3>
+                    <p>${flower.description || 'A beautiful flower for every occasion.'}</p>
+                    <div class="card-footer">
+                        <div class="price">₹${parseFloat(flower.price).toFixed(2)} <span>/ stem</span></div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-cart" data-id="${flower.id}" ${outOfStock ? 'disabled' : ''}>
+                            🛒 Add to Cart
+                        </button>
+                        <button class="btn-buy" data-id="${flower.id}" ${outOfStock ? 'disabled' : ''}>
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+            `;
 
-    } catch (err) {
-        console.error(err);
-        alert("Session expired. Please login again.");
-        window.location.href = "/login/";
+            // Add to cart
+            li.querySelector('.btn-cart').addEventListener('click', () => {
+                addToCart(flower);
+            });
+
+            // Buy now
+            li.querySelector('.btn-buy').addEventListener('click', () => {
+                buyNow(flower);
+            });
+
+            grid.appendChild(li);
+        });
     }
-}
 
+    // ── Pagination ─────────────────────────────────────────────────────────────
+    function updatePagination(prev, next) {
+        document.getElementById('prevBtn').disabled = !prev;
+        document.getElementById('nextBtn').disabled = !next;
+        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    }
 
+    // ── Cart logic ─────────────────────────────────────────────────────────────
+    function addToCart(flower) {
+        if (cart[flower.id]) {
+            cart[flower.id].quantity += 1;
+        } else {
+            cart[flower.id] = { flower, quantity: 1 };
+        }
+        updateCartUI();
+        showToast(`${flower.name} added to cart 🌸`, 'success');
+    }
 
+    function removeFromCart(flowerId) {
+        delete cart[flowerId];
+        updateCartUI();
+        renderCartDrawer();
+    }
 
-// **Auto filter on dropdown change**
-document.getElementById("categoryFilter").addEventListener("change", e=>{
-    currentFilters.category = e.target.value;
+    function updateQty(flowerId, delta) {
+        if (!cart[flowerId]) return;
+        cart[flowerId].quantity += delta;
+        if (cart[flowerId].quantity <= 0) {
+            delete cart[flowerId];
+        }
+        updateCartUI();
+        renderCartDrawer();
+    }
+
+    function updateCartUI() {
+        const items     = Object.values(cart);
+        const itemCount = items.reduce((s, i) => s + i.quantity, 0);
+        const total     = items.reduce((s, i) => s + i.quantity * parseFloat(i.flower.price), 0);
+
+        document.getElementById('cartCount').textContent  = itemCount;
+        document.getElementById('cartTotal').textContent  = `₹${total.toFixed(2)}`;
+        document.getElementById('checkoutBtn').disabled   = itemCount === 0;
+    }
+
+    function renderCartDrawer() {
+        const body  = document.getElementById('cartBody');
+        const items = Object.values(cart);
+
+        if (!items.length) {
+            body.innerHTML = `
+                <div class="cart-empty">
+                    <div class="icon">🌿</div>
+                    <p>Your cart is empty.<br>Add some beautiful flowers!</p>
+                </div>`;
+            return;
+        }
+
+        body.innerHTML = '';
+        items.forEach(({ flower, quantity }) => {
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            div.innerHTML = `
+                <img src="${resolveImage(flower)}" alt="${flower.name}">
+                <div class="cart-item-info">
+                    <h4>${flower.name}</h4>
+                    <div class="item-price">₹${(parseFloat(flower.price) * quantity).toFixed(2)}</div>
+                    <div class="item-qty">
+                        <button class="qty-btn" data-id="${flower.id}" data-delta="-1">−</button>
+                        <span class="qty-num">${quantity}</span>
+                        <button class="qty-btn" data-id="${flower.id}" data-delta="1">+</button>
+                    </div>
+                </div>
+                <button class="remove-btn" data-id="${flower.id}">✕</button>
+            `;
+            div.querySelectorAll('.qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => updateQty(flower.id, parseInt(btn.dataset.delta)));
+            });
+            div.querySelector('.remove-btn').addEventListener('click', () => removeFromCart(flower.id));
+            body.appendChild(div);
+        });
+    }
+
+    // ── Buy Now ────────────────────────────────────────────────────────────────
+    async function buyNow(flower) {
+        try {
+            const res = await authFetch(`${API_BASE}/api/buy-now/`, {
+                method: 'POST',
+                body: JSON.stringify({ flowers: [flower.id] })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`Order placed! Order #${data.order_id} 🎉`, 'success');
+            } else {
+                showToast(data.error || 'Failed to place order', 'error');
+            }
+        } catch (err) {
+            showToast('Network error. Try again.', 'error');
+        }
+    }
+
+    // ── Checkout (cart → order) ────────────────────────────────────────────────
+    async function checkout() {
+        const flowerIds = Object.values(cart).flatMap(({ flower, quantity }) =>
+            Array(quantity).fill(flower.id)
+        );
+
+        if (!flowerIds.length) return;
+
+        document.getElementById('checkoutBtn').disabled = true;
+        document.getElementById('checkoutBtn').textContent = 'Placing Order…';
+
+        try {
+            const res = await authFetch(`${API_BASE}/api/buy-now/`, {
+                method: 'POST',
+                body: JSON.stringify({ flowers: flowerIds })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                cart = {};
+                updateCartUI();
+                renderCartDrawer();
+                closeCart();
+                showToast(`Order #${data.order_id} placed successfully! 🎉`, 'success');
+            } else {
+                showToast(data.error || 'Checkout failed', 'error');
+            }
+        } catch (err) {
+            showToast('Network error. Try again.', 'error');
+        } finally {
+            document.getElementById('checkoutBtn').disabled = false;
+            document.getElementById('checkoutBtn').textContent = 'Place Order';
+        }
+    }
+
+    // ── Cart drawer open/close ─────────────────────────────────────────────────
+    function openCart() {
+        renderCartDrawer();
+        document.getElementById('cartDrawer').classList.add('open');
+        document.getElementById('overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCart() {
+        document.getElementById('cartDrawer').classList.remove('open');
+        document.getElementById('overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────────────
+    document.getElementById('cartToggle').addEventListener('click', openCart);
+    document.getElementById('cartClose').addEventListener('click', closeCart);
+    document.getElementById('overlay').addEventListener('click', closeCart);
+    document.getElementById('checkoutBtn').addEventListener('click', checkout);
+
+    document.getElementById('categoryFilter').addEventListener('change', e => {
+        filters.category = e.target.value;
+        fetchFlowers(1);
+    });
+    document.getElementById('priceFilter').addEventListener('change', e => {
+        filters.price = e.target.value;
+        fetchFlowers(1);
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentPage > 1) fetchFlowers(currentPage - 1);
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        fetchFlowers(currentPage + 1);
+    });
+
+    // ── Init ───────────────────────────────────────────────────────────────────
     fetchFlowers(1);
-});
-document.getElementById("priceFilter").addEventListener("change", e=>{
-    currentFilters.price = e.target.value;
-    fetchFlowers(1);
-});
-
-
-
-// Pagination
-document.getElementById("prevBtn").addEventListener("click", ()=>{ if(currentPage>1) fetchFlowers(currentPage-1); });
-document.getElementById("nextBtn").addEventListener("click", ()=> fetchFlowers(currentPage+1));
-
-// Initial fetch
-fetchFlowers(1);
 </script>
-
 </body>
 </html>

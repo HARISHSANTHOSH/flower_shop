@@ -282,6 +282,23 @@
             font-family: var(--mono);
             font-size: 12px;
         }
+        .status-select {
+            border: none;
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: .04em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            outline: none;
+            text-transform: uppercase;
+        }
+        .status-select option { background: #1e2330; color: var(--text); }
+        .badge-pending   { background: var(--amber-lo);  color: var(--amber);  }
+        .badge-processing{ background: var(--accent-lo); color: var(--accent); }
+        .badge-delivered { background: var(--green-lo);  color: var(--green);  }
+        .badge-cancelled { background: var(--red-lo);    color: var(--red);    }
         .page-btns { display: flex; gap: 6px; }
         .page-btn {
             background: var(--surface);
@@ -525,7 +542,16 @@
             tr.innerHTML = `
                 <td><span class="order-id">#${order.id}</span></td>
                 <td><span class="customer-name">${escHtml(order.customer_username || '—')}</span></td>
-                <td><span class="badge badge-${statusKey}">${escHtml(order.status || '—')}</span></td>
+                <td>
+                    <select class="status-select badge badge-${statusKey}" 
+                            data-order-id="${order.id}"
+                            onchange="updateStatus(this)">
+                        <option value="pending"     ${statusKey==='pending'     ? 'selected':''}>Pending</option>
+                        <option value="processing"  ${statusKey==='processing'  ? 'selected':''}>Processing</option>
+                        <option value="delivered"   ${statusKey==='delivered'   ? 'selected':''}>Delivered</option>
+                        <option value="cancelled"   ${statusKey==='cancelled'   ? 'selected':''}>Cancelled</option>
+                    </select>
+                </td>
                 <td><div class="items-list">${itemsHtml || '—'}</div></td>
                 <td><span class="total-price">$${total.toFixed(2)}</span></td>
                 <td><span class="date-cell">${dateStr}</span></td>
@@ -533,6 +559,40 @@
             tbody.appendChild(tr);
         });
     }
+
+    async function updateStatus(selectEl) {
+            const orderId = selectEl.dataset.orderId;
+            const newStatus = selectEl.value;
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch(
+                    `${BASE_URL}/api/v1/orders/${orderId}/`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ status: newStatus }),
+                    }
+                );
+
+                if (response.ok) {
+                    // update dropdown color to match new status
+                    selectEl.className = 'status-select badge';
+                    selectEl.classList.add(`badge-${newStatus}`);
+                    showToast(`Order #${orderId} → ${newStatus}`);
+                } else {
+                    showToast('Failed to update status');
+                    // revert dropdown visually by re-fetching
+                    fetchOrders(state.page);
+                }
+            } catch (err) {
+                showToast('Network error');
+                fetchOrders(state.page);
+            }
+        }
 
     // ── Pagination controls ───────────────────────────────────────────────────
     function renderPagination() {
