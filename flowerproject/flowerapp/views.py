@@ -1,15 +1,20 @@
 from django.http import HttpResponse
 from rest_framework.response import Response
+
+from .permissions import IsSuperAdmin
+from django.contrib.auth import authenticate, login
 from rest_framework.views import APIView
 from rest_framework import status
 from django.shortcuts import render
 from flowerapp import models, serializers
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.db.models import Prefetch
 from django.db import transaction
 from .tasks import send_order_confirmation_email
 from .pagination import FlowerPagination
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SignupSerializer
+from .serializers import SignupSerializer,LoginSerializer
+from .paginator import AdminOrderPagination
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -62,9 +67,33 @@ def flower_page(request):
     categories = models.Category.objects.all().order_by("name")
     return render(request, "flowers.html", {"categories": categories})
 
-
 def login_page(request):
-    return render(request, "login.html")
+    return render(request,"login.html")
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            "username": request.user.username,
+            "role": request.user.profile.role
+        })
+
+class LoginAPIView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+        print("username",username)
+        password = serializer.validated_data['password']
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 def signup_page(request):
     return render(request, "signup.html")
@@ -116,4 +145,81 @@ class SignupAPIView(APIView):
             },
             "refresh": str(refresh),
             "access": str(refresh.access_token)
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED)   
+
+
+class OrderListAPIView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def get(self, request):
+
+        queryset = models.Order.objects.prefetch_related(
+            Prefetch(
+                'items',
+                queryset=models.OrderItem.objects.select_related('flower')
+            )
+        ).select_related('customer')
+
+       
+
+        # -------- Filters --------
+
+        customer = request.query_params.get('customer')
+        status = request.query_params.get('status')
+        flower_name = request.query_params.get('flower_name')
+
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        total_min = request.query_params.get('total_min')
+        total_max = request.query_params.get('total_max')
+
+        ordering = request.query_params.get('ordering', '-created_at')
+
+        filters = Q()
+
+        if customer:
+            filters &= Q(customer__user__username__icontains=customer)
+
+        if status:
+            filters &= Q(status__iexact=status)
+
+        if flower_name:
+            filters &= Q(items__flower__name__icontains=flower_name)
+
+        if date_from:
+            filters &= Q(created_at__date__gte=date_from)
+
+        if date_to:
+            filters &= Q(created_at__date__lte=date_to)
+
+        if total_min:
+            filters &= Q(total_amount__gte=total_min)
+
+        if total_max:
+            filters &= Q(total_amount__lte=total_max)
+
+        queryset = queryset.filter(filters).distinct()
+
+        # Safe ordering whitelist
+        allowed_ordering = [
+            'created_at',
+            '-created_at',
+            'total_amount',
+            '-total_amount'
+        ]
+
+        if ordering in allowed_ordering:
+            queryset = queryset.order_by(ordering)
+
+        # Pagination
+        paginator = AdminOrderPagination()
+        page = paginator.paginate_queryset(queryset, request)
+
+        serializer = serializers.OrderSerializer(page, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
+
+        
+def admin_orders_page(request):
+    return render(request, 'admin_orders.html')

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Orders</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0f1117;
+            --surface:   #181c27;
+            --border:    #252a38;
+            --border-hi: #353c52;
+            --text:      #e2e8f0;
+            --muted:     #6b7a99;
+            --accent:    #7c6af7;
+            --accent-lo: rgba(124,106,247,.12);
+            --green:     #34d399;
+            --green-lo:  rgba(52,211,153,.12);
+            --amber:     #fbbf24;
+            --amber-lo:  rgba(251,191,36,.12);
+            --red:       #f87171;
+            --red-lo:    rgba(248,113,113,.12);
+            --blue:      #60a5fa;
+            --radius:    10px;
+            --mono:      'DM Mono', monospace;
+            --sans:      'DM Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            padding: 32px 24px;
+        }
+
+        /* ── Header ── */
+        .page-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -.4px;
+        }
+        .page-header .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        /* ── Filter Panel ── */
+        .filter-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .filter-panel h2 {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .filter-group input,
+        .filter-group select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 13px;
+            padding: 8px 11px;
+            outline: none;
+            transition: border-color .15s;
+            width: 100%;
+        }
+        .filter-group input:focus,
+        .filter-group select:focus {
+            border-color: var(--accent);
+        }
+        .filter-group input::placeholder { color: var(--muted); }
+        .filter-group select option { background: #1e2330; }
+
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 18px;
+            transition: opacity .15s, transform .1s;
+        }
+        .btn:active { transform: scale(.97); }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover { opacity: .88; }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+        .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+
+        /* ── Results bar ── */
+        .results-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            min-height: 28px;
+        }
+        .results-count {
+            font-size: 12px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+        .ordering-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            font-family: var(--sans);
+            font-size: 12px;
+            padding: 5px 10px;
+            outline: none;
+            cursor: pointer;
+        }
+        .ordering-select:focus { border-color: var(--accent); color: var(--text); }
+        .ordering-select option { background: #1e2330; }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        thead th {
+            background: rgba(255,255,255,.03);
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: .08em;
+            padding: 11px 16px;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .1s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,.025); }
+        tbody td {
+            color: var(--text);
+            font-size: 13px;
+            padding: 13px 16px;
+            vertical-align: top;
+        }
+        .order-id {
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+        .customer-name { font-weight: 500; }
+
+        /* status badges */
+        .badge {
+            border-radius: 4px;
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: .04em;
+            padding: 3px 8px;
+            text-transform: uppercase;
+        }
+        .badge-pending  { background: var(--amber-lo); color: var(--amber); }
+        .badge-processing { background: var(--accent-lo); color: var(--accent); }
+        .badge-delivered,
+        .badge-completed { background: var(--green-lo);  color: var(--green); }
+        .badge-cancelled { background: var(--red-lo);    color: var(--red); }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .item-pill {
+            background: rgba(255,255,255,.05);
+            border-radius: 4px;
+            color: var(--text);
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 7px;
+            white-space: nowrap;
+        }
+        .total-price {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--green);
+        }
+        .date-cell {
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        /* empty / loading */
+        .state-row td {
+            padding: 48px 16px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border-hi);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin .7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Pagination ── */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding: 0 2px;
+        }
+        .page-info {
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+        .page-btns { display: flex; gap: 6px; }
+        .page-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 12px;
+            padding: 6px 14px;
+            transition: border-color .15s, color .15s;
+        }
+        .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+        .page-btn:disabled { opacity: .35; cursor: default; }
+
+        /* ── Toast ── */
+        #toast {
+            background: var(--red);
+            border-radius: 8px;
+            bottom: 24px;
+            color: #fff;
+            display: none;
+            font-size: 13px;
+            left: 50%;
+            padding: 10px 20px;
+            position: fixed;
+            transform: translateX(-50%);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>Orders</h1>
+    <span class="subtitle">admin panel</span>
+</div>
+
+<!-- Filters -->
+<div class="filter-panel">
+    <h2>Filters</h2>
+    <div class="filters-grid">
+        <div class="filter-group">
+            <label>Customer</label>
+            <input type="text" id="filterCustomer" placeholder="username…">
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="filterStatus">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Flower Name</label>
+            <input type="text" id="filterFlower" placeholder="e.g. rose…">
+        </div>
+        <div class="filter-group">
+            <label>Date From</label>
+            <input type="date" id="filterDateFrom">
+        </div>
+        <div class="filter-group">
+            <label>Date To</label>
+            <input type="date" id="filterDateTo">
+        </div>
+        <div class="filter-group">
+            <label>Min Total ($)</label>
+            <input type="number" id="filterTotalMin" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="filter-group">
+            <label>Max Total ($)</label>
+            <input type="number" id="filterTotalMax" placeholder="any" min="0" step="0.01">
+        </div>
+    </div>
+    <div class="filter-actions">
+        <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+        <button class="btn btn-ghost" id="clearFilters">Clear</button>
+    </div>
+</div>
+
+<!-- Results bar -->
+<div class="results-bar">
+    <span class="results-count" id="resultsCount">—</span>
+    <select class="ordering-select" id="orderingSelect">
+        <option value="-created_at">Newest first</option>
+        <option value="created_at">Oldest first</option>
+        <option value="-total_amount">Highest total</option>
+        <option value="total_amount">Lowest total</option>
+    </select>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="ordersBody">
+            <tr class="state-row">
+                <td colspan="6"><span class="spinner"></span> Loading…</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+    <span class="page-info" id="pageInfo">—</span>
+    <div class="page-btns">
+        <button class="page-btn" id="btnPrev" disabled>← Prev</button>
+        <button class="page-btn" id="btnNext" disabled>Next →</button>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const BASE_URL = 'http://127.0.0.1:8000/flowerapp';
+    const PAGE_SIZE = 10; // must match AdminOrderPagination.page_size
+
+    let state = {
+        page: 1,
+        totalCount: 0,
+        next: null,
+        previous: null,
+    };
+
+    // ── Read filter values ────────────────────────────────────────────────────
+    function getFilters() {
+        return {
+            customer:   document.getElementById('filterCustomer').value.trim(),
+            status:     document.getElementById('filterStatus').value,
+            flower_name:document.getElementById('filterFlower').value.trim(),
+            date_from:  document.getElementById('filterDateFrom').value,
+            date_to:    document.getElementById('filterDateTo').value,
+            total_min:  document.getElementById('filterTotalMin').value.trim(),
+            total_max:  document.getElementById('filterTotalMax').value.trim(),
+            ordering:   document.getElementById('orderingSelect').value,
+        };
+    }
+
+    // ── Build query string (skip empty values) ────────────────────────────────
+    function buildQueryString(filters, page) {
+        const params = new URLSearchParams({ page });
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v !== '' && v !== null && v !== undefined) params.append(k, v);
+        });
+        return params.toString();
+    }
+
+    // ── Fetch orders ──────────────────────────────────────────────────────────
+    async function fetchOrders(page = 1) {
+        state.page = page;
+        const filters = getFilters();
+        const qs = buildQueryString(filters, page);
+        const url = `${BASE_URL}/api/v1/orders/?${qs}`;
+
+        setLoading(true);
+
+        const token = localStorage.getItem('access_token');
+        let response;
+        try {
+            response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+        } catch (err) {
+            showToast('Network error — could not reach server.');
+            setLoading(false);
+            return;
+        }
+
+        if (response.status === 401) {
+            window.location.href = '/signin/';
+            return;
+        }
+        if (!response.ok) {
+            showToast(`Error ${response.status}: ${response.statusText}`);
+            setLoading(false);
+            return;
+        }
+
+        const data = await response.json();
+        state.totalCount = data.count;
+        state.next       = data.next;
+        state.previous   = data.previous;
+
+        renderOrders(data.results);
+        renderPagination();
+        updateResultsCount();
+        syncURL(filters, page);
+        setLoading(false);
+    }
+
+    // ── Render table rows ─────────────────────────────────────────────────────
+    function renderOrders(orders) {
+        const tbody = document.getElementById('ordersBody');
+        tbody.innerHTML = '';
+
+        if (!orders || orders.length === 0) {
+            tbody.innerHTML = '<tr class="state-row"><td colspan="6">No orders found.</td></tr>';
+            return;
+        }
+
+        orders.forEach(order => {
+            // items
+            const itemsHtml = (order.items || []).map(item =>
+                `<span class="item-pill">${escHtml(item.flower_name)} ×${item.quantity}</span>`
+            ).join('');
+
+            // total — prefer annotated total_amount, fall back to summing items
+            let total = parseFloat(order.total_amount);
+            if (isNaN(total)) {
+                total = (order.items || []).reduce(
+                    (s, i) => s + parseFloat(i.unit_price || 0) * (i.quantity || 1), 0
+                );
+            }
+
+            // date
+            const dateStr = order.created_at
+                ? new Date(order.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                  })
+                : '—';
+
+            const statusKey = (order.status || '').toLowerCase();
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="order-id">#${order.id}</span></td>
+                <td><span class="customer-name">${escHtml(order.customer_username || '—')}</span></td>
+                <td><span class="badge badge-${statusKey}">${escHtml(order.status || '—')}</span></td>
+                <td><div class="items-list">${itemsHtml || '—'}</div></td>
+                <td><span class="total-price">$${total.toFixed(2)}</span></td>
+                <td><span class="date-cell">${dateStr}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ── Pagination controls ───────────────────────────────────────────────────
+    function renderPagination() {
+        const totalPages = Math.ceil(state.totalCount / PAGE_SIZE) || 1;
+        document.getElementById('btnPrev').disabled = !state.previous;
+        document.getElementById('btnNext').disabled = !state.next;
+        document.getElementById('pageInfo').textContent =
+            `Page ${state.page} of ${totalPages}`;
+    }
+
+    function updateResultsCount() {
+        document.getElementById('resultsCount').textContent =
+            `${state.totalCount} order${state.totalCount !== 1 ? 's' : ''} found`;
+    }
+
+    // ── Loading state ─────────────────────────────────────────────────────────
+    function setLoading(yes) {
+        if (yes) {
+            document.getElementById('ordersBody').innerHTML =
+                '<tr class="state-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+            document.getElementById('btnPrev').disabled = true;
+            document.getElementById('btnNext').disabled = true;
+        }
+    }
+
+    // ── Sync URL without reload ───────────────────────────────────────────────
+    function syncURL(filters, page) {
+        const params = new URLSearchParams({ page });
+        Object.entries(filters).forEach(([k, v]) => {
+            if (v !== '') params.append(k, v);
+        });
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }
+
+    // ── Restore filters from URL on page load ─────────────────────────────────
+    function restoreFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const set = (id, key) => { if (params.get(key)) document.getElementById(id).value = params.get(key); };
+        set('filterCustomer',  'customer');
+        set('filterStatus',    'status');
+        set('filterFlower',    'flower_name');
+        set('filterDateFrom',  'date_from');
+        set('filterDateTo',    'date_to');
+        set('filterTotalMin',  'total_min');
+        set('filterTotalMax',  'total_max');
+        set('orderingSelect',  'ordering');
+        return parseInt(params.get('page') || '1', 10);
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    // ── XSS helper ───────────────────────────────────────────────────────────
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ── Event listeners ───────────────────────────────────────────────────────
+    document.getElementById('applyFilters').addEventListener('click', () => fetchOrders(1));
+
+    document.getElementById('clearFilters').addEventListener('click', () => {
+        ['filterCustomer','filterFlower','filterDateFrom','filterDateTo',
+         'filterTotalMin','filterTotalMax'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('filterStatus').value    = '';
+        document.getElementById('orderingSelect').value  = '-created_at';
+        fetchOrders(1);
+    });
+
+    document.getElementById('orderingSelect').addEventListener('change', () => fetchOrders(1));
+
+    document.getElementById('btnPrev').addEventListener('click', () => {
+        if (state.previous) fetchOrders(state.page - 1);
+    });
+    document.getElementById('btnNext').addEventListener('click', () => {
+        if (state.next) fetchOrders(state.page + 1);
+    });
+
+    // Enter key on any filter input
+    document.querySelectorAll('.filter-group input').forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrders(1); });
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    const startPage = restoreFromURL();
+    fetchOrders(startPage);
+</script>
+</body>
+</html>
