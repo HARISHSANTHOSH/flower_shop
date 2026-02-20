@@ -83,3 +83,29 @@ class SignupSerializer(serializers.ModelSerializer):
         models.Customer.objects.create(user=user)
         return user
 
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    flower_name  = serializers.CharField(source='flower.name', read_only=True)
+    flower_image = serializers.ImageField(source='flower.image', read_only=True)
+    unit_price   = serializers.DecimalField(source='flower.price', max_digits=10, decimal_places=2, read_only=True)
+    total_price  = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = models.CartItem
+        fields = ['id', 'flower', 'flower_name', 'flower_image', 'unit_price', 'quantity', 'total_price']
+
+    def get_total_price(self, obj):
+        return obj.get_total_price()
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items       = CartItemSerializer(many=True, read_only=True)
+    grand_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = models.Cart
+        fields = ['id', 'items', 'grand_total']
+
+    def get_grand_total(self, obj):
+        return sum(item.get_total_price() for item in obj.items.all())
