@@ -157,9 +157,11 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         const profileRes = await fetch("http://127.0.0.1:8000/flowerapp/api/me/", {
         headers: { "Authorization": `Bearer ${data.access}` }
     });
+   
     console.log("Token being sent:", data.access); // check if token exists
     console.log("Profile response status:", profileRes.status);
     const profile = await profileRes.json();
+   
 
     showToast(`Welcome back, ${username}!`, "success");
 

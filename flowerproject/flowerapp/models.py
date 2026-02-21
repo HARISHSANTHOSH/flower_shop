@@ -72,15 +72,33 @@ class Customer(models.Model):
 class Order(models.Model):
     # Defining choices within the model class
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
+        ('payment_pending', 'Payment Pending'),  
+        ('payment_failed',  'Payment Failed'),   
+        ('confirmed',       'Confirmed'),        
+        ('processing',      'Processing'),
+        ('shipped',         'Shipped'),
+        ('delivered',       'Delivered'),
+        ('cancelled',       'Cancelled'),
+        ('refunded',        'Refunded'),        
     )
+
 
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='orders')
     order_date = models.DateTimeField(auto_now_add=True)
+    PAYMENT_METHOD_CHOICES = [
+    ('cod',    'Cash on Delivery'),
+    ('online', 'Online Payment'),
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('pending',  'Pending'),
+        ('paid',     'Paid'),
+        ('failed',   'Failed'),
+    ]
+
+    payment_method      = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default='cod')
+    payment_status      = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    razorpay_order_id   = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     
     # Referencing the choices using the class variable
     status = models.CharField(

@@ -222,6 +222,14 @@
         .badge-delivered,
         .badge-completed { background: var(--green-lo);  color: var(--green); }
         .badge-cancelled { background: var(--red-lo);    color: var(--red); }
+        .badge-payment_pending { background: var(--amber-lo);  color: var(--amber); }
+        .badge-payment_failed  { background: var(--red-lo);    color: var(--red);   }
+        .badge-confirmed       { background: var(--accent-lo); color: var(--accent);}
+        .badge-shipped         { background: rgba(96,165,250,.12); color: var(--blue); }
+        .badge-processing      { background: var(--accent-lo); color: var(--accent); }
+        .badge-delivered       { background: var(--green-lo);  color: var(--green); }
+        .badge-cancelled       { background: var(--red-lo);    color: var(--red);   }
+        .badge-refunded        { background: rgba(255,255,255,.08); color: var(--muted); }
 
         .items-list {
             display: flex;
@@ -349,10 +357,14 @@
             <label>Status</label>
             <select id="filterStatus">
                 <option value="">All statuses</option>
-                <option value="pending">Pending</option>
+                <option value="payment_pending">Payment Pending</option>
+                <option value="payment_failed">Payment Failed</option>
+                <option value="confirmed">Confirmed</option>
                 <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
             </select>
         </div>
         <div class="filter-group">
@@ -546,10 +558,14 @@
                     <select class="status-select badge badge-${statusKey}" 
                             data-order-id="${order.id}"
                             onchange="updateStatus(this)">
-                        <option value="pending"     ${statusKey==='pending'     ? 'selected':''}>Pending</option>
-                        <option value="processing"  ${statusKey==='processing'  ? 'selected':''}>Processing</option>
-                        <option value="delivered"   ${statusKey==='delivered'   ? 'selected':''}>Delivered</option>
-                        <option value="cancelled"   ${statusKey==='cancelled'   ? 'selected':''}>Cancelled</option>
+                        <option value="payment_pending" ${statusKey==='payment_pending' ? 'selected':''}>Payment Pending</option>
+                        <option value="payment_failed"  ${statusKey==='payment_failed'  ? 'selected':''}>Payment Failed</option>
+                        <option value="confirmed"       ${statusKey==='confirmed'       ? 'selected':''}>Confirmed</option>
+                        <option value="processing"      ${statusKey==='processing'      ? 'selected':''}>Processing</option>
+                        <option value="shipped"         ${statusKey==='shipped'         ? 'selected':''}>Shipped</option>
+                        <option value="delivered"       ${statusKey==='delivered'       ? 'selected':''}>Delivered</option>
+                        <option value="cancelled"       ${statusKey==='cancelled'       ? 'selected':''}>Cancelled</option>
+                        <option value="refunded"        ${statusKey==='refunded'        ? 'selected':''}>Refunded</option>
                     </select>
                 </td>
                 <td><div class="items-list">${itemsHtml || '—'}</div></td>

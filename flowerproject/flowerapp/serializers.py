@@ -37,12 +37,19 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     # Use the FlowerSerializer (or a lighter version) for better readability
-    flower_name = serializers.CharField(source='flower.name', read_only=True)
+    flower_name  = serializers.CharField(source='flower.name', read_only=True)
+    flower_image = serializers.ImageField(source='flower.image', read_only=True)
+    def get_flower_image(self, obj):
+        request = self.context.get('request')
+        image = obj.flower.flower_image  # try: obj.flower.image  if this fails
+        if image and request:
+            return request.build_absolute_uri(image.url)
+        return None
 
     class Meta:
         model = models.OrderItem
         # Note: We exclude 'order' here because it's defined by the parent OrderSerializer
-        fields = ['flower', 'flower_name', 'quantity', 'unit_price'] 
+        fields = ['flower', 'flower_name','flower_image', 'quantity', 'unit_price'] 
         read_only_fields = ['unit_price']
 
 
@@ -53,7 +60,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Order
-        fields = ['id', 'customer', 'customer_username', 'order_date', 'status', 'total_amount', 'items']
+        fields = ['id', 'customer', 'customer_username', 'order_date', 'status', 'payment_method',  
+        'payment_status',  'total_amount', 'items']
         read_only_fields = ['total_amount', 'order_date', 'customer'] # Customer is often set automatically on creation
 
 

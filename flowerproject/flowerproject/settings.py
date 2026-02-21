@@ -125,6 +125,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'unexpressable-bettyann-germinally.ngrok-free.dev',  # ✅ add this
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://unexpressable-bettyann-germinally.ngrok-free.dev',  # ✅ add this
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -151,6 +162,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+
+# ── Email Configuration ────────────────────────────────────────────────────
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_USE_TLS       = True
+EMAIL_HOST_USER     = 'bus05107@gmail.com'
+EMAIL_HOST_PASSWORD = 'hgoisfycfjywlbmw'   # 16 digit app password
+DEFAULT_FROM_EMAIL  = 'Bloom Heaven <bus05107@gmail.com>'
 
 SITE_ID = 1
 
@@ -201,3 +221,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # settings.py
 
+RAZORPAY_KEY_ID     = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+RAZORPAY_WEBHOOK_SECRET = os.getenv('RAZORPAY_WEBHOOK_SECRET')

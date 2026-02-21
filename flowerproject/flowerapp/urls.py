@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView
+from django.views.generic import TemplateView
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView
 
 
 urlpatterns = [
@@ -17,6 +18,9 @@ urlpatterns = [
 	path('api/v1/cart/',               CartAPIView.as_view()),
     path('api/v1/cart/<int:item_id>/', CartItemAPIView.as_view()),
 	path('api/v1/my-orders/', CustomerOrderListAPIView.as_view()),
+	path('orders/', TemplateView.as_view(template_name='orders.html'), name='orders'),
+	path('api/v1/create-payment/', CreatePaymentOrderAPIView.as_view()),
+	path('webhook/razorpay/',RazorpayWebhookAPIView.as_view(), name='razorpay-webhook'),
 	
 ]
 

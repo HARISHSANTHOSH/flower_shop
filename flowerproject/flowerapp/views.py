@@ -1,5 +1,8 @@
 from django.http import HttpResponse
 from rest_framework.response import Response
+import razorpay
+import json
+from django.conf import settings
 
 from .permissions import IsSuperAdmin
 from django.contrib.auth import authenticate, login
@@ -75,9 +78,15 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user     = request.user
+        customer = models.Customer.objects.filter(user=user).first()
+        profile  = models.Profile.objects.filter(user=user).first() 
         return Response({
-            "username": request.user.username,
-            "role": request.user.profile.role
+            'username':     user.username,
+            'email':        user.email,
+            'role': profile.role,
+            'phone_number': customer.phone_number if customer else '',
+            'address':      customer.address      if customer else '',
         })
 
 class LoginAPIView(APIView):
@@ -100,34 +109,72 @@ def signup_page(request):
     return render(request, "signup.html")
 
 class BuyNowAPIView(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self,request):
-        user=request.user
-        customer, created = models.Customer.objects.get_or_create(user=user)
-        flower_ids=request.data.get("flowers",[])
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user     = request.user
+        customer, _ = models.Customer.objects.get_or_create(user=user)
+
+        address = request.data.get('address')
+        phone   = request.data.get('phone')
+        if address:
+            customer.address = address
+            customer.save(update_fields=['address'])
+        if phone:
+            customer.phone_number = phone
+            customer.save(update_fields=['phone_number'])
+
+        flower_ids     = request.data.get('flowers', [])
+        payment_method = request.data.get('payment_method', 'cod')
 
         if not flower_ids:
-            return Response("No flowers found")
+            return Response({'error': 'No flowers found'}, status=400)
 
-        order=models.Order.objects.create(customer=customer)
-        total=0
+        # ✅ Online payment — order already created in CreatePaymentOrderAPIView
+        # So BuyNowAPIView should only handle COD
+        if payment_method == 'online':
+            return Response({'error': 'Use create-payment API for online orders'}, status=400)
+
+        # COD only from here
+        order = models.Order.objects.create(
+            customer=customer,
+            payment_method='cod',
+            status='confirmed',       # ✅ COD confirmed immediately
+            payment_status='pending', # pays at delivery
+        )
+
+        flowers   = models.Flower.objects.filter(id__in=flower_ids)
+        flower_map = {f.id: f for f in flowers}
+
+        items = []
+        total = 0
 
         for fl_id in flower_ids:
-            flower=models.Flower.objects.get(id=fl_id)
-            item= models.OrderItem.objects.create(
+            flower = flower_map[fl_id]
+            items.append(models.OrderItem(
                 order=order,
                 flower=flower,
                 quantity=1,
                 unit_price=flower.price
-            )
-            total +=item.get_total_price()
-            
-        order.total_amount=total
+            ))
+            total += flower.price
+
+        # ✅ bulk create — one DB hit instead of N hits
+        models.OrderItem.objects.bulk_create(items)
+
+        order.total_amount = total
         order.save()
+        models.CartItem.objects.filter(cart__customer=customer).delete()
+
         transaction.on_commit(
             lambda: send_order_confirmation_email.delay(order.id)
         )
-        return Response({"order_id":order.id,"total":total,"status":order.status})
+
+        return Response({
+            'order_id': order.id,
+            'total':    total,
+            'status':   order.status  # confirmed
+        })
 
 
 class SignupAPIView(APIView):
@@ -235,7 +282,16 @@ class OrderDetailAPIView(APIView):
 
         new_status = request.data.get('status')
 
-        allowed = ['pending', 'processing', 'delivered', 'cancelled']
+        allowed = [
+            'payment_pending',
+            'payment_failed',
+            'confirmed',
+            'processing',
+            'shipped',
+            'delivered',
+            'cancelled',
+            'refunded',
+        ]
         if not new_status or new_status.lower() not in allowed:
             return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
 
@@ -346,5 +402,115 @@ class CustomerOrderListAPIView(APIView):
             Prefetch('items', queryset=models.OrderItem.objects.select_related('flower'))
         ).order_by('-created_at')
 
-        serializer = serializers.OrderSerializer(orders, many=True)
+        serializer = serializers.OrderSerializer(orders, many=True,context={'request': request})
         return Response(serializer.data)
+
+class CreatePaymentOrderAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user        = request.user
+        customer, _ = models.Customer.objects.get_or_create(user=user)
+
+        amount     = request.data.get('amount')
+        flower_ids = request.data.get('flowers', [])
+
+        if not amount:
+            return Response({'error': 'Amount required'}, status=400)
+        if not flower_ids:
+            return Response({'error': 'No flowers found'}, status=400)
+
+        # 1. Fetch all flowers in one query ✅
+        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_map = {f.id: f for f in flowers}
+
+        # 2. Calculate total from DB prices (not frontend amount — more secure) ✅
+        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+
+        # 3. Create Razorpay order
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        payment_order = client.order.create({
+            'amount':          int(float(total) * 100),  # ✅ use DB total not frontend amount
+            'currency':        'INR',
+            'payment_capture': 1
+        })
+
+        # 4. Create Django Order
+        order = models.Order.objects.create(
+            customer=customer,
+            payment_method='online',
+            status='payment_pending',
+            payment_status='pending',
+            razorpay_order_id=payment_order['id'],
+            total_amount=total,              # ✅ save DB total not frontend amount
+        )
+
+        # 5. Bulk create order items ✅
+        items = []
+        for fl_id in flower_ids:
+            if fl_id in flower_map:
+                flower = flower_map[fl_id]
+                items.append(models.OrderItem(
+                    order=order,
+                    flower=flower,
+                    quantity=1,
+                    unit_price=flower.price
+                ))
+        models.OrderItem.objects.bulk_create(items)  # ✅ one DB hit
+
+        order.save()  # ✅ save order after items created
+
+        return Response({
+            'razorpay_order_id': payment_order['id'],
+            'django_order_id':   order.id,
+            'amount':            payment_order['amount'],
+            'currency':          'INR',
+            'key_id':            settings.RAZORPAY_KEY_ID,
+        })
+
+class RazorpayWebhookAPIView(APIView):
+    authentication_classes = []
+    permission_classes     = []
+
+    def post(self, request):
+        payload = request.body
+        data    = json.loads(payload)
+        event   = data.get('event')
+        
+        print("WEBHOOK EVENT:", event)
+
+        if event == 'payment.captured':
+            payment     = data['payload']['payment']['entity']
+            rp_order_id = payment['order_id']
+
+            try:
+                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                order.status              = 'confirmed'
+                order.payment_status      = 'paid'
+                order.razorpay_payment_id = payment['id']
+                order.save()
+                models.CartItem.objects.filter(cart__customer=order.customer).delete()
+                print("ORDER CONFIRMED:", order.id)
+
+                transaction.on_commit(
+                    lambda: send_order_confirmation_email.delay(order.id)
+                )
+            except models.Order.DoesNotExist:
+                return Response({'error': 'Order not found'}, status=404)
+
+        elif event == 'payment.failed':
+            payment     = data['payload']['payment']['entity']
+            rp_order_id = payment['order_id']
+
+            try:
+                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                order.status         = 'payment_failed'
+                order.payment_status = 'failed'
+                order.save()
+                print("ORDER FAILED:", order.id)
+            except models.Order.DoesNotExist:
+                return Response({'error': 'Order not found'}, status=404)
+
+        return Response({'status': 'ok'})
