@@ -1013,9 +1013,12 @@
         try {
             if (coPayment === 'online') {
                 // Step 1 — hit your backend to create Razorpay order
+                const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).slice(2)}`;
                 const payRes  = await authFetch(`${API_BASE}/api/v1/create-payment/`, {
                     method: 'POST',
-                    body:   JSON.stringify({ amount: grandTotal, flowers: flowerIds   })
+                    body:   JSON.stringify({ amount: grandTotal, flowers: flowerIds,
+                    idempotency_key: idempotencyKey    
+                       })
                 });
                 const payData = await payRes.json();
 
@@ -1074,6 +1077,7 @@
 
     // ── Submit order after payment success or COD ─────────────────────────────
     async function submitOrder(flowerIds, address, phone) {  // ✅ removed razorpay params
+        const idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;  // ✅
         const btn = document.getElementById('placeOrderBtn');
         btn.disabled    = true;
         btn.textContent = 'Placing Order…';
@@ -1085,8 +1089,8 @@
                     flowers:        flowerIds,
                     address:        address,
                     phone:          phone,
-                    payment_method: 'cod',   // ✅ hardcoded cod, no need for coPayment
-                    // ✅ removed razorpay_payment_id and razorpay_order_id
+                    payment_method: 'cod', 
+                    idempotency_key: idempotencyKey,
                 })
             });
             const data = await res.json();

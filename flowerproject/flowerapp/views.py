@@ -115,8 +115,12 @@ class BuyNowAPIView(APIView):
         user     = request.user
         customer, _ = models.Customer.objects.get_or_create(user=user)
 
-        address = request.data.get('address')
-        phone   = request.data.get('phone')
+        address         = request.data.get('address')
+        phone           = request.data.get('phone')
+        flower_ids      = request.data.get('flowers', [])
+        payment_method  = request.data.get('payment_method', 'cod')
+        idempotency_key = request.data.get('idempotency_key')
+
         if address:
             customer.address = address
             customer.save(update_fields=['address'])
@@ -124,45 +128,53 @@ class BuyNowAPIView(APIView):
             customer.phone_number = phone
             customer.save(update_fields=['phone_number'])
 
-        flower_ids     = request.data.get('flowers', [])
-        payment_method = request.data.get('payment_method', 'cod')
-
         if not flower_ids:
             return Response({'error': 'No flowers found'}, status=400)
-
-        # ✅ Online payment — order already created in CreatePaymentOrderAPIView
-        # So BuyNowAPIView should only handle COD
+        if not idempotency_key:
+            return Response({'error': 'Idempotency key required'}, status=400)
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
+        # ✅ return existing order if same key
+        existing_order = models.Order.objects.filter(
+            idempotency_key=idempotency_key,
+            customer=customer
+        ).first()
+
+        if existing_order:
+            return Response({
+                'order_id': existing_order.id,
+                'total':    existing_order.total_amount,
+                'status':   existing_order.status,
+            })
+
         # COD only from here
+        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_map = {f.id: f for f in flowers}
+
+        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+
         order = models.Order.objects.create(
             customer=customer,
             payment_method='cod',
-            status='confirmed',       # ✅ COD confirmed immediately
-            payment_status='pending', # pays at delivery
+            status='confirmed',
+            payment_status='pending',
+            total_amount=total,
+            idempotency_key=idempotency_key,  # ✅ save key
         )
 
-        flowers   = models.Flower.objects.filter(id__in=flower_ids)
-        flower_map = {f.id: f for f in flowers}
-
         items = []
-        total = 0
-
         for fl_id in flower_ids:
-            flower = flower_map[fl_id]
-            items.append(models.OrderItem(
-                order=order,
-                flower=flower,
-                quantity=1,
-                unit_price=flower.price
-            ))
-            total += flower.price
-
-        # ✅ bulk create — one DB hit instead of N hits
+            if fl_id in flower_map:
+                flower = flower_map[fl_id]
+                items.append(models.OrderItem(
+                    order=order,
+                    flower=flower,
+                    quantity=1,
+                    unit_price=flower.price
+                ))
         models.OrderItem.objects.bulk_create(items)
 
-        order.total_amount = total
         order.save()
         models.CartItem.objects.filter(cart__customer=customer).delete()
 
@@ -173,9 +185,8 @@ class BuyNowAPIView(APIView):
         return Response({
             'order_id': order.id,
             'total':    total,
-            'status':   order.status  # confirmed
+            'status':   order.status
         })
-
 
 class SignupAPIView(APIView):
     serializer_class = SignupSerializer
@@ -460,7 +471,8 @@ class CreatePaymentOrderAPIView(APIView):
             status='payment_pending',
             payment_status='pending',
             razorpay_order_id=payment_order['id'],
-            total_amount=total,              # ✅ save DB total not frontend amount
+            total_amount=total,
+            idempotency_key=idempotency_key,              
         )
 
         # 5. Bulk create order items ✅
