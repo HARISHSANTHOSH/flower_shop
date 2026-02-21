@@ -414,11 +414,27 @@ class CreatePaymentOrderAPIView(APIView):
 
         amount     = request.data.get('amount')
         flower_ids = request.data.get('flowers', [])
+        idempotency_key = request.data.get('idempotency_key')
 
         if not amount:
             return Response({'error': 'Amount required'}, status=400)
         if not flower_ids:
             return Response({'error': 'No flowers found'}, status=400)
+        if not idempotency_key:
+            return Response({'error': 'Idempotency key required'}, status=400)
+
+        existing_order = models.Order.objects.filter(
+            idempotency_key=idempotency_key,
+            customer=customer
+        ).first()
+        if existing_order:
+                return Response({
+                    'razorpay_order_id': existing_order.razorpay_order_id,
+                    'django_order_id':   existing_order.id,
+                    'amount':            int(float(existing_order.total_amount) * 100),
+                    'currency':          'INR',
+                    'key_id':            settings.RAZORPAY_KEY_ID,
+                })
 
         # 1. Fetch all flowers in one query ✅
         flowers    = models.Flower.objects.filter(id__in=flower_ids)
