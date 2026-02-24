@@ -547,3 +547,58 @@ class RazorpayWebhookAPIView(APIView):
                 return Response({'error': 'Order not found'}, status=404)
 
         return Response({'status': 'ok'})
+
+
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+import requests as python_requests
+
+class GoogleLoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token = request.data.get('token')
+
+        if not token:
+            return Response({'error': 'Token required'}, status=400)
+
+        try:
+            # ✅ verify token with Google using allauth
+            google_response = python_requests.get(
+                'https://www.googleapis.com/oauth2/v3/tokeninfo',
+                params={'id_token': token}
+            )
+            idinfo = google_response.json()
+
+            if 'error' in idinfo:
+                return Response({'error': 'Invalid Google token'}, status=400)
+
+            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+                return Response({'error': 'Token client mismatch'}, status=400)
+
+            email    = idinfo.get('email')
+            name     = idinfo.get('name', '')
+            username = email.split('@')[0]
+
+            # ✅ get or create user
+            from django.contrib.auth.models import User
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': username,
+                    'first_name': name,
+                }
+            )
+
+            # ✅ generate JWT tokens same as normal login
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'access':  str(refresh.access_token),
+                'refresh': str(refresh),
+                'email':   email,
+                'name':    name,
+            })
+
+        except Exception as e:
+            return Response({'error': 'Google login failed'}, status=400)
