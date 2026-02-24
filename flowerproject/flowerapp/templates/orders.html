@@ -1,0 +1,635 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders — Bloom Heaven</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --cream:     #f8f5ef;
+            --warm:      #ede8de;
+            --brown:     #2e1f0f;
+            --brown-mid: #5c3d1e;
+            --green:     #1e4d2b;
+            --green-hi:  #2a6b3c;
+            --green-lo:  rgba(30,77,43,.1);
+            --green-mid: rgba(30,77,43,.18);
+            --gold:      #b5833a;
+            --gold-lo:   rgba(181,131,58,.12);
+            --text:      #1e1408;
+            --muted:     #7a6248;
+            --border:    rgba(46,31,15,.1);
+            --white:     #ffffff;
+            --radius:    12px;
+            --shadow:    0 2px 16px rgba(46,31,15,.08);
+            --shadow-lg: 0 8px 40px rgba(46,31,15,.14);
+        }
+        html { scroll-behavior: smooth; }
+        body { background: var(--cream); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+        /* ── Topbar ── */
+        .topbar {
+            background: var(--green); color: rgba(255,255,255,.85);
+            font-size: 12px; letter-spacing: .04em; padding: 8px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .topbar a { color: rgba(255,255,255,.85); text-decoration: none; }
+
+        /* ── Navbar ── */
+        nav {
+            background: var(--white); border-bottom: 1px solid var(--border);
+            padding: 0 40px; position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 72px; box-shadow: 0 1px 0 var(--border);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-mark { width: 40px; height: 40px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--brown); }
+        .brand-tagline { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+        .back-btn {
+            background: transparent; border: 1px solid var(--border); border-radius: 10px;
+            color: var(--brown-mid); cursor: pointer; font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500; padding: 8px 16px;
+            transition: border-color .2s, background .2s; text-decoration: none;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .back-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-lo); }
+
+        /* ── Page header ── */
+        .page-header {
+            background: linear-gradient(135deg, #1a3d22 0%, #0d2414 100%);
+            padding: 48px 40px 44px; position: relative; overflow: hidden;
+        }
+        .page-header::after {
+            content: '📦'; position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+            font-size: 100px; opacity: .06; line-height: 1;
+        }
+        .page-header-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+        .page-header h1 {
+            font-family: 'Playfair Display', serif; font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 600; color: #fff; margin-bottom: 8px;
+        }
+        .page-header p { color: rgba(255,255,255,.55); font-size: 14px; }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+            background: var(--white); border-bottom: 1px solid var(--border);
+        }
+        .stats-inner {
+            max-width: 1320px; margin: 0 auto; padding: 0 40px;
+            display: flex; gap: 0;
+        }
+        .stat-item {
+            padding: 18px 32px 18px 0; display: flex; align-items: center; gap: 12px;
+            border-right: 1px solid var(--border); margin-right: 32px;
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-icon { font-size: 20px; }
+        .stat-info strong { display: block; font-size: 20px; font-weight: 600; color: var(--brown); font-family: 'Playfair Display', serif; }
+        .stat-info span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+
+        /* ── Main ── */
+        .main { max-width: 1320px; margin: 0 auto; padding: 36px 40px 80px; }
+
+        /* ── Filters ── */
+        .filters-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .filter-pill {
+            background: var(--white); border: 1px solid var(--border); border-radius: 100px;
+            color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500; padding: 6px 16px;
+            transition: all .2s; flex-shrink: 0;
+        }
+        .filter-pill:hover { border-color: var(--green); color: var(--green); }
+        .filter-pill.active { background: var(--green); border-color: var(--green); color: #fff; }
+        .search-input {
+            margin-left: auto; background: var(--white); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; padding: 8px 14px; outline: none; width: 220px;
+            transition: border-color .2s;
+        }
+        .search-input:focus { border-color: var(--green); }
+
+        /* ── Order Card ── */
+        .orders-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .order-card {
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+            box-shadow: var(--shadow); overflow: hidden;
+            animation: fadeUp .4s ease both; transition: box-shadow .25s;
+        }
+        .order-card:hover { box-shadow: var(--shadow-lg); }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+        .order-header {
+            padding: 18px 24px; display: flex; align-items: center; gap: 16px;
+            border-bottom: 1px solid var(--border); flex-wrap: wrap; cursor: pointer;
+            transition: background .15s;
+        }
+        .order-header:hover { background: var(--cream); }
+
+        .order-id-block { flex: 0 0 auto; }
+        .order-id { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+        .order-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--brown); }
+
+        .order-meta { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+        .meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .meta-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
+        .meta-value { font-size: 13px; color: var(--brown-mid); font-weight: 500; }
+
+        .order-status { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+        .status-badge {
+            border-radius: 100px; font-size: 11px; font-weight: 600;
+            letter-spacing: .04em; padding: 5px 13px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .status-badge::before { content: '●'; font-size: 7px; }
+        .status-pending  { background: var(--gold-lo); color: var(--gold); border: 1px solid rgba(181,131,58,.3); }
+        .status-confirmed{ background: rgba(59,130,246,.1); color: #2563eb; border: 1px solid rgba(59,130,246,.2); }
+        .status-shipped  { background: rgba(139,92,246,.1); color: #7c3aed; border: 1px solid rgba(139,92,246,.2); }
+        .status-delivered{ background: var(--green-lo); color: var(--green); border: 1px solid rgba(30,77,43,.2); }
+        .status-cancelled{ background: rgba(239,68,68,.08); color: #dc2626; border: 1px solid rgba(239,68,68,.2); }
+
+        .order-total-big { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: var(--green); }
+
+        .chevron { font-size: 12px; color: var(--muted); transition: transform .25s; }
+        .order-card.expanded .chevron { transform: rotate(180deg); }
+
+        /* ── Order body (items) ── */
+        .order-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height .35s cubic-bezier(.4,0,.2,1);
+        }
+        .order-card.expanded .order-body { max-height: 1000px; }
+
+        .order-items { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+        .order-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px; background: var(--cream); border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .order-item img {
+            width: 68px; height: 68px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
+        }
+        .order-item-img-placeholder {
+            width: 68px; height: 68px; border-radius: 8px; flex-shrink: 0;
+            background: var(--warm); display: flex; align-items: center;
+            justify-content: center; font-size: 26px;
+        }
+        .item-details { flex: 1; min-width: 0; }
+        .item-name { font-size: 15px; font-weight: 600; color: var(--brown); margin-bottom: 3px; font-family: 'Playfair Display', serif; }
+        .item-sub  { font-size: 12px; color: var(--muted); }
+        .item-price-block { text-align: right; flex-shrink: 0; }
+        .item-unit-price { font-size: 12px; color: var(--muted); }
+        .item-total-price { font-size: 17px; font-weight: 600; color: var(--green); font-family: 'Playfair Display', serif; }
+
+        .order-footer {
+            padding: 14px 24px; background: linear-gradient(to right, var(--cream), var(--warm));
+            border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .order-footer-info { font-size: 12px; color: var(--muted); }
+        .order-footer-total { font-size: 14px; color: var(--brown-mid); }
+        .order-footer-total strong { color: var(--green); font-size: 18px; font-family: 'Playfair Display', serif; }
+
+        .reorder-btn {
+            background: var(--green-lo); border: 1px solid rgba(30,77,43,.2); border-radius: 8px;
+            color: var(--green); cursor: pointer; font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 600; padding: 8px 18px;
+            transition: background .2s; display: flex; align-items: center; gap: 6px;
+        }
+        .reorder-btn:hover { background: var(--green-mid); }
+
+        /* ── Progress tracker ── */
+        .order-progress {
+            padding: 16px 24px 4px; display: flex; align-items: flex-start;
+            position: relative;
+        }
+        .progress-steps { display: flex; width: 100%; position: relative; gap: 0; }
+        .progress-steps::before {
+            content: ''; position: absolute; top: 12px; left: calc(10%); right: calc(10%);
+            height: 2px; background: var(--border); z-index: 0;
+        }
+        .progress-fill {
+            position: absolute; top: 12px; left: calc(10%); height: 2px;
+            background: var(--green); z-index: 1; transition: width .5s ease;
+        }
+        .progress-step {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            position: relative; z-index: 2;
+        }
+        .step-dot {
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border);
+            background: var(--white); display: flex; align-items: center; justify-content: center;
+            font-size: 10px; transition: all .3s;
+        }
+        .step-dot.done  { background: var(--green); border-color: var(--green); color: #fff; }
+        .step-dot.current { background: var(--white); border-color: var(--green); color: var(--green); box-shadow: 0 0 0 3px var(--green-lo); }
+        .step-label { font-size: 10px; color: var(--muted); text-align: center; font-weight: 500; letter-spacing: .03em; }
+        .step-label.active { color: var(--green); font-weight: 600; }
+
+        /* ── Empty / Loading states ── */
+        .empty-state { text-align: center; padding: 100px 20px; }
+        .empty-state .icon { font-size: 60px; margin-bottom: 20px; display: block; }
+        .empty-state h2 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--brown); margin-bottom: 10px; }
+        .empty-state p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+        .shop-now-btn {
+            background: var(--green); border: none; border-radius: 10px; color: var(--white);
+            cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+            padding: 12px 28px; text-decoration: none; display: inline-block;
+            transition: background .2s;
+        }
+        .shop-now-btn:hover { background: var(--green-hi); }
+
+        .skeleton-order { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+        .skel { background: linear-gradient(90deg, var(--warm) 25%, #e4ddd2 50%, var(--warm) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+        .skel-hdr { height: 76px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── Toast ── */
+        .toast-container { bottom: 24px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; position: fixed; right: 24px; z-index: 999; }
+        .toast {
+            align-items: center; background: var(--brown); border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.2); color: var(--white); display: flex;
+            font-size: 13px; font-weight: 500; gap: 10px; padding: 12px 18px;
+            animation: toastIn .3s ease both, toastOut .3s ease 2.7s both;
+        }
+        @keyframes toastIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+        @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateX(20px); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .topbar, .page-header, .stats-inner { padding-left: 16px; padding-right: 16px; }
+            nav { padding: 0 16px; }
+            .main { padding: 24px 16px 60px; }
+            .order-meta { gap: 12px; }
+            .stat-item { padding: 14px 16px 14px 0; margin-right: 16px; }
+            .search-input { width: 100%; margin-left: 0; }
+            .filters-row { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+    <span>🌱 Free delivery on orders above ₹999</span>
+    <span>📞 <a href="tel:8848622015">+91 88486 22015</a></span>
+</div>
+
+<!-- Navbar -->
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="logo-mark">🌿</div>
+        <div class="brand-text">
+            <span class="brand-name">Bloom Heaven</span>
+            <span class="brand-tagline">Indoor & Outdoor Plants</span>
+        </div>
+    </a>
+    <div class="nav-actions">
+        <a href="http://127.0.0.1:8000/flowerapp/flowers/" class="back-btn">← Back to Shop</a>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-inner">
+        <h1>My Orders</h1>
+        <p>Track and manage all your plant orders in one place</p>
+    </div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+    <div class="stats-inner" id="statsBar">
+        <div class="stat-item">
+            <span class="stat-icon">📦</span>
+            <div class="stat-info">
+                <strong id="statTotal">—</strong>
+                <span>Total Orders</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-icon">🌿</span>
+            <div class="stat-info">
+                <strong id="statDelivered">—</strong>
+                <span>Delivered</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-icon">🚚</span>
+            <div class="stat-info">
+                <strong id="statActive">—</strong>
+                <span>Active Orders</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-icon">💚</span>
+            <div class="stat-info">
+                <strong id="statSpent">—</strong>
+                <span>Total Spent</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+    <div class="filters-row" id="filtersRow">
+        <button class="filter-pill active" data-status="">All</button>
+        <button class="filter-pill" data-status="pending">Pending</button>
+        <button class="filter-pill" data-status="confirmed">Confirmed</button>
+        <button class="filter-pill" data-status="shipped">Shipped</button>
+        <button class="filter-pill" data-status="delivered">Delivered</button>
+        <button class="filter-pill" data-status="cancelled">Cancelled</button>
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍  Search orders…">
+    </div>
+
+    <div id="ordersContainer"></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    const API_BASE = 'http://127.0.0.1:8000/flowerapp';
+    const PLACEHOLDER_EMOJI = ['🌿','🌵','🪴','🌸','🌴','🌺'];
+
+    let allOrders = [];
+    let activeStatus = '';
+    let searchQuery  = '';
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem('refresh_token');
+        if (!refresh) { window.location.href = '/signin/'; throw new Error('no refresh'); }
+        const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh })
+        });
+        if (!res.ok) { localStorage.clear(); window.location.href = '/signin/'; throw new Error('expired'); }
+        localStorage.setItem('access_token', (await res.json()).access);
+    }
+    function getHeaders() {
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('access_token')}` };
+    }
+    async function authFetch(url, opts = {}) {
+        opts.headers = getHeaders();
+        let res = await fetch(url, opts);
+        if (res.status === 401) { await refreshAccessToken(); opts.headers = getHeaders(); res = await fetch(url, opts); }
+        return res;
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+        const icons = { success: '✓', error: '✕', info: 'ℹ' };
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<span>${icons[type]}</span>${msg}`;
+        document.getElementById('toastContainer').appendChild(t);
+        setTimeout(() => t.remove(), 3100);
+    }
+
+    // ── Status helpers ────────────────────────────────────────────────────────
+    const STATUS_ORDER = ['pending', 'confirmed', 'shipped', 'delivered'];
+    function statusClass(s) {
+        const map = { pending:'status-pending', confirmed:'status-confirmed', shipped:'status-shipped', delivered:'status-delivered', cancelled:'status-cancelled' };
+        return map[s?.toLowerCase()] || 'status-pending';
+    }
+    function statusLabel(s) {
+        return (s || 'Pending').charAt(0).toUpperCase() + (s || 'pending').slice(1);
+    }
+    function progressFill(status) {
+        const s = (status || '').toLowerCase();
+        if (s === 'cancelled') return 0;
+        const idx = STATUS_ORDER.indexOf(s);
+        if (idx < 0) return 0;
+        const fractions = [0, 33, 66, 100];
+        return fractions[idx];
+    }
+
+    // ── Date format ───────────────────────────────────────────────────────────
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // ── Render orders ─────────────────────────────────────────────────────────
+    async function renderOrders(orders) {
+        const container = document.getElementById('ordersContainer');
+        if (!orders.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">🌱</span>
+                    <h2>No orders found</h2>
+                    <p>${activeStatus || searchQuery ? 'Try changing your filters' : "You haven't placed any orders yet"}</p>
+                    ${!activeStatus && !searchQuery ? `<a href="/" class="shop-now-btn">🌿 Start Shopping</a>` : ''}
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        for (let idx = 0; idx < orders.length; idx++) {
+            const order = orders[idx];
+            const items  = order.items || [];
+            const status = (order.status || 'pending').toLowerCase();
+            const isCancelled = status === 'cancelled';
+            const fill   = progressFill(status);
+            const totalAmt = parseFloat(order.total_amount || order.grand_total || 0).toFixed(2);
+
+            const card = document.createElement('div');
+            card.className = 'order-card';
+            card.style.animationDelay = `${idx * 0.06}s`;
+
+            // Progress bar steps
+            const steps = ['Placed','Confirmed','Shipped','Delivered'];
+            const currentIdx = STATUS_ORDER.indexOf(status);
+            const stepsHTML = steps.map((label, i) => {
+                let dotClass = '';
+                if (isCancelled) { dotClass = ''; }
+                else if (i < currentIdx) dotClass = 'done';
+                else if (i === currentIdx) dotClass = 'current';
+                const icons = ['📋','✅','🚚','🌿'];
+                return `
+                    <div class="progress-step">
+                        <div class="step-dot ${dotClass}">${dotClass === 'done' ? '✓' : icons[i]}</div>
+                        <span class="step-label ${dotClass === 'current' ? 'active' : ''}">${label}</span>
+                    </div>`;
+            }).join('');
+
+            // Items — API uses unit_price
+            const itemsHTML = items.map((item, iIdx) => {
+                const imgUrl = item.flower_image || '';
+                const name   = item.flower_name || 'Plant';
+                const qty    = item.quantity || 1;
+                const price  = parseFloat(item.unit_price || item.price || 0).toFixed(2);
+                const total  = (parseFloat(price) * qty).toFixed(2);
+                const emojiFallback = PLACEHOLDER_EMOJI[Math.abs((item.flower || 0) + idx) % PLACEHOLDER_EMOJI.length];
+                const resolvedImg = imgUrl ? (imgUrl.startsWith('/') ? `${window.location.origin}${imgUrl}` : imgUrl) : '';
+
+                return `
+                    <div class="order-item">
+                        ${resolvedImg ? `<img src="${resolvedImg}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                        <div class="order-item-img-placeholder" style="${resolvedImg ? 'display:none' : ''}">${emojiFallback}</div>
+                        <div class="item-details">
+                            <div class="item-name">${name}</div>
+                            <div class="item-sub">Qty: ${qty} &nbsp;·&nbsp; ₹${price} each</div>
+                        </div>
+                        <div class="item-price-block">
+                            <div class="item-unit-price">Subtotal</div>
+                            <div class="item-total-price">₹${total}</div>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            card.innerHTML = `
+                <div class="order-header" onclick="toggleOrder(this)">
+                    <div class="order-id-block">
+                        <div class="order-id">Order ID</div>
+                        <div class="order-num">#${order.id}</div>
+                    </div>
+                    <div class="order-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Date</span>
+                            <span class="meta-value">${fmtDate(order.order_date || order.created_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Items</span>
+                            <span class="meta-value">${items.length} plant${items.length !== 1 ? 's' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="order-status">
+                        <span class="status-badge ${statusClass(status)}">${statusLabel(status)}</span>
+                        <span class="order-total-big">₹${totalAmt}</span>
+                        <span class="chevron">▼</span>
+                    </div>
+                </div>
+
+                <div class="order-body">
+                    ${!isCancelled ? `
+                    <div class="order-progress">
+                        <div class="progress-steps">
+                            <div class="progress-fill" style="width: calc(${fill}% * 0.8)"></div>
+                            ${stepsHTML}
+                        </div>
+                    </div>` : `
+                    <div style="padding: 16px 24px 0; display:flex; align-items:center; gap:8px;">
+                        <span style="background:rgba(239,68,68,.08); color:#dc2626; border:1px solid rgba(239,68,68,.2); border-radius:8px; padding:8px 14px; font-size:13px; font-weight:500;">
+                            ✕ This order was cancelled
+                        </span>
+                    </div>`}
+
+                    <div class="order-items">${itemsHTML || '<p style="color:var(--muted);font-size:13px;">No item details available.</p>'}</div>
+
+                    <div class="order-footer">
+                        <div class="order-footer-info">Placed on ${fmtDate(order.order_date || order.created_at)}</div>
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                            <div class="order-footer-total">Total: <strong>₹${totalAmt}</strong></div>
+                            ${!isCancelled ? `<button class="reorder-btn" onclick="reorder(event, ${JSON.stringify(items.map(i => i.flower)).replace(/"/g,"'")})">🔄 Reorder</button>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+
+            container.appendChild(card);
+        }
+    }
+
+    function toggleOrder(header) {
+        header.closest('.order-card').classList.toggle('expanded');
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    function updateStats(orders) {
+        const total     = orders.length;
+        const delivered = orders.filter(o => (o.status||'').toLowerCase() === 'delivered').length;
+        const active    = orders.filter(o => !['delivered','cancelled'].includes((o.status||'').toLowerCase())).length;
+        const spent     = orders.reduce((s, o) => s + parseFloat(o.total_amount || o.grand_total || 0), 0);
+        document.getElementById('statTotal').textContent     = total;
+        document.getElementById('statDelivered').textContent = delivered;
+        document.getElementById('statActive').textContent    = active;
+        document.getElementById('statSpent').textContent     = `₹${spent.toFixed(0)}`;
+    }
+
+    // ── Filter & search ───────────────────────────────────────────────────────
+    function applyFilters() {
+        let filtered = allOrders;
+        if (activeStatus) filtered = filtered.filter(o => (o.status||'pending').toLowerCase() === activeStatus);
+        if (searchQuery)  filtered = filtered.filter(o =>
+            String(o.id).includes(searchQuery) ||
+            (o.items || []).some(i => (i.flower_name || '').toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+        renderOrders(filtered);
+    }
+
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            activeStatus = pill.dataset.status;
+            applyFilters();
+        });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+        searchQuery = e.target.value.trim();
+        applyFilters();
+    });
+
+    // ── Reorder ───────────────────────────────────────────────────────────────
+    async function reorder(e, flowerIds) {
+        e.stopPropagation();
+        const btn = e.target;
+        btn.disabled = true; btn.textContent = '⏳ Adding…';
+        try {
+            for (const fid of flowerIds) {
+                await authFetch(`${API_BASE}/api/v1/cart/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ flower_id: fid, quantity: 1 })
+                });
+            }
+            showToast('Items added to cart! 🌿', 'success');
+            setTimeout(() => window.location.href = '/', 800);
+        } catch (e) { showToast('Failed to reorder', 'error'); }
+        btn.disabled = false; btn.textContent = '🔄 Reorder';
+    }
+
+    // ── Load skeletons ────────────────────────────────────────────────────────
+    function renderSkeletons() {
+        document.getElementById('ordersContainer').innerHTML = [1,2,3].map(() => `
+            <div class="skeleton-order"><div class="skel skel-hdr"></div></div>`).join('');
+    }
+
+    // ── Fetch orders ──────────────────────────────────────────────────────────
+    async function fetchOrders() {
+        renderSkeletons();
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/my-orders/`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            allOrders = Array.isArray(data) ? data : (data.results || []);
+            updateStats(allOrders);
+            applyFilters();
+        } catch (e) {
+            document.getElementById('ordersContainer').innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">🌾</span>
+                    <h2>Couldn't load orders</h2>
+                    <p>Something went wrong. Please try again.</p>
+                    <button class="shop-now-btn" onclick="fetchOrders()">Retry</button>
+                </div>`;
+        }
+    }
+
+    fetchOrders();
+</script>
+</body>
+</html>

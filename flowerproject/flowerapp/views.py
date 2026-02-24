@@ -1,27 +1,29 @@
-from django.http import HttpResponse
-from rest_framework.response import Response
-
-from .permissions import IsSuperAdmin
+# Django
+from django.conf import settings
 from django.contrib.auth import authenticate, login
-from rest_framework.views import APIView
-from rest_framework import status
-from django.shortcuts import render
-from flowerapp import models, serializers
-from django.db.models import Q, Sum
-from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch
 from django.db import transaction
-from .tasks import send_order_confirmation_email
-from .pagination import FlowerPagination
+from django.db.models import Q, Sum, Prefetch
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+
+# DRF
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SignupSerializer,LoginSerializer
+
+# Third party
+import json
+import razorpay
+
+# Local
+from flowerapp import models, serializers
+from .serializers import SignupSerializer, LoginSerializer
+from .permissions import IsSuperAdmin
+from .pagination import FlowerPagination
 from .paginator import AdminOrderPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-    IsAdminUser,
-    IsAuthenticatedOrReadOnly,
-)
+from .tasks import send_order_confirmation_email
 
 
 class FlowerListCreateAPIView(APIView):
@@ -75,9 +77,15 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user     = request.user
+        customer = models.Customer.objects.filter(user=user).first()
+        profile  = models.Profile.objects.filter(user=user).first() 
         return Response({
-            "username": request.user.username,
-            "role": request.user.profile.role
+            'username':     user.username,
+            'email':        user.email,
+            'role': profile.role,
+            'phone_number': customer.phone_number if customer else '',
+            'address':      customer.address      if customer else '',
         })
 
 class LoginAPIView(APIView):
@@ -86,13 +94,21 @@ class LoginAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         username = serializer.validated_data['username']
-        print("username",username)
+        print("username", username)
         password = serializer.validated_data['password']
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+            
+            # ✅ generate fresh JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "message": "Login successful",
+                "access":  str(refresh.access_token),  # ✅
+                "refresh": str(refresh),                # ✅
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -100,36 +116,86 @@ def signup_page(request):
     return render(request, "signup.html")
 
 class BuyNowAPIView(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self,request):
-        user=request.user
-        customer, created = models.Customer.objects.get_or_create(user=user)
-        flower_ids=request.data.get("flowers",[])
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user        = request.user
+        customer, _ = models.Customer.objects.get_or_create(user=user)
+
+        address         = request.data.get('address')
+        phone           = request.data.get('phone')
+        flower_ids      = request.data.get('flowers', [])
+        payment_method  = request.data.get('payment_method', 'cod')
+        idempotency_key = request.data.get('idempotency_key')
+
+        if address:
+            customer.address = address
+            customer.save(update_fields=['address'])
+        if phone:
+            customer.phone_number = phone
+            customer.save(update_fields=['phone_number'])
 
         if not flower_ids:
-            return Response("No flowers found")
+            return Response({'error': 'No flowers found'}, status=400)
+        if not idempotency_key:
+            return Response({'error': 'Idempotency key required'}, status=400)
+        if payment_method == 'online':
+            return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
-        order=models.Order.objects.create(customer=customer)
-        total=0
+        existing_order = models.Order.objects.filter(
+            idempotency_key=idempotency_key,
+            customer=customer
+        ).first()
 
-        for fl_id in flower_ids:
-            flower=models.Flower.objects.get(id=fl_id)
-            item= models.OrderItem.objects.create(
-                order=order,
-                flower=flower,
-                quantity=1,
-                unit_price=flower.price
+        if existing_order:
+            return Response({
+                'order_id':       existing_order.id,
+                'total':          existing_order.total_amount,
+                'status':         existing_order.status,
+                'payment_status': existing_order.payment_status,  # ✅ fixed
+                'payment_method': existing_order.payment_method,  # ✅ fixed
+            })
+
+        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_map = {f.id: f for f in flowers}
+
+        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+
+        # ✅ atomic + removed order.save()
+        with transaction.atomic():
+            order = models.Order.objects.create(
+                customer=customer,
+                payment_method='cod',
+                status='confirmed',
+                payment_status='pending',
+                total_amount=total,
+                idempotency_key=idempotency_key,
             )
-            total +=item.get_total_price()
-            
-        order.total_amount=total
-        order.save()
-        transaction.on_commit(
-            lambda: send_order_confirmation_email.delay(order.id)
-        )
-        return Response({"order_id":order.id,"total":total,"status":order.status})
 
+            items = []
+            for fl_id in flower_ids:
+                if fl_id in flower_map:
+                    flower = flower_map[fl_id]
+                    items.append(models.OrderItem(
+                        order=order,
+                        flower=flower,
+                        quantity=1,
+                        unit_price=flower.price
+                    ))
+            models.OrderItem.objects.bulk_create(items)
+            models.CartItem.objects.filter(cart__customer=customer).delete()
 
+            transaction.on_commit(
+                lambda: send_order_confirmation_email.delay(order.id)
+            )
+
+        return Response({
+            'order_id':       order.id,
+            'total':          total,
+            'status':         order.status,
+            'payment_status': order.payment_status,  # ✅ consistent response
+            'payment_method': order.payment_method,
+        })
 class SignupAPIView(APIView):
     serializer_class = SignupSerializer
 
@@ -235,7 +301,16 @@ class OrderDetailAPIView(APIView):
 
         new_status = request.data.get('status')
 
-        allowed = ['pending', 'processing', 'delivered', 'cancelled']
+        allowed = [
+            'payment_pending',
+            'payment_failed',
+            'confirmed',
+            'processing',
+            'shipped',
+            'delivered',
+            'cancelled',
+            'refunded',
+        ]
         if not new_status or new_status.lower() not in allowed:
             return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
 
@@ -346,5 +421,129 @@ class CustomerOrderListAPIView(APIView):
             Prefetch('items', queryset=models.OrderItem.objects.select_related('flower'))
         ).order_by('-created_at')
 
-        serializer = serializers.OrderSerializer(orders, many=True)
+        serializer = serializers.OrderSerializer(orders, many=True,context={'request': request})
         return Response(serializer.data)
+
+class CreatePaymentOrderAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user        = request.user
+        customer, _ = models.Customer.objects.get_or_create(user=user)
+
+        amount     = request.data.get('amount')
+        flower_ids = request.data.get('flowers', [])
+        idempotency_key = request.data.get('idempotency_key')
+
+        if not amount:
+            return Response({'error': 'Amount required'}, status=400)
+        if not flower_ids:
+            return Response({'error': 'No flowers found'}, status=400)
+        if not idempotency_key:
+            return Response({'error': 'Idempotency key required'}, status=400)
+
+        existing_order = models.Order.objects.filter(
+            idempotency_key=idempotency_key,
+            customer=customer
+        ).first()
+        if existing_order:
+            return Response({
+                'razorpay_order_id': existing_order.razorpay_order_id,
+                'django_order_id':   existing_order.id,
+                'amount':            int(float(existing_order.total_amount) * 100),
+                'currency':          'INR',
+                'key_id':            settings.RAZORPAY_KEY_ID,
+                'payment_status':    existing_order.payment_status,
+                'status':            existing_order.status,
+            })
+
+        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_map = {f.id: f for f in flowers}
+
+        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        payment_order = client.order.create({
+            'amount':          int(float(total) * 100),
+            'currency':        'INR',
+            'payment_capture': 1
+        })
+
+        # ✅ wrapped in atomic — removed order.save()
+        with transaction.atomic():
+            order = models.Order.objects.create(
+                customer=customer,
+                payment_method='online',
+                status='payment_pending',
+                payment_status='pending',
+                razorpay_order_id=payment_order['id'],
+                total_amount=total,
+                idempotency_key=idempotency_key,
+            )
+
+            items = []
+            for fl_id in flower_ids:
+                if fl_id in flower_map:
+                    flower = flower_map[fl_id]
+                    items.append(models.OrderItem(
+                        order=order,
+                        flower=flower,
+                        quantity=1,
+                        unit_price=flower.price
+                    ))
+            models.OrderItem.objects.bulk_create(items)
+
+        return Response({
+            'razorpay_order_id': payment_order['id'],
+            'django_order_id':   order.id,
+            'amount':            payment_order['amount'],
+            'currency':          'INR',
+            'key_id':            settings.RAZORPAY_KEY_ID,
+        })
+
+class RazorpayWebhookAPIView(APIView):
+    authentication_classes = []
+    permission_classes     = []
+
+    def post(self, request):
+        payload = request.body
+        data    = json.loads(payload)
+        event   = data.get('event')
+        
+        print("WEBHOOK EVENT:", event)
+
+        if event == 'payment.captured':
+            payment     = data['payload']['payment']['entity']
+            rp_order_id = payment['order_id']
+
+            try:
+                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                order.status              = 'confirmed'
+                order.payment_status      = 'paid'
+                order.razorpay_payment_id = payment['id']
+                order.save()
+                models.CartItem.objects.filter(cart__customer=order.customer).delete()
+                print("ORDER CONFIRMED:", order.id)
+
+                transaction.on_commit(
+                    lambda: send_order_confirmation_email.delay(order.id)
+                )
+            except models.Order.DoesNotExist:
+                return Response({'error': 'Order not found'}, status=404)
+
+        elif event == 'payment.failed':
+            payment     = data['payload']['payment']['entity']
+            rp_order_id = payment['order_id']
+
+            try:
+                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                order.status         = 'payment_failed'
+                order.payment_status = 'failed'
+                order.save()
+                print("ORDER FAILED:", order.id)
+            except models.Order.DoesNotExist:
+                return Response({'error': 'Order not found'}, status=404)
+
+        return Response({'status': 'ok'})

@@ -5,9 +5,7 @@ from .models import Order
 
 
 
-@shared_task
-def add(x, y):
-    return x + y
+
 
 @shared_task(bind=True, max_retries=3)
 def send_order_confirmation_email(self, order_id):
