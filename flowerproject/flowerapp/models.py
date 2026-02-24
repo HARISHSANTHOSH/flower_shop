@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+import uuid
 # Create your models here.
 
 
@@ -81,6 +81,7 @@ class Order(models.Model):
         ('cancelled',       'Cancelled'),
         ('refunded',        'Refunded'),        
     )
+    idempotency_key = models.CharField(max_length=100, null=True, blank=True, editable=False)
 
 
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='orders')
@@ -104,7 +105,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES, # <--- Used here
-        default='Pending'
+        default='payment_pending'
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
     created_at = models.DateTimeField(auto_now_add=True)

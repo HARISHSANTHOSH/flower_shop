@@ -1,30 +1,29 @@
-from django.http import HttpResponse
-from rest_framework.response import Response
-import razorpay
-import json
+# Django
 from django.conf import settings
-
-from .permissions import IsSuperAdmin
 from django.contrib.auth import authenticate, login
-from rest_framework.views import APIView
-from rest_framework import status
-from django.shortcuts import render
-from flowerapp import models, serializers
-from django.db.models import Q, Sum
-from django.shortcuts import get_object_or_404
-from django.db.models import Prefetch
 from django.db import transaction
-from .tasks import send_order_confirmation_email
-from .pagination import FlowerPagination
+from django.db.models import Q, Sum, Prefetch
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+
+# DRF
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SignupSerializer,LoginSerializer
+
+# Third party
+import json
+import razorpay
+
+# Local
+from flowerapp import models, serializers
+from .serializers import SignupSerializer, LoginSerializer
+from .permissions import IsSuperAdmin
+from .pagination import FlowerPagination
 from .paginator import AdminOrderPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-    IsAdminUser,
-    IsAuthenticatedOrReadOnly,
-)
+from .tasks import send_order_confirmation_email
 
 
 class FlowerListCreateAPIView(APIView):
@@ -95,13 +94,21 @@ class LoginAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         username = serializer.validated_data['username']
-        print("username",username)
+        print("username", username)
         password = serializer.validated_data['password']
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+            
+            # ✅ generate fresh JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "message": "Login successful",
+                "access":  str(refresh.access_token),  # ✅
+                "refresh": str(refresh),                # ✅
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -112,7 +119,7 @@ class BuyNowAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user     = request.user
+        user        = request.user
         customer, _ = models.Customer.objects.get_or_create(user=user)
 
         address         = request.data.get('address')
@@ -135,7 +142,6 @@ class BuyNowAPIView(APIView):
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
-        # ✅ return existing order if same key
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
             customer=customer
@@ -143,51 +149,53 @@ class BuyNowAPIView(APIView):
 
         if existing_order:
             return Response({
-                'order_id': existing_order.id,
-                'total':    existing_order.total_amount,
-                'status':   existing_order.status,
+                'order_id':       existing_order.id,
+                'total':          existing_order.total_amount,
+                'status':         existing_order.status,
+                'payment_status': existing_order.payment_status,  # ✅ fixed
+                'payment_method': existing_order.payment_method,  # ✅ fixed
             })
 
-        # COD only from here
         flowers    = models.Flower.objects.filter(id__in=flower_ids)
         flower_map = {f.id: f for f in flowers}
 
         total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
 
-        order = models.Order.objects.create(
-            customer=customer,
-            payment_method='cod',
-            status='confirmed',
-            payment_status='pending',
-            total_amount=total,
-            idempotency_key=idempotency_key,  # ✅ save key
-        )
+        # ✅ atomic + removed order.save()
+        with transaction.atomic():
+            order = models.Order.objects.create(
+                customer=customer,
+                payment_method='cod',
+                status='confirmed',
+                payment_status='pending',
+                total_amount=total,
+                idempotency_key=idempotency_key,
+            )
 
-        items = []
-        for fl_id in flower_ids:
-            if fl_id in flower_map:
-                flower = flower_map[fl_id]
-                items.append(models.OrderItem(
-                    order=order,
-                    flower=flower,
-                    quantity=1,
-                    unit_price=flower.price
-                ))
-        models.OrderItem.objects.bulk_create(items)
+            items = []
+            for fl_id in flower_ids:
+                if fl_id in flower_map:
+                    flower = flower_map[fl_id]
+                    items.append(models.OrderItem(
+                        order=order,
+                        flower=flower,
+                        quantity=1,
+                        unit_price=flower.price
+                    ))
+            models.OrderItem.objects.bulk_create(items)
+            models.CartItem.objects.filter(cart__customer=customer).delete()
 
-        order.save()
-        models.CartItem.objects.filter(cart__customer=customer).delete()
-
-        transaction.on_commit(
-            lambda: send_order_confirmation_email.delay(order.id)
-        )
+            transaction.on_commit(
+                lambda: send_order_confirmation_email.delay(order.id)
+            )
 
         return Response({
-            'order_id': order.id,
-            'total':    total,
-            'status':   order.status
+            'order_id':       order.id,
+            'total':          total,
+            'status':         order.status,
+            'payment_status': order.payment_status,  # ✅ consistent response
+            'payment_method': order.payment_method,
         })
-
 class SignupAPIView(APIView):
     serializer_class = SignupSerializer
 
@@ -439,56 +447,53 @@ class CreatePaymentOrderAPIView(APIView):
             customer=customer
         ).first()
         if existing_order:
-                return Response({
-                    'razorpay_order_id': existing_order.razorpay_order_id,
-                    'django_order_id':   existing_order.id,
-                    'amount':            int(float(existing_order.total_amount) * 100),
-                    'currency':          'INR',
-                    'key_id':            settings.RAZORPAY_KEY_ID,
-                })
+            return Response({
+                'razorpay_order_id': existing_order.razorpay_order_id,
+                'django_order_id':   existing_order.id,
+                'amount':            int(float(existing_order.total_amount) * 100),
+                'currency':          'INR',
+                'key_id':            settings.RAZORPAY_KEY_ID,
+                'payment_status':    existing_order.payment_status,
+                'status':            existing_order.status,
+            })
 
-        # 1. Fetch all flowers in one query ✅
         flowers    = models.Flower.objects.filter(id__in=flower_ids)
         flower_map = {f.id: f for f in flowers}
 
-        # 2. Calculate total from DB prices (not frontend amount — more secure) ✅
         total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
 
-        # 3. Create Razorpay order
         client = razorpay.Client(
             auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
         )
         payment_order = client.order.create({
-            'amount':          int(float(total) * 100),  # ✅ use DB total not frontend amount
+            'amount':          int(float(total) * 100),
             'currency':        'INR',
             'payment_capture': 1
         })
 
-        # 4. Create Django Order
-        order = models.Order.objects.create(
-            customer=customer,
-            payment_method='online',
-            status='payment_pending',
-            payment_status='pending',
-            razorpay_order_id=payment_order['id'],
-            total_amount=total,
-            idempotency_key=idempotency_key,              
-        )
+        # ✅ wrapped in atomic — removed order.save()
+        with transaction.atomic():
+            order = models.Order.objects.create(
+                customer=customer,
+                payment_method='online',
+                status='payment_pending',
+                payment_status='pending',
+                razorpay_order_id=payment_order['id'],
+                total_amount=total,
+                idempotency_key=idempotency_key,
+            )
 
-        # 5. Bulk create order items ✅
-        items = []
-        for fl_id in flower_ids:
-            if fl_id in flower_map:
-                flower = flower_map[fl_id]
-                items.append(models.OrderItem(
-                    order=order,
-                    flower=flower,
-                    quantity=1,
-                    unit_price=flower.price
-                ))
-        models.OrderItem.objects.bulk_create(items)  # ✅ one DB hit
-
-        order.save()  # ✅ save order after items created
+            items = []
+            for fl_id in flower_ids:
+                if fl_id in flower_map:
+                    flower = flower_map[fl_id]
+                    items.append(models.OrderItem(
+                        order=order,
+                        flower=flower,
+                        quantity=1,
+                        unit_price=flower.price
+                    ))
+            models.OrderItem.objects.bulk_create(items)
 
         return Response({
             'razorpay_order_id': payment_order['id'],
