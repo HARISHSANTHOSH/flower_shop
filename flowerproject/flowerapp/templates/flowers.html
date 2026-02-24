@@ -698,7 +698,7 @@
         if (res.status === 401) { await refreshAccessToken(); opts.headers = getHeaders(); res = await fetch(url, opts); }
         return res;
     }
-    function logout(e) { e.preventDefault(); localStorage.clear(); window.location.href = 'http://127.0.0.1:8000/flowerapp/signin/'; }
+    function logout(e) { e.preventDefault(); localStorage.clear(); window.location.href = '/flowerapp/signin/'; }
 
     // ── Profile ──
     async function loadProfile() {

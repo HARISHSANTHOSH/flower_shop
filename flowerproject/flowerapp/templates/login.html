@@ -253,7 +253,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     submitBtn.textContent = "Logging in...";
 
     try {
-        const res = await fetch("/api/v1/login/", {
+        const res = await fetch("/flowerapp/api/v1/login/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password })
@@ -269,7 +269,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
 
-        const profileRes = await fetch("/flowerapp/api/me/", {
+        const profileRes = await fetch("/flowerapp/api/v1/me/", {
             headers: { "Authorization": `Bearer ${data.access}` }
         });
         const profile = await profileRes.json();

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView
 
 
 urlpatterns = [
@@ -8,7 +8,6 @@ urlpatterns = [
     path('api/v1/login/',          LoginAPIView.as_view()),
     path('api/v1/signup/',         SignupAPIView.as_view()),
     path('api/v1/me/',             MeView.as_view()),
-	
 	path('api/v1/auth/google/', GoogleLoginAPIView.as_view()),
 
     # Flowers
@@ -19,6 +18,7 @@ urlpatterns = [
     path('api/v1/orders/<int:pk>/', OrderDetailAPIView.as_view()),
     path('api/v1/my-orders/',      CustomerOrderListAPIView.as_view()),
     path('api/v1/buy-now/',        BuyNowAPIView.as_view()),
+	path('api/v1/orders/<int:order_id>/cancel/', OrderCancelAPIView.as_view()),
 
     # Cart
     path('api/v1/cart/',               CartAPIView.as_view()),
