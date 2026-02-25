@@ -41,3 +41,24 @@ Thank you for shopping with us 🌸
 
     except Exception as exc:
         raise self.retry(exc=exc, countdown=10)
+
+
+@shared_task
+def send_order_cancellation_email(order_id):
+    order    = Order.objects.get(id=order_id)
+    customer = order.customer
+    email    = customer.user.email
+
+    subject = 'Order Cancelled - Bloom Haven'
+    message = f'''
+    Hi {customer.user.username},
+
+    Your order #{order.id} has been cancelled successfully.
+
+    {'A refund of ₹' + str(order.total_amount) + ' will be credited in 5-7 business days.' 
+     if order.payment_method == 'online' else ''}
+
+    Thank you for shopping with Bloom Haven.
+    '''
+
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])

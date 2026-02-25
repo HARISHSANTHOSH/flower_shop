@@ -121,6 +121,15 @@
         /* ── Order Card ── */
         .orders-list { display: flex; flex-direction: column; gap: 16px; }
 
+        .cancel-btn {
+            background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2);
+            border-radius: 8px; color: #dc2626; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+            padding: 8px 18px; transition: background .2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .cancel-btn:hover { background: rgba(239,68,68,.15); }
+
         .order-card {
             background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
             box-shadow: var(--shadow); overflow: hidden;
@@ -202,13 +211,7 @@
         .order-footer-total { font-size: 14px; color: var(--brown-mid); }
         .order-footer-total strong { color: var(--green); font-size: 18px; font-family: 'Playfair Display', serif; }
 
-        .reorder-btn {
-            background: var(--green-lo); border: 1px solid rgba(30,77,43,.2); border-radius: 8px;
-            color: var(--green); cursor: pointer; font-family: 'DM Sans', sans-serif;
-            font-size: 12px; font-weight: 600; padding: 8px 18px;
-            transition: background .2s; display: flex; align-items: center; gap: 6px;
-        }
-        .reorder-btn:hover { background: var(--green-mid); }
+        
 
         /* ── Progress tracker ── */
         .order-progress {
@@ -297,7 +300,7 @@
         </div>
     </a>
     <div class="nav-actions">
-        <a href="http://127.0.0.1:8000/flowerapp/flowers/" class="back-btn">← Back to Shop</a>
+        <a href="/flowerapp/flowers/" class="back-btn">← Back to Shop</a>
     </div>
 </nav>
 
@@ -361,7 +364,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-    const API_BASE = 'http://127.0.0.1:8000/flowerapp';
+    const API_BASE = '/flowerapp';
     const PLACEHOLDER_EMOJI = ['🌿','🌵','🪴','🌸','🌴','🌺'];
 
     let allOrders = [];
@@ -372,7 +375,7 @@
     async function refreshAccessToken() {
         const refresh = localStorage.getItem('refresh_token');
         if (!refresh) { window.location.href = '/signin/'; throw new Error('no refresh'); }
-        const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+        const res = await fetch('/flowerapp/api/token/refresh/', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
@@ -534,7 +537,7 @@
                         <div class="order-footer-info">Placed on ${fmtDate(order.order_date || order.created_at)}</div>
                         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
                             <div class="order-footer-total">Total: <strong>₹${totalAmt}</strong></div>
-                            ${!isCancelled ? `<button class="reorder-btn" onclick="reorder(event, ${JSON.stringify(items.map(i => i.flower)).replace(/"/g,"'")})">🔄 Reorder</button>` : ''}
+                            ${status === 'confirmed' ? `<button class="cancel-btn" onclick="cancelOrder(event, ${order.id})">✕ Cancel Order</button>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -558,6 +561,40 @@
         document.getElementById('statActive').textContent    = active;
         document.getElementById('statSpent').textContent     = `₹${spent.toFixed(0)}`;
     }
+
+    async function cancelOrder(e, orderId) {
+            e.stopPropagation();
+            const btn = e.target;
+
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Cancelling…';
+
+            try {
+                const res = await authFetch(`/flowerapp/api/v1/orders/${orderId}/cancel/`, {
+                    method: 'POST'
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showToast(data.error || 'Cancellation failed', 'error');
+                    return;
+                }
+
+                showToast('Order cancelled successfully', 'success');
+
+                // ✅ refresh orders after cancel
+                setTimeout(() => fetchOrders(), 1000);
+
+            } catch (err) {
+                showToast('Something went wrong', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✕ Cancel Order';
+            }
+        }
 
     // ── Filter & search ───────────────────────────────────────────────────────
     function applyFilters() {
@@ -584,24 +621,7 @@
         applyFilters();
     });
 
-    // ── Reorder ───────────────────────────────────────────────────────────────
-    async function reorder(e, flowerIds) {
-        e.stopPropagation();
-        const btn = e.target;
-        btn.disabled = true; btn.textContent = '⏳ Adding…';
-        try {
-            for (const fid of flowerIds) {
-                await authFetch(`${API_BASE}/api/v1/cart/`, {
-                    method: 'POST',
-                    body: JSON.stringify({ flower_id: fid, quantity: 1 })
-                });
-            }
-            showToast('Items added to cart! 🌿', 'success');
-            setTimeout(() => window.location.href = '/', 800);
-        } catch (e) { showToast('Failed to reorder', 'error'); }
-        btn.disabled = false; btn.textContent = '🔄 Reorder';
-    }
-
+   
     // ── Load skeletons ────────────────────────────────────────────────────────
     function renderSkeletons() {
         document.getElementById('ordersContainer').innerHTML = [1,2,3].map(() => `

@@ -12,10 +12,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, I
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 
 # Third party
 import json
 import razorpay
+import requests as python_requests
+
 
 # Local
 from flowerapp import models, serializers
@@ -23,7 +27,7 @@ from .serializers import SignupSerializer, LoginSerializer
 from .permissions import IsSuperAdmin
 from .pagination import FlowerPagination
 from .paginator import AdminOrderPagination
-from .tasks import send_order_confirmation_email
+from .tasks import send_order_confirmation_email,send_order_cancellation_email
 
 
 class FlowerListCreateAPIView(APIView):
@@ -46,10 +50,7 @@ class FlowerListCreateAPIView(APIView):
                 else:
                     flowers=flowers.filter(price__gte=min_price)
             except ValueError:
-                pass
-
-
-       
+                pass    
 
         if category_id:
             flowers = flowers.filter(category_id=category_id)
@@ -87,6 +88,58 @@ class MeView(APIView):
             'phone_number': customer.phone_number if customer else '',
             'address':      customer.address      if customer else '',
         })
+
+
+
+class GoogleLoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token = request.data.get('token')
+
+        if not token:
+            return Response({'error': 'Token required'}, status=400)
+
+        try:
+            # ✅ verify token with Google using allauth
+            google_response = python_requests.get(
+                'https://www.googleapis.com/oauth2/v3/tokeninfo',
+                params={'id_token': token}
+            )
+            idinfo = google_response.json()
+
+            if 'error' in idinfo:
+                return Response({'error': 'Invalid Google token'}, status=400)
+
+            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+                return Response({'error': 'Token client mismatch'}, status=400)
+
+            email    = idinfo.get('email')
+            name     = idinfo.get('name', '')
+            username = email.split('@')[0]
+
+            # ✅ get or create user
+            from django.contrib.auth.models import User
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': username,
+                    'first_name': name,
+                }
+            )
+
+            # ✅ generate JWT tokens same as normal login
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'access':  str(refresh.access_token),
+                'refresh': str(refresh),
+                'email':   email,
+                'name':    name,
+            })
+
+        except Exception as e:
+            return Response({'error': 'Google login failed'}, status=400)
 
 class LoginAPIView(APIView):
     def post(self, request):
@@ -549,56 +602,67 @@ class RazorpayWebhookAPIView(APIView):
         return Response({'status': 'ok'})
 
 
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-import requests as python_requests
 
-class GoogleLoginAPIView(APIView):
-    permission_classes = [AllowAny]
+class OrderCancelAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        token = request.data.get('token')
+    def post(self, request, order_id):
+        user     = request.user
+        customer = get_object_or_404(models.Customer, user=user)
 
-        if not token:
-            return Response({'error': 'Token required'}, status=400)
+        order = get_object_or_404(
+            models.Order,
+            id=order_id,
+            customer=customer
+        )
 
-        try:
-            # ✅ verify token with Google using allauth
-            google_response = python_requests.get(
-                'https://www.googleapis.com/oauth2/v3/tokeninfo',
-                params={'id_token': token}
-            )
-            idinfo = google_response.json()
-
-            if 'error' in idinfo:
-                return Response({'error': 'Invalid Google token'}, status=400)
-
-            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
-                return Response({'error': 'Token client mismatch'}, status=400)
-
-            email    = idinfo.get('email')
-            name     = idinfo.get('name', '')
-            username = email.split('@')[0]
-
-            # ✅ get or create user
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={
-                    'username': username,
-                    'first_name': name,
-                }
-            )
-
-            # ✅ generate JWT tokens same as normal login
-            refresh = RefreshToken.for_user(user)
-
+        # ✅ only confirmed orders can be cancelled
+        if order.status != 'confirmed':
             return Response({
-                'access':  str(refresh.access_token),
-                'refresh': str(refresh),
-                'email':   email,
-                'name':    name,
-            })
+                'error': f'Order cannot be cancelled. Current status: {order.status}'
+            }, status=400)
 
-        except Exception as e:
-            return Response({'error': 'Google login failed'}, status=400)
+        with transaction.atomic():
+            # COD — just cancel
+            if order.payment_method == 'cod':
+                order.status = 'cancelled'
+                order.save(update_fields=['status'])
+
+            # Online — trigger Razorpay refund
+            elif order.payment_method == 'online':
+                if not order.razorpay_payment_id:
+                    return Response({
+                        'error': 'Payment ID not found, contact support'
+                    }, status=400)
+
+                try:
+                    client = razorpay.Client(
+                        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+                    )
+                    # amount in paise
+                    refund = client.payment.refund(
+                        order.razorpay_payment_id,
+                        {'amount': int(float(order.total_amount) * 100)}
+                    )
+
+                    order.status         = 'cancelled'
+                    order.payment_status = 'refunded'
+                    order.save(update_fields=['status', 'payment_status'])
+
+                except Exception as e:
+                    return Response({
+                        'error': 'Refund failed, please contact support'
+                    }, status=400)
+
+        # ✅ send cancellation email
+        transaction.on_commit(
+            lambda: send_order_cancellation_email.delay(order.id)
+        )
+
+        return Response({
+            'message':        'Order cancelled successfully',
+            'order_id':       order.id,
+            'status':         order.status,
+            'payment_status': order.payment_status,
+            'payment_method': order.payment_method,
+        })
