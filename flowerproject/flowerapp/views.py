@@ -165,6 +165,22 @@ class LoginAPIView(APIView):
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+
+        if not refresh_token:
+            return Response({'error': 'Refresh token required'}, status=400)
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist() 
+            return Response({'message': 'Logged out successfully'})
+        except Exception as e:
+            return Response({'error': 'Invalid token'}, status=400)
+
 def signup_page(request):
     return render(request, "signup.html")
 
