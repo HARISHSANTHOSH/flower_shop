@@ -14,12 +14,19 @@ class CategorySerializer(serializers.ModelSerializer):
 		fields= '__all__'
 
 class FlowerSerializer(serializers.ModelSerializer):
-	category = CategorySerializer(read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    flower_image = serializers.SerializerMethodField()
 
-	class Meta:
-		model = models.Flower
-		fields = ['id', 'name', 'description', 'price', 'category']
-		read_only_fields = ['id']
+    class Meta:
+        model = models.Flower
+        fields = ['id', 'name', 'description', 'price', 'stock', 'image', 'flower_image', 'category', 'category_name','light_requirement', 'water_frequency', 'temperature']
+        read_only_fields = ['id']
+
+    def get_flower_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:

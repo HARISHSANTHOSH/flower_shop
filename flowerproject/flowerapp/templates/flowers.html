@@ -703,7 +703,7 @@
     // ── Profile ──
     async function loadProfile() {
         try {
-            const res = await authFetch(`${API_BASE}/api/me/`);
+            const res = await authFetch(`${API_BASE}/api/v1/me/`);
             const data = await res.json();
             const name = data.username || data.first_name || 'User';
             document.getElementById('profileName').textContent = name;
@@ -851,9 +851,16 @@
                         <button class="btn-buy" ${out ? 'disabled' : ''}>Buy Now</button>
                     </div>
                 </div>`;
-            li.querySelector('.btn-cart').addEventListener('click', () => addToCart(flower));
-            li.querySelector('.btn-buy').addEventListener('click', () => buyNow(flower));
-            grid.appendChild(li);
+                li.querySelector('.btn-cart').addEventListener('click', (e) => { e.stopPropagation(); addToCart(flower); });
+                li.querySelector('.btn-buy').addEventListener('click', (e) => { e.stopPropagation(); buyNow(flower); });
+
+                // Make entire card clickable
+                li.style.cursor = 'pointer';
+                li.addEventListener('click', () => {
+                    window.location.href = `/flowerapp/flowers/${flower.id}/`;
+                });
+
+                grid.appendChild(li);
         });
     }
 
