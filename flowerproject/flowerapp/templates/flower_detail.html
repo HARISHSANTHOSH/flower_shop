@@ -1,0 +1,1066 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Plant Details — Bloom Heaven</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --cream: #f8f5ef; --warm: #ede8de; --brown: #2e1f0f; --brown-mid: #5c3d1e;
+            --green: #1e4d2b; --green-hi: #2a6b3c; --green-lo: rgba(30,77,43,.1); --green-mid: rgba(30,77,43,.18);
+            --gold: #b5833a; --gold-lo: rgba(181,131,58,.12); --text: #1e1408; --muted: #7a6248;
+            --border: rgba(46,31,15,.1); --white: #ffffff; --radius: 12px;
+            --shadow: 0 2px 16px rgba(46,31,15,.08); --shadow-lg: 0 8px 40px rgba(46,31,15,.14);
+        }
+        html { scroll-behavior: smooth; }
+        body { background: var(--cream); color: var(--text); font-family: 'Jost', sans-serif; min-height: 100vh; }
+
+        /* ── Navbar ── */
+        nav {
+            background: var(--green); padding: 0 40px; position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 62px; box-shadow: 0 2px 24px rgba(0,0,0,.18);
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+        .logo-mark { width: 34px; height: 34px; background: rgba(255,255,255,.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: #fff; }
+        .brand-tagline { font-size: 9px; color: rgba(255,255,255,.55); letter-spacing: .1em; text-transform: uppercase; }
+        .nav-links { display: flex; align-items: center; gap: 2px; }
+        .nav-links a { color: rgba(255,255,255,.7); text-decoration: none; font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all .2s; }
+        .nav-links a:hover { color: #fff; background: rgba(255,255,255,.12); }
+        .nav-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .orders-btn {
+            background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 8px;
+            color: rgba(255,255,255,.85); cursor: pointer; font-family: 'Jost', sans-serif;
+            font-size: 12px; font-weight: 500; padding: 7px 14px; transition: background .2s;
+        }
+        .orders-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+        .cart-btn {
+            background: var(--gold); border: none; border-radius: 8px; color: #fff;
+            cursor: pointer; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+            padding: 8px 16px; display: flex; align-items: center; gap: 7px;
+            transition: background .2s, transform .1s; position: relative;
+        }
+        .cart-btn:hover { background: #c9923f; }
+        .cart-btn:active { transform: scale(.97); }
+        .cart-count {
+            background: #fff; border-radius: 50%; color: var(--green); font-size: 9px; font-weight: 700;
+            height: 16px; width: 16px; display: none; align-items: center; justify-content: center;
+            position: absolute; top: -5px; right: -5px;
+        }
+        .cart-count.visible { display: flex; }
+        .profile-btn {
+            background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.22); border-radius: 50%;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 15px; transition: background .2s; flex-shrink: 0;
+        }
+        .profile-btn:hover { background: rgba(255,255,255,.25); }
+        .profile-wrap { position: relative; }
+        .profile-dropdown {
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+            box-shadow: var(--shadow-lg); min-width: 240px; opacity: 0; pointer-events: none;
+            position: absolute; right: 0; top: calc(100% + 10px);
+            transition: opacity .2s, transform .2s; transform: translateY(-6px); z-index: 300;
+        }
+        .profile-wrap.open .profile-dropdown { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .profile-header {
+            padding: 18px 18px 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(135deg, var(--green), var(--green-hi));
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .profile-avatar { width: 42px; height: 42px; background: rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; font-weight: 700; flex-shrink: 0; }
+        .profile-info h4 { font-size: 14px; font-weight: 600; color: #fff; }
+        .profile-info p  { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+        .profile-menu { padding: 8px; }
+        .profile-menu a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--brown-mid); font-size: 13px; font-weight: 500; transition: background .15s; }
+        .profile-menu a:hover { background: var(--warm); color: var(--green); }
+        .profile-menu .logout { color: #c0392b; }
+        .profile-menu .logout:hover { background: #fef2f2; }
+        .profile-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+        .pmicon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+
+        /* ── Breadcrumb ── */
+        .breadcrumb {
+            max-width: 1320px; margin: 0 auto; padding: 16px 24px 0;
+            display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+        }
+        .breadcrumb a { color: var(--green); text-decoration: none; font-weight: 500; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span { color: var(--muted); }
+
+        /* ── Main Detail Layout ── */
+        .detail-main { max-width: 1320px; margin: 0 auto; padding: 24px 24px 80px; }
+
+        .detail-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
+        }
+
+        /* ── Image Panel ── */
+        .image-panel { position: sticky; top: 82px; }
+        .main-image-wrap {
+            border-radius: 16px; overflow: hidden; background: var(--warm);
+            aspect-ratio: 1; position: relative; box-shadow: var(--shadow-lg);
+        }
+        .main-image-wrap img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform .5s ease;
+        }
+        .main-image-wrap:hover img { transform: scale(1.04); }
+        .img-badge {
+            position: absolute; top: 16px; left: 16px;
+            border-radius: 8px; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+            padding: 5px 12px; text-transform: uppercase;
+        }
+        .badge-in  { background: rgba(30,77,43,.9); color: #fff; }
+        .badge-low { background: rgba(181,131,58,.9); color: #fff; }
+        .badge-out { background: rgba(0,0,0,.55); color: #fff; }
+
+        .thumb-row {
+            display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+        }
+        .thumb {
+            width: 72px; height: 72px; border-radius: 10px; overflow: hidden;
+            border: 2px solid transparent; cursor: pointer; transition: border-color .2s, transform .2s;
+            flex-shrink: 0; background: var(--warm);
+        }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb.active { border-color: var(--green); transform: scale(1.05); }
+        .thumb:hover { border-color: var(--gold); }
+
+        /* ── Info Panel ── */
+        .info-panel { display: flex; flex-direction: column; gap: 0; }
+
+        .plant-category-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--green-lo); border: 1px solid rgba(30,77,43,.2);
+            border-radius: 100px; color: var(--green); font-size: 11px; font-weight: 600;
+            letter-spacing: .08em; padding: 4px 12px; text-transform: uppercase;
+            margin-bottom: 12px; width: fit-content;
+        }
+
+        .plant-name {
+            font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 3.5vw, 42px);
+            font-weight: 600; color: var(--brown); line-height: 1.15; margin-bottom: 10px;
+        }
+
+        .plant-meta {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+        .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
+        .price-block { 
+            background: linear-gradient(135deg, var(--green-lo), rgba(30,77,43,.05));
+            border: 1px solid rgba(30,77,43,.15); border-radius: 12px;
+            padding: 18px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px;
+        }
+        .price-main { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 600; color: var(--green); line-height: 1; }
+        .price-unit { font-size: 13px; color: var(--muted); font-family: 'Jost', sans-serif; margin-top: 4px; }
+        .price-divider { width: 1px; height: 48px; background: rgba(30,77,43,.15); }
+        .price-note { font-size: 12px; color: var(--muted); line-height: 1.6; }
+        .price-note strong { color: var(--green); display: block; font-size: 13px; }
+
+        .description-block { margin-bottom: 24px; }
+        .description-block h4 {
+            font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+            letter-spacing: .1em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .description-block h4::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .description-block p { font-size: 14px; color: var(--brown-mid); line-height: 1.75; }
+
+        /* Quantity selector */
+        .qty-block { margin-bottom: 24px; }
+        .qty-block label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+        .qty-selector { display: flex; align-items: center; gap: 12px; }
+        .qty-control {
+            display: flex; align-items: center; background: var(--white);
+            border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+        }
+        .qty-btn-ctrl {
+            background: none; border: none; color: var(--brown-mid); cursor: pointer;
+            font-size: 18px; font-weight: 600; padding: 10px 18px; transition: background .15s;
+            font-family: 'Jost', sans-serif;
+        }
+        .qty-btn-ctrl:hover:not(:disabled) { background: var(--warm); color: var(--green); }
+        .qty-btn-ctrl:disabled { opacity: .3; cursor: not-allowed; }
+        .qty-display { font-size: 16px; font-weight: 600; color: var(--brown); min-width: 40px; text-align: center; }
+        .qty-note { font-size: 12px; color: var(--muted); }
+
+        /* Action buttons */
+        .action-buttons { display: flex; gap: 12px; margin-bottom: 24px; }
+        .btn-add-cart {
+            flex: 1; background: var(--green-lo); border: 1.5px solid rgba(30,77,43,.3);
+            border-radius: 12px; color: var(--green); cursor: pointer; font-family: 'Jost', sans-serif;
+            font-size: 14px; font-weight: 600; padding: 14px 20px; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-add-cart:hover:not(:disabled) { background: var(--green-mid); border-color: var(--green); transform: translateY(-1px); }
+        .btn-add-cart:active:not(:disabled) { transform: scale(.98); }
+        .btn-add-cart:disabled { opacity: .4; cursor: not-allowed; }
+        .btn-buy-now {
+            flex: 1.2; background: var(--green); border: none; border-radius: 12px; color: #fff;
+            cursor: pointer; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600;
+            padding: 14px 20px; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-buy-now:hover:not(:disabled) { background: var(--green-hi); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(30,77,43,.3); }
+        .btn-buy-now:active:not(:disabled) { transform: scale(.98); }
+        .btn-buy-now:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* Care info cards */
+        .care-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+        .care-card {
+            background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 12px; text-align: center;
+        }
+        .care-card .icon { font-size: 20px; margin-bottom: 6px; display: block; }
+        .care-card .label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 3px; }
+        .care-card .value { font-size: 12px; font-weight: 600; color: var(--brown); }
+
+        /* Delivery info */
+        .delivery-strip {
+            background: var(--warm); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+        }
+        .delivery-strip .icon { font-size: 20px; flex-shrink: 0; }
+        .delivery-strip p { font-size: 13px; color: var(--brown-mid); line-height: 1.5; }
+        .delivery-strip strong { color: var(--brown); }
+
+        /* ── Related Plants ── */
+        .related-section { margin-top: 56px; }
+        .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; }
+        .section-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--brown); }
+        .see-all { color: var(--green); font-size: 13px; font-weight: 500; text-decoration: none; }
+        .see-all:hover { text-decoration: underline; }
+
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .related-card {
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+            overflow: hidden; cursor: pointer; transition: transform .25s, box-shadow .25s;
+            text-decoration: none; display: block;
+        }
+        .related-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .related-img { height: 160px; overflow: hidden; background: var(--warm); }
+        .related-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+        .related-card:hover .related-img img { transform: scale(1.06); }
+        .related-body { padding: 14px 16px; }
+        .related-body h4 { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--brown); margin-bottom: 4px; }
+        .related-body .price { font-size: 15px; font-weight: 600; color: var(--green); font-family: 'Cormorant Garamond', serif; }
+        .related-body .stock { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        /* ── Skeleton ── */
+        .skel { background: linear-gradient(90deg, var(--warm) 25%, #e4ddd2 50%, var(--warm) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .detail-skeleton { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+        .skel-img-main { aspect-ratio: 1; border-radius: 16px; }
+        .skel-line { height: 16px; margin-bottom: 12px; border-radius: 4px; }
+
+        /* ── Overlay & Cart Drawer ── */
+        .overlay { background: rgba(30,20,8,.55); inset: 0; opacity: 0; pointer-events: none; position: fixed; transition: opacity .3s; z-index: 200; backdrop-filter: blur(4px); }
+        .overlay.open { opacity: 1; pointer-events: all; }
+        .cart-drawer { background: var(--white); bottom: 0; box-shadow: -8px 0 48px rgba(30,20,8,.16); display: flex; flex-direction: column; position: fixed; right: 0; top: 0; transform: translateX(100%); transition: transform .35s cubic-bezier(.4,0,.2,1); width: min(420px, 100vw); z-index: 201; }
+        .cart-drawer.open { transform: translateX(0); }
+        .drawer-header { align-items: center; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; padding: 20px 24px; }
+        .drawer-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--brown); }
+        .drawer-close { background: var(--warm); border: none; border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 18px; height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; }
+        .drawer-close:hover { background: var(--border); color: var(--brown); }
+        .drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .cart-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+        .cart-empty .icon { font-size: 44px; margin-bottom: 14px; display: block; }
+        .cart-empty h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--brown); margin-bottom: 8px; }
+        .cart-item { align-items: flex-start; border-bottom: 1px solid var(--border); display: flex; gap: 14px; padding: 16px 0; }
+        .cart-item img { border-radius: 8px; height: 64px; object-fit: cover; width: 64px; flex-shrink: 0; }
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-info h4 { font-size: 14px; font-weight: 600; color: var(--brown); margin-bottom: 3px; }
+        .cart-item-info .item-price { font-size: 14px; color: var(--green); font-weight: 600; font-family: 'Cormorant Garamond', serif; }
+        .item-qty { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .qty-btn { background: var(--warm); border: 1px solid var(--border); border-radius: 6px; color: var(--brown); cursor: pointer; font-size: 14px; font-weight: 600; height: 28px; width: 28px; display: flex; align-items: center; justify-content: center; }
+        .qty-btn:hover { background: var(--border); }
+        .qty-num { font-size: 14px; font-weight: 600; color: var(--brown); min-width: 22px; text-align: center; }
+        .remove-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px; }
+        .remove-btn:hover { color: #c0392b; }
+        .drawer-footer { border-top: 1px solid var(--border); padding: 20px 24px; }
+        .cart-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+        .cart-total span { font-size: 13px; color: var(--muted); font-weight: 500; }
+        .cart-total strong { font-size: 26px; font-weight: 600; color: var(--green); font-family: 'Cormorant Garamond', serif; }
+        .checkout-btn { background: var(--green); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 600; padding: 14px; width: 100%; }
+        .checkout-btn:hover { background: var(--green-hi); }
+        .checkout-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ── Checkout Modal ── */
+        .modal-overlay { background: rgba(30,20,8,.6); inset: 0; opacity: 0; pointer-events: none; position: fixed; transition: opacity .3s; z-index: 400; backdrop-filter: blur(6px); }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--white); border-radius: 16px; box-shadow: var(--shadow-lg); left: 50%; max-width: 520px; padding: 40px; position: fixed; top: 50%; transform: translate(-50%, -48%); transition: transform .3s; width: calc(100% - 48px); z-index: 401; }
+        .modal-overlay.open .modal { transform: translate(-50%, -50%); }
+        .modal-close { background: var(--warm); border: none; border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 16px; padding: 6px 10px; position: absolute; right: 16px; top: 16px; }
+        .checkout-modal { max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .checkout-steps { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+        .co-step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .co-step span { width: 32px; height: 32px; border-radius: 50%; background: var(--warm); border: 2px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: all .3s; }
+        .co-step small { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+        .co-step.active span { background: var(--green); border-color: var(--green); color: #fff; }
+        .co-step.done span { background: var(--green-lo); border-color: var(--green); color: var(--green); }
+        .co-step-line { flex: 1; height: 2px; background: var(--border); min-width: 36px; margin-bottom: 16px; }
+        .co-step-panel h2 { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--brown); margin-bottom: 6px; }
+        .co-step-panel .sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+        .hidden { display: none !important; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .form-group label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+        .form-group input, .form-group textarea { background: var(--warm); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 14px; padding: 10px 13px; outline: none; transition: border-color .2s; resize: none; width: 100%; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--green); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .co-next-btn { background: var(--green); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; width: 100%; margin-top: 8px; transition: background .2s; }
+        .co-next-btn:hover { background: var(--green-hi); }
+        .co-back-btn { background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); cursor: pointer; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500; padding: 11px; width: 100%; transition: border-color .2s; }
+        .co-back-btn:hover { border-color: var(--green); color: var(--green); }
+        .co-btn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 16px; }
+        .summary-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .summary-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--warm); border-radius: 8px; }
+        .summary-item img { width: 46px; height: 46px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+        .summary-item-info { flex: 1; }
+        .summary-item-info h4 { font-size: 13px; font-weight: 600; color: var(--brown); }
+        .summary-item-info p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .summary-item-price { font-size: 14px; font-weight: 600; color: var(--green); font-family: 'Cormorant Garamond', serif; flex-shrink: 0; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+        .summary-row.grand { padding-top: 12px; }
+        .summary-row.grand strong { font-size: 22px; color: var(--green); font-family: 'Cormorant Garamond', serif; }
+        .free-tag { color: var(--green); font-weight: 600; font-size: 13px; }
+        .addr-preview { background: var(--green-lo); border: 1px solid rgba(30,77,43,.2); border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 13px; color: var(--brown-mid); line-height: 1.65; }
+        .addr-preview strong { color: var(--green); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+        .pay-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+        .pay-option { display: flex; align-items: center; gap: 14px; padding: 16px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color .2s, background .2s; }
+        .pay-option:hover { border-color: var(--green); background: var(--green-lo); }
+        .pay-option.active { border-color: var(--green); background: var(--green-lo); }
+        .pay-icon { font-size: 24px; flex-shrink: 0; }
+        .pay-option div { flex: 1; }
+        .pay-option strong { display: block; font-size: 14px; color: var(--brown); }
+        .pay-option small { font-size: 12px; color: var(--muted); }
+        .pay-check { color: var(--green); font-weight: 700; font-size: 16px; }
+        .place-order-btn { background: var(--green); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; padding: 12px; width: 100%; transition: background .2s; }
+        .place-order-btn:hover { background: var(--green-hi); }
+        .place-order-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .success-screen { text-align: center; padding: 16px 0; }
+        .success-icon { font-size: 64px; display: block; margin-bottom: 16px; animation: popIn .5s ease; }
+        @keyframes popIn { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+        .success-screen h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; color: var(--brown); margin-bottom: 8px; }
+        .success-screen p { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+        .success-id { background: var(--green-lo); border-radius: 8px; color: var(--green); font-weight: 600; font-size: 16px; padding: 10px; margin: 12px 0; }
+        .success-note { font-size: 12px !important; color: var(--muted) !important; margin-bottom: 20px !important; }
+
+        /* ── Toast ── */
+        .toast-container { bottom: 24px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; position: fixed; right: 24px; z-index: 999; }
+        .toast { align-items: center; background: var(--brown); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,.2); color: #fff; display: flex; font-size: 13px; font-weight: 500; gap: 10px; padding: 12px 18px; animation: toastIn .3s ease both, toastOut .3s ease 2.7s both; }
+        .toast.success .ti { color: #6ee7a0; }
+        .toast.error .ti { color: #fca5a5; }
+        .toast.info .ti { color: #93c5fd; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
+
+        /* ── Footer ── */
+        footer { background: var(--brown); color: rgba(255,255,255,.65); padding: 52px 40px 28px; margin-top: 80px; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px; max-width: 1320px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: rgba(255,255,255,.3); }
+
+        /* Entrance animation */
+        .detail-grid { animation: fadeUp .5s ease both; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+        @media (max-width: 900px) {
+            .detail-grid { grid-template-columns: 1fr; gap: 28px; }
+            .image-panel { position: static; }
+            nav { padding: 0 16px; }
+            .nav-links { display: none; }
+            .detail-main { padding: 16px 16px 60px; }
+            .care-grid { grid-template-columns: repeat(3, 1fr); }
+            .action-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+    <a href="/flowerapp/flowers/" class="nav-brand">
+        <div class="logo-mark">🌿</div>
+        <div class="brand-text">
+            <span class="brand-name">Bloom Heaven</span>
+            <span class="brand-tagline">Indoor & Outdoor Plants</span>
+        </div>
+    </a>
+    <div class="nav-links">
+        <a href="/flowerapp/flowers/">Shop</a>
+        <a href="/flowerapp/orders/">Orders</a>
+    </div>
+    <div class="nav-actions">
+        <button class="orders-btn" onclick="window.location.href='/flowerapp/orders/'">📦 Orders</button>
+        <button class="cart-btn" id="cartToggle">
+            🛒 Cart
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <div class="profile-wrap" id="profileWrap">
+            <button class="profile-btn" id="profileBtn" title="My Profile">👤</button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">?</div>
+                    <div class="profile-info">
+                        <h4 id="profileName">Loading…</h4>
+                        <p id="profileEmail">—</p>
+                    </div>
+                </div>
+                <div class="profile-menu">
+                    <a href="/flowerapp/orders/"><span class="pmicon">📦</span> My Orders</a>
+                    <a href="/flowerapp/flowers/"><span class="pmicon">🌿</span> Shop</a>
+                    <div class="profile-divider"></div>
+                    <a href="#" class="logout" onclick="logout(event)"><span class="pmicon">🚪</span> Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="/flowerapp/flowers/">← Shop</a>
+    <span>/</span>
+    <span id="breadcrumbName">Loading…</span>
+</div>
+
+<!-- Main Detail -->
+<div class="detail-main">
+    <div id="detailContent">
+        <!-- Skeleton loader -->
+        <div class="detail-skeleton" id="skeleton">
+            <div class="skel skel-img-main"></div>
+            <div>
+                <div class="skel skel-line" style="width:40%;height:12px;margin-bottom:16px"></div>
+                <div class="skel skel-line" style="width:75%;height:36px;margin-bottom:8px"></div>
+                <div class="skel skel-line" style="width:55%;height:36px;margin-bottom:24px"></div>
+                <div class="skel skel-line" style="width:100%;height:80px;margin-bottom:24px;border-radius:12px"></div>
+                <div class="skel skel-line" style="width:100%;height:14px"></div>
+                <div class="skel skel-line" style="width:90%;height:14px"></div>
+                <div class="skel skel-line" style="width:70%;height:14px;margin-bottom:24px"></div>
+                <div class="skel skel-line" style="width:100%;height:48px;border-radius:12px"></div>
+            </div>
+        </div>
+        <!-- Real content injected here -->
+        <div class="detail-grid" id="detailGrid" style="display:none"></div>
+    </div>
+
+    <!-- Related Plants -->
+    <div class="related-section" id="relatedSection" style="display:none">
+        <div class="section-header">
+            <h2 class="section-title">You Might Also Like</h2>
+            <a href="/flowerapp/flowers/" class="see-all">View all plants →</a>
+        </div>
+        <div class="related-grid" id="relatedGrid"></div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-bottom">
+        <span>© 2026 Bloom Heaven. All rights reserved.</span>
+        <span>Made with 🌿 in Kerala, India</span>
+    </div>
+</footer>
+
+<!-- Cart Overlay & Drawer -->
+<div class="overlay" id="overlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+    <div class="drawer-header">
+        <h2>Your Cart</h2>
+        <button class="drawer-close" id="cartClose">✕</button>
+    </div>
+    <div class="drawer-body" id="cartBody"></div>
+    <div class="drawer-footer">
+        <div class="cart-total"><span>Total</span><strong id="cartTotal">₹0.00</strong></div>
+        <button class="checkout-btn" id="checkoutBtn" disabled>Place Order</button>
+    </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="checkoutOverlay">
+    <div class="modal checkout-modal">
+        <button class="modal-close" onclick="closeCheckout()">✕</button>
+        <div class="checkout-steps">
+            <div class="co-step active" id="cstep1"><span>1</span><small>Address</small></div>
+            <div class="co-step-line"></div>
+            <div class="co-step" id="cstep2"><span>2</span><small>Summary</small></div>
+            <div class="co-step-line"></div>
+            <div class="co-step" id="cstep3"><span>3</span><small>Payment</small></div>
+        </div>
+        <div class="co-step-panel" id="coPanel1">
+            <h2>Delivery Address</h2>
+            <p class="sub">Confirm where to deliver your plants</p>
+            <div class="form-group"><label>Full Name</label><input type="text" id="co-name" placeholder="Your name"></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="co-phone" placeholder="+91 XXXXX XXXXX"></div>
+            <div class="form-group"><label>Delivery Address</label><textarea id="co-address" rows="3" placeholder="House no, Street, Area…"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>City</label><input type="text" id="co-city" placeholder="City"></div>
+                <div class="form-group"><label>Pincode</label><input type="text" id="co-pin" placeholder="688540" maxlength="6"></div>
+            </div>
+            <button class="co-next-btn" onclick="coGoStep2()">Continue to Summary →</button>
+        </div>
+        <div class="co-step-panel hidden" id="coPanel2">
+            <h2>Order Summary</h2>
+            <p class="sub">Review your items before confirming</p>
+            <div class="summary-items" id="coSummaryItems"></div>
+            <div class="summary-row"><span>Delivery</span><span class="free-tag">FREE 🌿</span></div>
+            <div class="summary-row grand"><span>Total</span><strong id="coGrandTotal">₹0.00</strong></div>
+            <div class="addr-preview" id="coAddrPreview"></div>
+            <div class="co-btn-row">
+                <button class="co-back-btn" onclick="coGoStep(1)">← Back</button>
+                <button class="co-next-btn" onclick="coGoStep(3)" style="margin-top:0">Choose Payment →</button>
+            </div>
+        </div>
+        <div class="co-step-panel hidden" id="coPanel3">
+            <h2>Payment Method</h2>
+            <p class="sub">Choose how you'd like to pay</p>
+            <div class="pay-options">
+                <div class="pay-option active" id="optCOD" onclick="selectPayment('cod')">
+                    <span class="pay-icon">💵</span>
+                    <div><strong>Cash on Delivery</strong><small>Pay when your plants arrive</small></div>
+                    <span class="pay-check" id="codCheck">✓</span>
+                </div>
+                <div class="pay-option" id="optOnline" onclick="selectPayment('online')">
+                    <span class="pay-icon">💳</span>
+                    <div><strong>Online Payment</strong><small>UPI, Cards, NetBanking — Razorpay</small></div>
+                </div>
+            </div>
+            <div class="co-btn-row">
+                <button class="co-back-btn" onclick="coGoStep(2)">← Back</button>
+                <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()" style="margin-top:0">🌿 Place Order</button>
+            </div>
+        </div>
+        <div class="co-step-panel hidden" id="coSuccess">
+            <div class="success-screen">
+                <span class="success-icon">🎉</span>
+                <h2>Order Placed!</h2>
+                <p>Your plants are on their way to you.</p>
+                <div class="success-id" id="coSuccessId">Order #—</div>
+                <p class="success-note">You'll receive a confirmation shortly.</p>
+                <button class="co-next-btn" onclick="closeCheckout()">Continue Shopping</button>
+                <button class="co-back-btn" style="margin-top:10px" onclick="window.location.href='/flowerapp/orders/'">View My Orders →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    const API_BASE = 'http://127.0.0.1:8000/flowerapp';
+    const PLACEHOLDER = [
+        '/media/flowers/IMG20250917130730.jpg',
+        '/media/flowers/IMG20251120162642.jpg',
+        '/media/flowers/IMG20251120162648.jpg',
+    ];
+
+    let currentFlower = null;
+    let selectedQty = 1;
+    let coFlowers = [], coMode = '', coPayment = 'cod';
+
+    // ── Get flower ID from URL ──
+    function getFlowerId() {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        console.log("parts",parts[parts.length - 1] || parts[parts.length - 2])
+        // Expects URL like /flowerapp/flowers/42/
+        return parts[parts.length - 1] || parts[parts.length - 2];
+    }
+
+    // ── Auth ──
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem('refresh_token');
+        if (!refresh) { window.location.href = '/flowerapp/signin/'; throw new Error('no refresh'); }
+        const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh })
+        });
+        if (!res.ok) { localStorage.clear(); window.location.href = '/flowerapp/signin/'; throw new Error('expired'); }
+        localStorage.setItem('access_token', (await res.json()).access);
+    }
+    function getHeaders() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }; }
+    async function authFetch(url, opts = {}) {
+        opts.headers = getHeaders();
+        let res = await fetch(url, opts);
+        if (res.status === 401) { await refreshAccessToken(); opts.headers = getHeaders(); res = await fetch(url, opts); }
+        return res;
+    }
+
+    // ── Profile ──
+    async function loadProfile() {
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/me/`);
+            const data = await res.json();
+            const name = data.username || data.first_name || 'User';
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileEmail').textContent = data.email || '—';
+            document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+        } catch (e) {}
+    }
+
+    async function logout(e) {
+        e.preventDefault();
+        try {
+            await fetch(`${API_BASE}/api/v1/logout/`, {
+                method: 'POST', headers: getHeaders(),
+                body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') })
+            });
+        } finally {
+            localStorage.clear();
+            window.location.href = '/flowerapp/signin/';
+        }
+    }
+
+    document.getElementById('profileBtn').addEventListener('click', () => document.getElementById('profileWrap').classList.toggle('open'));
+    document.addEventListener('click', e => { if (!document.getElementById('profileWrap').contains(e.target)) document.getElementById('profileWrap').classList.remove('open'); });
+
+    // ── Resolve image ──
+    function resolveImage(item) {
+        const img = item.flower_image || item.image;
+        if (img) return img.startsWith('/') ? `${window.location.origin}${img}` : img;
+        return PLACEHOLDER[Math.abs(item.id || 0) % PLACEHOLDER.length];
+    }
+
+    // ── Stock helpers ──
+    function stockInfo(flower) {
+        const s = flower.stock ?? 999;
+        if (s === 0) return { cls: 'badge-out', label: 'Out of Stock', inStock: false };
+        if (s <= 10) return { cls: 'badge-low', label: `Only ${s} left`, inStock: true };
+        return { cls: 'badge-in', label: 'In Stock', inStock: true };
+    }
+
+    // ── Care tips based on category (generic fallback) ──
+    function careTips(flower) {
+        return [
+            { icon: '☀️', label: 'Light', value: flower.light_requirement || 'Bright Indirect' },
+            { icon: '💧', label: 'Water', value: flower.water_frequency || 'Weekly' },
+            { icon: '🌡️', label: 'Temp', value: flower.temperature || '18–30°C' },
+        ];
+    }
+
+    // ── Thumbnail switcher ──
+    function switchImage(src, thumbEl) {
+        document.getElementById('mainPlantImg').src = src;
+        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+        thumbEl.classList.add('active');
+    }
+
+    // ── Quantity controls ──
+    function updateQtyDisplay() {
+        document.getElementById('qtyDisplay').textContent = selectedQty;
+        document.getElementById('qtyMinus').disabled = selectedQty <= 1;
+        document.getElementById('qtyPlus').disabled = currentFlower && selectedQty >= (currentFlower.stock ?? 99);
+    }
+
+    // ── Load flower detail ──
+    async function loadFlower() {
+        const id = getFlowerId();
+        if (!id || isNaN(id)) { window.location.href = '/flowerapp/flowers/'; return; }
+
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/flowers/${id}/`);
+            if (!res.ok) throw new Error('Not found');
+            const flower = await res.json();
+            currentFlower = flower;
+            renderDetail(flower);
+            loadRelated(flower.category, flower.id);
+        } catch (e) {
+            showToast('Failed to load plant details', 'error');
+            setTimeout(() => window.location.href = '/flowerapp/flowers/', 2000);
+        }
+    }
+
+    function renderDetail(flower) {
+        document.getElementById('skeleton').style.display = 'none';
+        document.title = `${flower.name} — Bloom Heaven`;
+        document.getElementById('breadcrumbName').textContent = flower.name;
+
+        const imgSrc = resolveImage(flower);
+        const stock = stockInfo(flower);
+        const care = careTips(flower);
+
+        document.getElementById('detailGrid').innerHTML = `
+            <!-- Image Panel -->
+            <div class="image-panel">
+                <div class="main-image-wrap">
+                    <img id="mainPlantImg" src="${imgSrc}" alt="${flower.name}">
+                    <span class="img-badge ${stock.cls}">${stock.label}</span>
+                </div>
+                <div class="thumb-row" id="thumbRow">
+                    <div class="thumb active" onclick="switchImage('${imgSrc}', this)">
+                        <img src="${imgSrc}" alt="${flower.name}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="info-panel">
+                ${flower.category_name ? `<span class="plant-category-tag">🌿 ${flower.category_name}</span>` : ''}
+                <h1 class="plant-name">${flower.name}</h1>
+
+                <div class="plant-meta">
+                    <span class="meta-item">🌱 Live Plant</span>
+                    <span class="meta-dot"></span>
+                    <span class="meta-item">📦 Free Delivery</span>
+                    <span class="meta-dot"></span>
+                    <span class="meta-item">✅ Quality Assured</span>
+                </div>
+
+                <div class="price-block">
+                    <div>
+                        <div class="price-main">₹${parseFloat(flower.price).toFixed(2)}</div>
+                        <div class="price-unit">per plant</div>
+                    </div>
+                    <div class="price-divider"></div>
+                    <div class="price-note">
+                        <strong>FREE Delivery 🌿</strong>
+                        Delivered in 2–3 business days across Kerala
+                    </div>
+                </div>
+
+                <div class="description-block">
+                    <h4>About this plant</h4>
+                    <p>${flower.description || 'A beautiful, handpicked plant for your home or garden. Carefully sourced and delivered fresh to your doorstep from Kerala\'s finest nurseries.'}</p>
+                </div>
+
+                <div class="care-grid">
+                    ${care.map(c => `
+                        <div class="care-card">
+                            <span class="icon">${c.icon}</span>
+                            <span class="label">${c.label}</span>
+                            <span class="value">${c.value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${stock.inStock ? `
+                <div class="qty-block">
+                    <label>Quantity</label>
+                    <div class="qty-selector">
+                        <div class="qty-control">
+                            <button class="qty-btn-ctrl" id="qtyMinus" onclick="changeQty(-1)" disabled>−</button>
+                            <span class="qty-display" id="qtyDisplay">1</span>
+                            <button class="qty-btn-ctrl" id="qtyPlus" onclick="changeQty(1)">+</button>
+                        </div>
+                        <span class="qty-note">${flower.stock && flower.stock <= 10 ? `Only ${flower.stock} available` : 'Max 10 per order'}</span>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="action-buttons">
+                    <button class="btn-add-cart" id="btnAddCart" ${!stock.inStock ? 'disabled' : ''} onclick="addToCartDetail()">
+                        🛒 Add to Cart
+                    </button>
+                    <button class="btn-buy-now" id="btnBuyNow" ${!stock.inStock ? 'disabled' : ''} onclick="buyNowDetail()">
+                        ⚡ Buy Now
+                    </button>
+                </div>
+
+                <div class="delivery-strip">
+                    <span class="icon">🚚</span>
+                    <p><strong>Free delivery</strong> across Kerala · Usually arrives in 2–3 business days · Plants packed with care</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detailGrid').style.display = 'grid';
+        selectedQty = 1;
+        updateQtyDisplay();
+    }
+
+    function changeQty(delta) {
+        const max = currentFlower ? Math.min(currentFlower.stock ?? 99, 10) : 10;
+        selectedQty = Math.max(1, Math.min(max, selectedQty + delta));
+        updateQtyDisplay();
+    }
+
+    // ── Load related plants ──
+    async function loadRelated(categoryId, excludeId) {
+        try {
+            const url = new URL(`${API_BASE}/api/v1/flowers/`);
+            if (categoryId) url.searchParams.set('category', categoryId);
+            const res = await authFetch(url.toString());
+            const data = await res.json();
+            const flowers = (Array.isArray(data) ? data : (data.results || []))
+                .filter(f => f.id != excludeId)
+                .slice(0, 4);
+
+            if (!flowers.length) return;
+
+            document.getElementById('relatedSection').style.display = 'block';
+            document.getElementById('relatedGrid').innerHTML = flowers.map(f => `
+                <a class="related-card" href="/flowerapp/flowers/${f.id}/">
+                    <div class="related-img"><img src="${resolveImage(f)}" alt="${f.name}" loading="lazy"></div>
+                    <div class="related-body">
+                        <h4>${f.name}</h4>
+                        <div class="price">₹${parseFloat(f.price).toFixed(2)}</div>
+                        <div class="stock">${(f.stock ?? 999) === 0 ? 'Out of Stock' : (f.stock <= 10 ? `Only ${f.stock} left` : 'In Stock')}</div>
+                    </div>
+                </a>
+            `).join('');
+        } catch (e) {}
+    }
+
+    // ── Add to cart from detail page ──
+    async function addToCartDetail() {
+        if (!currentFlower) return;
+        const btn = document.getElementById('btnAddCart');
+        btn.disabled = true; btn.textContent = 'Adding…';
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/cart/`, {
+                method: 'POST',
+                body: JSON.stringify({ flower_id: currentFlower.id, quantity: selectedQty })
+            });
+            const data = await res.json();
+            if (res.ok) { await fetchCart(); showToast(`${currentFlower.name} added to cart 🌿`, 'success'); }
+            else showToast(data.error || 'Failed to add', 'error');
+        } catch (e) { showToast('Network error', 'error'); }
+        btn.disabled = false; btn.innerHTML = '🛒 Add to Cart';
+    }
+
+    // ── Buy now from detail page ──
+    async function buyNowDetail() {
+        if (!currentFlower) return;
+        coFlowers = Array(selectedQty).fill(null).map(() => ({
+            id: currentFlower.id, name: currentFlower.name,
+            image: currentFlower.image, price: currentFlower.price, quantity: 1
+        }));
+        // Merge into one item with correct qty
+        coFlowers = [{ ...coFlowers[0], quantity: selectedQty }];
+        coMode = 'buynow';
+        await openCheckout();
+    }
+
+    // ── Cart ──
+    async function fetchCart() {
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/cart/`);
+            const data = await res.json();
+            const items = data.items || [];
+            const qty = items.reduce((s, i) => s + i.quantity, 0);
+            const countEl = document.getElementById('cartCount');
+            countEl.textContent = qty;
+            qty > 0 ? countEl.classList.add('visible') : countEl.classList.remove('visible');
+            document.getElementById('cartTotal').textContent = `₹${parseFloat(data.grand_total || 0).toFixed(2)}`;
+            document.getElementById('checkoutBtn').disabled = items.length === 0;
+            if (document.getElementById('cartDrawer').classList.contains('open')) renderCartDrawer(items);
+        } catch (e) {}
+    }
+
+    async function updateQty(itemId, newQty) {
+        if (newQty <= 0) { await removeFromCart(itemId); return; }
+        try { await authFetch(`${API_BASE}/api/v1/cart/${itemId}/`, { method: 'PATCH', body: JSON.stringify({ quantity: newQty }) }); await fetchCart(); }
+        catch (e) { showToast('Failed to update', 'error'); }
+    }
+
+    async function removeFromCart(itemId) {
+        try { await authFetch(`${API_BASE}/api/v1/cart/${itemId}/`, { method: 'DELETE' }); await fetchCart(); }
+        catch (e) { showToast('Failed to remove', 'error'); }
+    }
+
+    function renderCartDrawer(items = []) {
+        const body = document.getElementById('cartBody');
+        if (!items.length) {
+            body.innerHTML = `<div class="cart-empty"><span class="icon">🌱</span><h3>Your cart is empty</h3><p>Add some beautiful plants!</p></div>`;
+            return;
+        }
+        body.innerHTML = '';
+        items.forEach(item => {
+            const imgSrc = item.flower_image
+                ? (item.flower_image.startsWith('/') ? `${window.location.origin}${item.flower_image}` : item.flower_image)
+                : PLACEHOLDER[Math.abs(item.flower || 0) % PLACEHOLDER.length];
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            div.innerHTML = `
+                <img src="${imgSrc}" alt="${item.flower_name}">
+                <div class="cart-item-info">
+                    <h4>${item.flower_name}</h4>
+                    <div class="item-price">₹${parseFloat(item.total_price).toFixed(2)}</div>
+                    <div class="item-qty">
+                        <button class="qty-btn" data-id="${item.id}" data-qty="${item.quantity - 1}">−</button>
+                        <span class="qty-num">${item.quantity}</span>
+                        <button class="qty-btn" data-id="${item.id}" data-qty="${item.quantity + 1}">+</button>
+                    </div>
+                </div>
+                <button class="remove-btn" data-id="${item.id}">✕</button>`;
+            div.querySelectorAll('.qty-btn').forEach(b => b.addEventListener('click', () => updateQty(b.dataset.id, parseInt(b.dataset.qty))));
+            div.querySelector('.remove-btn').addEventListener('click', () => removeFromCart(item.id));
+            body.appendChild(div);
+        });
+    }
+
+    function openCart() {
+        document.getElementById('cartBody').innerHTML = `<div class="cart-empty"><span class="icon">⏳</span><h3>Loading…</h3></div>`;
+        document.getElementById('cartDrawer').classList.add('open');
+        document.getElementById('overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        authFetch(`${API_BASE}/api/v1/cart/`).then(r => r.json()).then(d => renderCartDrawer(d.items || []));
+    }
+    function closeCart() {
+        document.getElementById('cartDrawer').classList.remove('open');
+        document.getElementById('overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ── Checkout ──
+    async function checkout() {
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/cart/`);
+            const data = await res.json();
+            const items = data.items || [];
+            if (!items.length) { showToast('Your cart is empty', 'error'); return; }
+            coFlowers = items.map(i => ({ id: i.flower, name: i.flower_name, image: i.flower_image, price: i.unit_price, quantity: i.quantity }));
+            coMode = 'cart'; await openCheckout();
+        } catch (e) { showToast('Network error', 'error'); }
+    }
+
+    async function openCheckout() {
+        coGoStep(1);
+        document.getElementById('checkoutOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        try {
+            const res = await authFetch(`${API_BASE}/api/me/`);
+            const data = await res.json();
+            document.getElementById('co-name').value    = data.first_name || data.username || '';
+            document.getElementById('co-phone').value   = data.phone_number || '';
+            document.getElementById('co-address').value = data.address || '';
+            document.getElementById('co-city').value    = data.city || '';
+            document.getElementById('co-pin').value     = data.pincode || '';
+        } catch (e) {}
+    }
+    function closeCheckout() { document.getElementById('checkoutOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+
+    function coGoStep(n) {
+        [1,2,3].forEach(i => {
+            document.getElementById(`coPanel${i}`).classList.add('hidden');
+            const dot = document.getElementById(`cstep${i}`);
+            dot.classList.remove('active','done');
+            if (i < n) dot.classList.add('done');
+            if (i === n) dot.classList.add('active');
+        });
+        document.getElementById('coSuccess').classList.add('hidden');
+        if (n <= 3) document.getElementById(`coPanel${n}`).classList.remove('hidden');
+    }
+
+    function coGoStep2() {
+        if (!document.getElementById('co-address').value.trim()) { showToast('Please enter your delivery address', 'error'); return; }
+        if (!document.getElementById('co-phone').value.trim())   { showToast('Please enter your phone number', 'error'); return; }
+        renderSummary(); coGoStep(2);
+    }
+
+    function renderSummary() {
+        const name = document.getElementById('co-name').value.trim();
+        const phone = document.getElementById('co-phone').value.trim();
+        const address = document.getElementById('co-address').value.trim();
+        const city = document.getElementById('co-city').value.trim();
+        const pin = document.getElementById('co-pin').value.trim();
+        document.getElementById('coSummaryItems').innerHTML = coFlowers.map(f => {
+            const img = f.flower_image || f.image;
+            const imgSrc = img ? (img.startsWith('/') ? `${window.location.origin}${img}` : img) : PLACEHOLDER[0];
+            return `<div class="summary-item"><img src="${imgSrc}" alt="${f.name}"><div class="summary-item-info"><h4>${f.name}</h4><p>Qty: ${f.quantity||1} × ₹${parseFloat(f.price).toFixed(2)}</p></div><span class="summary-item-price">₹${(parseFloat(f.price)*(f.quantity||1)).toFixed(2)}</span></div>`;
+        }).join('');
+        const grand = coFlowers.reduce((s, f) => s + parseFloat(f.price) * (f.quantity || 1), 0);
+        document.getElementById('coGrandTotal').textContent = `₹${grand.toFixed(2)}`;
+        document.getElementById('coAddrPreview').innerHTML = `<strong>📍 Delivering to</strong>${name}${phone ? ' · ' + phone : ''}<br>${address}${city ? ', ' + city : ''}${pin ? ' — ' + pin : ''}`;
+    }
+
+    function selectPayment(method) {
+        coPayment = method;
+        document.getElementById('optCOD').classList.toggle('active', method === 'cod');
+        document.getElementById('optOnline').classList.toggle('active', method === 'online');
+    }
+
+    async function placeOrder() {
+        const btn = document.getElementById('placeOrderBtn');
+        const address  = document.getElementById('co-address').value.trim();
+        const phone    = document.getElementById('co-phone').value.trim();
+        const city     = document.getElementById('co-city').value.trim();
+        const pin      = document.getElementById('co-pin').value.trim();
+        const fullAddr = `${address}${city ? ', '+city:''}${pin ? ' - '+pin:''}`;
+        const flowerIds = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
+        const grandTotal = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
+
+        btn.disabled = true; btn.textContent = 'Processing…';
+
+        try {
+            if (coPayment === 'online') {
+                const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                const payRes  = await authFetch(`${API_BASE}/api/v1/create-payment/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ amount: grandTotal, flowers: flowerIds, idempotency_key: idempotencyKey })
+                });
+                const payData = await payRes.json();
+                if (!payRes.ok) { showToast(payData.error || 'Payment init failed', 'error'); btn.disabled = false; btn.textContent = '🌿 Place Order'; return; }
+
+                const rzp = new Razorpay({
+                    key: payData.key_id, amount: payData.amount, currency: 'INR',
+                    order_id: payData.razorpay_order_id, name: 'Bloom Heaven',
+                    description: 'Plant Order', image: '', theme: { color: '#1e4d2b' },
+                    prefill: { name: document.getElementById('co-name').value.trim(), contact: phone },
+                    handler: async function() {
+                        [1,2,3].forEach(i => document.getElementById(`coPanel${i}`).classList.add('hidden'));
+                        document.getElementById('coSuccess').classList.remove('hidden');
+                        document.getElementById('coSuccessId').textContent = `Order #${payData.django_order_id}`;
+                        if (coMode === 'cart') await fetchCart();
+                    }
+                });
+                rzp.on('payment.failed', () => showToast('Payment failed. Please try again.', 'error'));
+                rzp.open();
+                btn.disabled = false; btn.textContent = '🌿 Place Order';
+            } else {
+                await submitOrder(flowerIds, fullAddr, phone);
+            }
+        } catch (e) { showToast('Network error', 'error'); btn.disabled = false; btn.textContent = '🌿 Place Order'; }
+    }
+
+    async function submitOrder(flowerIds, address, phone) {
+        const btn = document.getElementById('placeOrderBtn');
+        const idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        btn.disabled = true; btn.textContent = 'Placing Order…';
+        try {
+            const res  = await authFetch(`${API_BASE}/api/buy-now/`, {
+                method: 'POST',
+                body: JSON.stringify({ flowers: flowerIds, address, phone, payment_method: 'cod', idempotency_key: idempotencyKey })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                [1,2,3].forEach(i => document.getElementById(`coPanel${i}`).classList.add('hidden'));
+                document.getElementById('coSuccess').classList.remove('hidden');
+                document.getElementById('coSuccessId').textContent = `Order #${data.order_id}`;
+                if (coMode === 'cart') await fetchCart();
+            } else { showToast(data.error || 'Order failed', 'error'); }
+        } catch(e) { showToast('Network error', 'error'); }
+        finally { btn.disabled = false; btn.textContent = '🌿 Place Order'; }
+    }
+
+    document.getElementById('checkoutOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeCheckout(); });
+
+    // ── Toast ──
+    function showToast(msg, type = 'success') {
+        const icons = { success: '✓', error: '✕', info: 'ℹ' };
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<span class="ti">${icons[type]}</span>${msg}`;
+        document.getElementById('toastContainer').appendChild(t);
+        setTimeout(() => t.remove(), 3100);
+    }
+
+    // ── Events ──
+    document.getElementById('cartToggle').addEventListener('click', openCart);
+    document.getElementById('cartClose').addEventListener('click', closeCart);
+    document.getElementById('overlay').addEventListener('click', closeCart);
+    document.getElementById('checkoutBtn').addEventListener('click', checkout);
+
+    // ── Init ──
+    loadFlower();
+    fetchCart();
+    loadProfile();
+</script>
+</body>
+</html>
