@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView,FlowerDetailAPIView,flower_detail_page
 
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
 
     # Flowers
     path('api/v1/flowers/',        FlowerListCreateAPIView.as_view()),
+    path('api/v1/flowers/<int:pk>/', FlowerDetailAPIView.as_view()),
 
     # Orders
     path('api/v1/orders/',         OrderListAPIView.as_view()),
@@ -31,6 +32,7 @@ urlpatterns = [
 
     # Template pages
     path('flowers/',    flower_page,    name='flower_page'),
+    path('flowers/<int:pk>/', flower_detail_page, name='flower_detail'),
     path('signup/',     signup_page,    name='signup_page'),
     path('signin/',     login_page,     name='signin'),
     path('orders/',     TemplateView.as_view(template_name='orders.html')),

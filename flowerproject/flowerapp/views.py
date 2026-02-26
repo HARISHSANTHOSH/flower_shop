@@ -65,11 +65,42 @@ class FlowerListCreateAPIView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class FlowerDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, pk):
+        try:
+            flower = models.Flower.objects.get(pk=pk)
+            serializer = serializers.FlowerSerializer(flower, context={'request': request})
+            return Response(serializer.data)
+        except models.Flower.DoesNotExist:
+            return Response({'error': 'Flower not found'}, status=404)
+
+    def put(self, request, pk):
+        try:
+            flower = models.Flower.objects.get(pk=pk)
+            serializer = serializers.FlowerSerializer(flower, data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+        except models.Flower.DoesNotExist:
+            return Response({'error': 'Flower not found'}, status=404)
+
+    def delete(self, request, pk):
+        try:
+            flower = models.Flower.objects.get(pk=pk)
+            flower.delete()
+            return Response({'message': 'Deleted successfully'}, status=204)
+        except models.Flower.DoesNotExist:
+            return Response({'error': 'Flower not found'}, status=404)
 
 def flower_page(request):
     categories = models.Category.objects.all().order_by("name")
     return render(request, "flowers.html", {"categories": categories})
+
+def flower_detail_page(request, pk):
+    return render(request, 'flower_detail.html')
 
 def login_page(request):
     return render(request,"login.html")

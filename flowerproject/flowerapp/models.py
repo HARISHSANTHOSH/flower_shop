@@ -57,6 +57,9 @@ class Flower(models.Model):
         related_name='flowers',
         null=True
     )
+    light_requirement = models.CharField(max_length=50, default='Bright Indirect')
+    water_frequency = models.CharField(max_length=50, default='Weekly')
+    temperature = models.CharField(max_length=50, default='18–30°C')
 
     def __str__(self):
         return self.name
