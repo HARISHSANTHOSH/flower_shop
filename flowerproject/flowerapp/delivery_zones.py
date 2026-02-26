@@ -1,6 +1,6 @@
 ALLOWED_CITIES = [
     'alappuzha', 'alleppey', 'cherthala', 'thuravoor',
-    'arookutty', 'arthingal', 'chandiroor', 'eramallur',
+    'arookutty', 'arthingal', 'chandiroor', 'eramalloor',
     'ezhupunna', 'kadakkarapally', 'kalavamkodam',
     'kanichukulangara', 'kannankara', 'karikad',
     'kochuramapuram', 'kokkothamangalam', 'kuthiathode',
