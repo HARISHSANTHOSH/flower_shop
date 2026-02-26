@@ -38,7 +38,7 @@
 
         body {
             background: var(--bg);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 20%, rgba(193,125,60,.06) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(139,69,19,.04) 0%, transparent 50%);
             color: var(--text);
@@ -47,7 +47,6 @@
             padding: 40px 32px;
         }
 
-        /* ── Header ── */
         .page-header {
             display: flex;
             align-items: center;
@@ -55,32 +54,18 @@
             margin-bottom: 36px;
         }
         .header-icon {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             background: var(--accent);
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 20px;
             box-shadow: 0 4px 12px rgba(193,125,60,.3);
             flex-shrink: 0;
         }
-        .header-text h1 {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -.5px;
-            color: var(--text);
-        }
-        .header-text .subtitle {
-            font-size: 12px;
-            color: var(--muted);
-            font-family: var(--mono);
-            margin-top: 2px;
-            letter-spacing: .05em;
-        }
+        .header-text h1 { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+        .header-text .subtitle { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; letter-spacing: .05em; }
 
-        /* ── Filter Panel ── */
+        /* Filter Panel */
         .filter-panel {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -90,41 +75,23 @@
             box-shadow: var(--shadow-sm);
         }
         .filter-panel h2 {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: var(--muted);
+            font-size: 11px; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--muted);
             margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
         }
         .filter-panel h2::before {
-            content: '';
-            display: inline-block;
-            width: 16px;
-            height: 2px;
-            background: var(--accent);
-            border-radius: 1px;
+            content: ''; display: inline-block;
+            width: 16px; height: 2px;
+            background: var(--accent); border-radius: 1px;
         }
         .filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
             gap: 14px;
         }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .filter-group label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-2);
-            letter-spacing: .06em;
-            text-transform: uppercase;
-        }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 11px; font-weight: 600; color: var(--text-2); letter-spacing: .06em; text-transform: uppercase; }
         .filter-group input,
         .filter-group select {
             background: var(--surface-2);
@@ -138,7 +105,6 @@
             transition: border-color .15s, box-shadow .15s;
             width: 100%;
             appearance: none;
-            -webkit-appearance: none;
         }
         .filter-group select {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9189' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -147,136 +113,101 @@
             padding-right: 28px;
         }
         .filter-group input:focus,
-        .filter-group select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(193,125,60,.12);
-        }
+        .filter-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(193,125,60,.12); }
         .filter-group input::placeholder { color: var(--muted); }
-        .filter-group select option { background: #fff; }
+        .filter-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
 
-        .filter-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 18px;
-        }
         .btn {
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: var(--sans);
-            font-size: 13px;
-            font-weight: 600;
-            padding: 9px 20px;
-            transition: all .15s;
-            letter-spacing: .01em;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-family: var(--sans); font-size: 13px; font-weight: 600;
+            padding: 9px 20px; transition: all .15s; letter-spacing: .01em;
         }
         .btn:active { transform: scale(.97); }
-        .btn-primary {
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(193,125,60,.25);
-        }
-        .btn-primary:hover { background: var(--accent-2); box-shadow: 0 4px 12px rgba(193,125,60,.35); }
-        .btn-ghost {
-            background: transparent;
-            border: 1.5px solid var(--border);
-            color: var(--muted);
-        }
+        .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(193,125,60,.25); }
+        .btn-primary:hover { background: var(--accent-2); }
+        .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
         .btn-ghost:hover { border-color: var(--border-hi); color: var(--text-2); background: var(--surface-2); }
 
-        /* ── Results bar ── */
+        /* Results bar */
         .results-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            min-height: 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px; min-height: 32px;
         }
-        .results-count {
-            font-size: 12px;
-            color: var(--muted);
-            font-family: var(--mono);
-        }
-        .results-count strong {
-            color: var(--text-2);
-            font-weight: 500;
-        }
+        .results-count { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+        .results-count strong { color: var(--text-2); font-weight: 500; }
         .ordering-select {
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: 8px;
             color: var(--text-2);
-            font-family: var(--sans);
-            font-size: 12px;
-            font-weight: 500;
+            font-family: var(--sans); font-size: 12px; font-weight: 500;
             padding: 6px 28px 6px 12px;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
+            outline: none; cursor: pointer; appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9189' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
+            background-repeat: no-repeat; background-position: right 10px center;
             box-shadow: var(--shadow-sm);
         }
-        .ordering-select:focus { border-color: var(--accent); }
-        .ordering-select option { background: #fff; }
 
-        /* ── Table ── */
+        /* Table */
         .table-wrap {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            overflow: hidden;
+            overflow-x: auto;
             box-shadow: var(--shadow);
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
+        table { border-collapse: collapse; width: 100%; min-width: 900px; }
         thead th {
             background: var(--surface-2);
             border-bottom: 1.5px solid var(--border);
             color: var(--muted);
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 11px; font-weight: 600;
             letter-spacing: .08em;
-            padding: 13px 18px;
+            padding: 13px 16px;
             text-align: left;
             text-transform: uppercase;
             white-space: nowrap;
         }
-        tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background .1s;
-        }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
         tbody tr:last-child { border-bottom: none; }
         tbody tr:hover { background: #fdf9f5; }
-        tbody td {
-            color: var(--text);
-            font-size: 13px;
-            padding: 14px 18px;
-            vertical-align: middle;
+        tbody td { color: var(--text); font-size: 13px; padding: 14px 16px; vertical-align: top; }
+
+        .order-id { color: var(--muted); font-family: var(--mono); font-size: 12px; font-weight: 500; }
+        .customer-name { font-weight: 600; color: var(--text); }
+
+        /* delivery info cell */
+        .delivery-cell { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+        .delivery-phone {
+            display: flex; align-items: center; gap: 5px;
+            font-family: var(--mono); font-size: 12px; color: var(--text-2); font-weight: 500;
         }
-        .order-id {
-            color: var(--muted);
-            font-family: var(--mono);
-            font-size: 12px;
-            font-weight: 500;
+        .delivery-city {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--green-lo); color: var(--green);
+            border-radius: 4px; padding: 2px 8px;
+            font-size: 11px; font-weight: 600;
+            width: fit-content;
         }
-        .customer-name { font-weight: 600; }
+        .delivery-address {
+            font-size: 11px; color: var(--muted);
+            line-height: 1.4;
+            max-width: 220px;
+        }
+
+        /* copy button */
+        .copy-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--muted); font-size: 11px; padding: 0;
+            opacity: 0.6; transition: opacity .15s;
+        }
+        .copy-btn:hover { opacity: 1; color: var(--accent); }
 
         /* status badges */
         .badge {
-            border-radius: 5px;
-            display: inline-block;
-            font-family: var(--mono);
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: .06em;
-            padding: 3px 9px;
-            text-transform: uppercase;
+            border-radius: 5px; display: inline-block;
+            font-family: var(--mono); font-size: 10px; font-weight: 500;
+            letter-spacing: .06em; padding: 3px 9px; text-transform: uppercase;
         }
         .badge-pending         { background: var(--amber-lo);  color: var(--amber); }
         .badge-payment_pending { background: var(--amber-lo);  color: var(--amber); }
@@ -285,124 +216,64 @@
         .badge-processing      { background: var(--accent-lo); color: var(--accent);}
         .badge-shipped         { background: var(--blue-lo);   color: var(--blue);  }
         .badge-delivered       { background: var(--green-lo);  color: var(--green); }
-        .badge-completed       { background: var(--green-lo);  color: var(--green); }
         .badge-cancelled       { background: var(--red-lo);    color: var(--red);   }
         .badge-refunded        { background: rgba(0,0,0,.06);  color: var(--muted); }
 
         .status-select {
-            border: none;
-            cursor: pointer;
-            font-family: var(--mono);
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: .06em;
-            padding: 3px 9px;
-            border-radius: 5px;
-            outline: none;
-            text-transform: uppercase;
+            border: none; cursor: pointer;
+            font-family: var(--mono); font-size: 10px; font-weight: 500;
+            letter-spacing: .06em; padding: 3px 20px 3px 9px;
+            border-radius: 5px; outline: none; text-transform: uppercase;
             appearance: none;
-            -webkit-appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9189' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 6px center;
-            padding-right: 20px;
+            background-repeat: no-repeat; background-position: right 6px center;
         }
         .status-select option { background: #fff; color: #1a1714; font-family: 'Sora', sans-serif; }
 
-        .items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        .items-list { display: flex; flex-direction: column; gap: 4px; }
         .item-pill {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            color: var(--text-2);
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 500;
-            padding: 2px 8px;
-            white-space: nowrap;
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 5px; color: var(--text-2);
+            display: inline-block; font-size: 11px; font-weight: 500;
+            padding: 2px 8px; white-space: nowrap;
         }
-        .total-price {
-            font-family: var(--mono);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--green);
-        }
-        .date-cell {
-            color: var(--muted);
-            font-family: var(--mono);
-            font-size: 11px;
-            white-space: nowrap;
-        }
+        .total-price { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--green); }
+        .date-cell { color: var(--muted); font-family: var(--mono); font-size: 11px; white-space: nowrap; }
 
-        /* empty / loading */
-        .state-row td {
-            padding: 56px 16px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-        }
+        .state-row td { padding: 56px 16px; text-align: center; color: var(--muted); font-size: 13px; }
         .spinner {
             width: 18px; height: 18px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            display: inline-block;
+            border: 2px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; display: inline-block;
             animation: spin .7s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            margin-right: 8px; vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Pagination ── */
+        /* Pagination */
         .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 18px;
-            padding: 0 2px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 18px; padding: 0 2px;
         }
-        .page-info {
-            color: var(--muted);
-            font-family: var(--mono);
-            font-size: 12px;
-        }
+        .page-info { color: var(--muted); font-family: var(--mono); font-size: 12px; }
         .page-btns { display: flex; gap: 8px; }
         .page-btn {
-            background: var(--surface);
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-2);
-            cursor: pointer;
-            font-family: var(--sans);
-            font-size: 12px;
-            font-weight: 500;
-            padding: 7px 16px;
-            transition: all .15s;
-            box-shadow: var(--shadow-sm);
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 8px; color: var(--text-2); cursor: pointer;
+            font-family: var(--sans); font-size: 12px; font-weight: 500;
+            padding: 7px 16px; transition: all .15s; box-shadow: var(--shadow-sm);
         }
-        .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(193,125,60,.04); }
-        .page-btn:disabled { opacity: .35; cursor: default; box-shadow: none; }
+        .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+        .page-btn:disabled { opacity: .35; cursor: default; }
 
-        /* ── Toast ── */
+        /* Toast */
         #toast {
-            background: var(--text);
-            border-radius: 10px;
-            bottom: 28px;
-            color: #fff;
-            display: none;
-            font-size: 13px;
-            font-weight: 500;
-            left: 50%;
-            padding: 11px 22px;
-            position: fixed;
-            transform: translateX(-50%);
-            z-index: 999;
-            box-shadow: var(--shadow-lg);
-            font-family: var(--sans);
+            background: var(--text); border-radius: 10px;
+            bottom: 28px; color: #fff; display: none;
+            font-size: 13px; font-weight: 500;
+            left: 50%; padding: 11px 22px; position: fixed;
+            transform: translateX(-50%); z-index: 999;
+            box-shadow: var(--shadow-lg); font-family: var(--sans);
         }
     </style>
 </head>
@@ -412,7 +283,7 @@
     <div class="header-icon">🌸</div>
     <div class="header-text">
         <h1>Orders</h1>
-        <div class="subtitle">admin · flower shop</div>
+        <div class="subtitle">admin · bloom heaven</div>
     </div>
 </div>
 
@@ -451,11 +322,11 @@
             <input type="date" id="filterDateTo">
         </div>
         <div class="filter-group">
-            <label>Min Total ($)</label>
-            <input type="number" id="filterTotalMin" placeholder="0.00" min="0" step="0.01">
+            <label>Min Total (₹)</label>
+            <input type="number" id="filterTotalMin" placeholder="0" min="0" step="0.01">
         </div>
         <div class="filter-group">
-            <label>Max Total ($)</label>
+            <label>Max Total (₹)</label>
             <input type="number" id="filterTotalMax" placeholder="any" min="0" step="0.01">
         </div>
     </div>
@@ -481,8 +352,9 @@
     <table>
         <thead>
             <tr>
-                <th>Order ID</th>
+                <th>Order</th>
                 <th>Customer</th>
+                <th>Delivery Info</th>
                 <th>Status</th>
                 <th>Items</th>
                 <th>Total</th>
@@ -491,7 +363,7 @@
         </thead>
         <tbody id="ordersBody">
             <tr class="state-row">
-                <td colspan="6"><span class="spinner"></span> Loading…</td>
+                <td colspan="7"><span class="spinner"></span> Loading…</td>
             </tr>
         </tbody>
     </table>
@@ -512,12 +384,7 @@
     const BASE_URL = 'http://127.0.0.1:8000/flowerapp';
     const PAGE_SIZE = 10;
 
-    let state = {
-        page: 1,
-        totalCount: 0,
-        next: null,
-        previous: null,
-    };
+    let state = { page: 1, totalCount: 0, next: null, previous: null };
 
     function getFilters() {
         return {
@@ -543,42 +410,30 @@
     async function fetchOrders(page = 1) {
         state.page = page;
         const filters = getFilters();
-        const qs = buildQueryString(filters, page);
+        const qs  = buildQueryString(filters, page);
         const url = `${BASE_URL}/api/v1/orders/?${qs}`;
-
         setLoading(true);
 
         const token = localStorage.getItem('access_token');
-        let response;
         try {
-            response = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                }
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
             });
+            if (response.status === 401) { window.location.href = '/flowerapp/signin/'; return; }
+            if (!response.ok) { showToast(`Error ${response.status}`); setLoading(false); return; }
+
+            const data = await response.json();
+            state.totalCount = data.count;
+            state.next       = data.next;
+            state.previous   = data.previous;
+
+            renderOrders(data.results);
+            renderPagination();
+            updateResultsCount();
+            syncURL(filters, page);
         } catch (err) {
             showToast('Network error — could not reach server.');
-            setLoading(false);
-            return;
         }
-
-        if (response.status === 401) { window.location.href = '/signin/'; return; }
-        if (!response.ok) {
-            showToast(`Error ${response.status}: ${response.statusText}`);
-            setLoading(false);
-            return;
-        }
-
-        const data = await response.json();
-        state.totalCount = data.count;
-        state.next       = data.next;
-        state.previous   = data.previous;
-
-        renderOrders(data.results);
-        renderPagination();
-        updateResultsCount();
-        syncURL(filters, page);
         setLoading(false);
     }
 
@@ -587,13 +442,13 @@
         tbody.innerHTML = '';
 
         if (!orders || orders.length === 0) {
-            tbody.innerHTML = '<tr class="state-row"><td colspan="6">No orders found.</td></tr>';
+            tbody.innerHTML = '<tr class="state-row"><td colspan="7">No orders found.</td></tr>';
             return;
         }
 
         orders.forEach(order => {
             const itemsHtml = (order.items || []).map(item =>
-                `<span class="item-pill">${escHtml(item.flower_name)} ×${item.quantity}</span>`
+                `<span class="item-pill">🌸 ${escHtml(item.flower_name)} ×${item.quantity}</span>`
             ).join('');
 
             let total = parseFloat(order.total_amount);
@@ -603,18 +458,37 @@
                 );
             }
 
-            const dateStr = order.created_at
-                ? new Date(order.created_at).toLocaleDateString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric'
-                  })
-                : '—';
+            const dateStr = order.order_date || order.created_at
+            ? new Date(order.order_date || order.created_at).toLocaleString('en-IN', {
+                day:      '2-digit',
+                month:    'short',
+                year:     'numeric',
+                hour:     '2-digit',
+                minute:   '2-digit',
+                hour12:   true,
+                timeZone: 'Asia/Kolkata',
+            })
+            : '—';
 
             const statusKey = (order.status || '').toLowerCase();
+            const phone     = order.customer_phone   || '—';
+            const city      = order.customer_city    || '—';
+            const address   = order.customer_address || '—';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><span class="order-id">#${order.id}</span></td>
                 <td><span class="customer-name">${escHtml(order.customer_username || '—')}</span></td>
+                <td>
+                    <div class="delivery-cell">
+                        <div class="delivery-phone">
+                            📞 ${escHtml(phone)}
+                            <button class="copy-btn" onclick="copyText('${escHtml(phone)}')" title="Copy phone">⧉</button>
+                        </div>
+                        <div class="delivery-city">📍 ${escHtml(city)}</div>
+                        <div class="delivery-address">${escHtml(address)}</div>
+                    </div>
+                </td>
                 <td>
                     <select class="status-select badge badge-${statusKey}"
                             data-order-id="${order.id}"
@@ -630,7 +504,7 @@
                     </select>
                 </td>
                 <td><div class="items-list">${itemsHtml || '—'}</div></td>
-                <td><span class="total-price">$${total.toFixed(2)}</span></td>
+                <td><span class="total-price">₹${total.toFixed(2)}</span></td>
                 <td><span class="date-cell">${dateStr}</span></td>
             `;
             tbody.appendChild(tr);
@@ -638,23 +512,17 @@
     }
 
     async function updateStatus(selectEl) {
-        const orderId = selectEl.dataset.orderId;
+        const orderId   = selectEl.dataset.orderId;
         const newStatus = selectEl.value;
-        const token = localStorage.getItem('access_token');
-
+        const token     = localStorage.getItem('access_token');
         try {
             const response = await fetch(`${BASE_URL}/api/v1/orders/${orderId}/`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: newStatus }),
             });
-
             if (response.ok) {
-                selectEl.className = 'status-select badge';
-                selectEl.classList.add(`badge-${newStatus}`);
+                selectEl.className = `status-select badge badge-${newStatus}`;
                 showToast(`Order #${orderId} → ${newStatus}`);
             } else {
                 showToast('Failed to update status');
@@ -664,6 +532,10 @@
             showToast('Network error');
             fetchOrders(state.page);
         }
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
     }
 
     function renderPagination() {
@@ -682,7 +554,7 @@
     function setLoading(yes) {
         if (yes) {
             document.getElementById('ordersBody').innerHTML =
-                '<tr class="state-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>';
+                '<tr class="state-row"><td colspan="7"><span class="spinner"></span> Loading…</td></tr>';
             document.getElementById('btnPrev').disabled = true;
             document.getElementById('btnNext').disabled = true;
         }
@@ -717,10 +589,8 @@
 
     function escHtml(str) {
         return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     document.getElementById('applyFilters').addEventListener('click', () => fetchOrders(1));

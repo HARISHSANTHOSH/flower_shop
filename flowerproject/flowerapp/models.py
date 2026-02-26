@@ -68,6 +68,9 @@ class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField()
+    city = models.CharField(max_length=100, blank=True, null=True)
+    district = models.CharField(max_length=100, default='Alappuzha')
+    state = models.CharField(max_length=100, default='Kerala')
 
     def __str__(self):
         return self.user.username

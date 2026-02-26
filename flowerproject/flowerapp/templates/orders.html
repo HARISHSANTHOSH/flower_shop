@@ -374,12 +374,12 @@
     // ── Auth ──────────────────────────────────────────────────────────────────
     async function refreshAccessToken() {
         const refresh = localStorage.getItem('refresh_token');
-        if (!refresh) { window.location.href = '/signin/'; throw new Error('no refresh'); }
+        if (!refresh) { window.location.href = '/flowerapp/signin/'; throw new Error('no refresh'); }
         const res = await fetch('/flowerapp/api/token/refresh/', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
-        if (!res.ok) { localStorage.clear(); window.location.href = '/signin/'; throw new Error('expired'); }
+        if (!res.ok) { localStorage.clear(); window.location.href = '/flowerapp/signin/'; throw new Error('expired'); }
         localStorage.setItem('access_token', (await res.json()).access);
     }
     function getHeaders() {
