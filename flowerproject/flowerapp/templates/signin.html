@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Create Account — Bloom Heaven</title>
+<title>Sign In — Bloom Heaven</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,7 +22,7 @@
     --text-muted: rgba(240,237,230,0.55);
 }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 
 body {
     font-family: 'DM Sans', sans-serif;
@@ -32,7 +32,6 @@ body {
     justify-content: center;
     min-height: 100vh;
     position: relative;
-    padding: 24px 0;
 }
 
 /* ── Botanical background ── */
@@ -43,6 +42,7 @@ body {
     z-index: 0;
 }
 
+/* radial glow spots */
 .bg-canvas::before {
     content: '';
     position: absolute;
@@ -53,6 +53,7 @@ body {
         radial-gradient(ellipse 50% 40% at 70% 80%, rgba(13,40,24,.4) 0%, transparent 70%);
 }
 
+/* animated floating leaves */
 .leaf {
     position: absolute;
     opacity: 0;
@@ -69,6 +70,7 @@ body {
     100% { transform: translateY(-10vh) rotate(720deg) scale(1.1); opacity: 0; }
 }
 
+/* grid lines texture */
 .bg-grid {
     position: absolute;
     inset: 0;
@@ -83,8 +85,9 @@ body {
     position: relative;
     z-index: 10;
     display: grid;
-    grid-template-columns: 1fr 460px;
+    grid-template-columns: 1fr 420px;
     width: min(960px, 96vw);
+    min-height: 580px;
     border-radius: 24px;
     overflow: hidden;
     box-shadow:
@@ -209,10 +212,11 @@ body {
 /* ── Right panel (form) ── */
 .right-panel {
     background: var(--cream);
-    padding: 44px 44px;
+    padding: 52px 44px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 0;
     animation: fadeUp .8s .15s cubic-bezier(.16,1,.3,1) both;
 }
 
@@ -228,7 +232,7 @@ body {
 .form-subtitle {
     font-size: 13px;
     color: #7a7060;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
 }
 
 .form-subtitle a {
@@ -239,15 +243,8 @@ body {
 
 .form-subtitle a:hover { text-decoration: underline; }
 
-/* Two-column row */
-.field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-}
-
 .field {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .field label {
@@ -278,38 +275,6 @@ body {
 .field input:focus {
     border-color: var(--leaf);
     box-shadow: 0 0 0 3px rgba(45,122,79,.1);
-}
-
-.field input.input-error {
-    border-color: #c0392b;
-    box-shadow: 0 0 0 3px rgba(192,57,43,.08);
-}
-
-/* Password strength bar */
-.strength-wrap { margin-top: 8px; }
-
-.strength-bar {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
-}
-
-.strength-bar span {
-    flex: 1;
-    height: 3px;
-    border-radius: 99px;
-    background: #e0d8ce;
-    transition: background .3s;
-}
-
-.strength-bar span.weak   { background: #e05c5c; }
-.strength-bar span.medium { background: var(--gold); }
-.strength-bar span.strong { background: var(--mint); }
-
-.strength-label {
-    font-size: 11px;
-    color: #9a9080;
-    transition: color .3s;
 }
 
 .submit-btn {
@@ -348,7 +313,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 18px 0;
+    margin: 20px 0;
     color: #bbb3a8;
     font-size: 12px;
 }
@@ -381,17 +346,6 @@ body {
 .google-btn:hover { background: #f8f4ef; border-color: #c8bfb4; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
 .google-btn img { width: 18px; height: 18px; }
 
-.terms {
-    font-size: 11px;
-    color: #9a9080;
-    text-align: center;
-    margin-top: 14px;
-    line-height: 1.6;
-}
-
-.terms a { color: var(--leaf); text-decoration: none; }
-.terms a:hover { text-decoration: underline; }
-
 /* ── Toast ── */
 #toast {
     position: fixed;
@@ -412,8 +366,8 @@ body {
     border: 1px solid rgba(45,122,79,.3);
     box-shadow: 0 8px 32px rgba(0,0,0,.3);
 }
-#toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
-#toast.error   { background: #5c1a1a; border-color: rgba(192,57,43,.3); }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error { background: #5c1a1a; border-color: rgba(192,57,43,.3); }
 #toast.success { background: var(--mid); border-color: rgba(74,173,114,.3); }
 </style>
 </head>
@@ -457,81 +411,56 @@ body {
 
         <div class="left-middle">
             <h2 class="left-headline">
-                Join our<br>
-                growing<br>
-                <span>community</span>
+                Fresh plants,<br>
+                delivered to<br>
+                your <span>doorstep</span>
             </h2>
             <p class="left-desc">
-                Create your account and start ordering fresh plants from local growers across Cherthala Taluk.
+                Handpicked plants from local growers, delivered fresh across Cherthala Taluk every day.
             </p>
         </div>
 
         <div class="features">
             <div class="feature-item">
                 <div class="feature-dot"></div>
-                Free account, no hidden fees
+                Local delivery across Cherthala Taluk
             </div>
             <div class="feature-item">
                 <div class="feature-dot"></div>
-                Track your orders in real time
+                Fresh plants from local growers
             </div>
             <div class="feature-item">
                 <div class="feature-dot"></div>
-                Exclusive deals for members
+                Cash on delivery available
             </div>
         </div>
     </div>
 
     <!-- Right form panel -->
     <div class="right-panel">
-        <h1 class="form-title">Create account</h1>
+        <h1 class="form-title">Welcome back</h1>
         <p class="form-subtitle">
-            Already have one? <a href="/flowerapp/login/">Sign in</a>
+            New here? <a href="/flowerapp/signup/">Create an account</a>
         </p>
 
-        <form id="signupForm">
-            <div class="field-row">
-                <div class="field">
-                    <label>Username</label>
-                    <input id="username" type="text" placeholder="e.g. john123" required autocomplete="username">
-                </div>
-                <div class="field">
-                    <label>Email</label>
-                    <input id="email" type="email" placeholder="you@email.com" required autocomplete="email">
-                </div>
+        <form id="loginForm">
+            <div class="field">
+                <label>Username</label>
+                <input id="username" type="text" placeholder="Enter your username" required autocomplete="username">
             </div>
-
             <div class="field">
                 <label>Password</label>
-                <input id="password" type="password" placeholder="Create a strong password" required autocomplete="new-password">
-                <div class="strength-wrap">
-                    <div class="strength-bar">
-                        <span id="s1"></span><span id="s2"></span>
-                        <span id="s3"></span><span id="s4"></span>
-                    </div>
-                    <div class="strength-label" id="strengthLabel"></div>
-                </div>
+                <input id="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
             </div>
-
-            <div class="field">
-                <label>Confirm Password</label>
-                <input id="password2" type="password" placeholder="Repeat your password" required autocomplete="new-password">
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn">Create Account</button>
+            <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
         </form>
 
         <div class="divider">or continue with</div>
 
         <button class="google-btn" onclick="handleGoogleLogin()">
             <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
-            Sign up with Google
+            Sign in with Google
         </button>
-
-        <p class="terms">
-            By creating an account you agree to our
-            <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
-        </p>
     </div>
 </div>
 
@@ -561,87 +490,66 @@ async function handleGoogleCredential(response) {
             body: JSON.stringify({ token })
         });
         const data = await res.json();
-        if (!res.ok) { showToast(data.error || 'Google sign-up failed', 'error'); return; }
+        if (!res.ok) { showToast(data.error || 'Google login failed', 'error'); return; }
 
-        localStorage.setItem('access_token',  data.access);
+        localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
 
+        const profileRes = await fetch('/flowerapp/api/me/', {
+            headers: { 'Authorization': `Bearer ${data.access}` }
+        });
+        const profile = await profileRes.json();
         showToast(`Welcome, ${data.name}! 🌿`, 'success');
-        setTimeout(() => { window.location.href = '/flowerapp/flowers/'; }, 1500);
+
+        setTimeout(() => {
+            window.location.href = profile.role === 'superadmin'
+                ? '/flowerapp/admin/orders/'
+                : '/flowerapp/flowers/';
+        }, 1500);
     } catch (err) {
-        showToast('Google sign-up failed', 'error');
+        showToast('Google login failed', 'error');
     }
 }
 
-/* ── Password strength ── */
-document.getElementById('password').addEventListener('input', function() {
-    const val  = this.value;
-    const bars = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
-    const label = document.getElementById('strengthLabel');
-
-    bars.forEach(b => { b.className = ''; });
-
-    let score = 0;
-    if (val.length >= 6)  score++;
-    if (val.length >= 10) score++;
-    if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
-    if (/[^A-Za-z0-9]/.test(val)) score++;
-
-    const cls    = ['','weak','weak','medium','strong'];
-    const labels = ['','Weak','Fair','Strong','Very strong'];
-    const colors = ['','#e05c5c','#e05c5c','#c9a84c','#4aad72'];
-
-    for (let i = 0; i < score; i++) bars[i].className = cls[score];
-    label.textContent = val.length ? labels[score] : '';
-    label.style.color = colors[score];
-});
-
-/* ── Signup form ── */
-document.getElementById('signupForm').addEventListener('submit', async function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-
     const username  = document.getElementById('username').value.trim();
-    const email     = document.getElementById('email').value.trim();
     const password  = document.getElementById('password').value;
-    const password2 = document.getElementById('password2').value;
-    const p2Input   = document.getElementById('password2');
     const submitBtn = document.getElementById('submitBtn');
 
-    if (password !== password2) {
-        p2Input.classList.add('input-error');
-        showToast('Passwords do not match!', 'error');
-        return;
-    }
-    p2Input.classList.remove('input-error');
-
     submitBtn.disabled    = true;
-    submitBtn.textContent = 'Creating account…';
+    submitBtn.textContent = 'Signing in…';
 
     try {
-        const res  = await fetch('flowerapp/api/v1/signup/', {
+        const res  = await fetch('/flowerapp/api/v1/login/', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ username, email, password, password2 })
+            body:    JSON.stringify({ username, password })
         });
         const data = await res.json();
 
-        if (!res.ok) {
-            const msg = data.username || data.email || data.password || 'Signup failed';
-            showToast(Array.isArray(msg) ? msg[0] : msg, 'error');
-            return;
-        }
+        if (!res.ok) { showToast(data.detail || 'Invalid username or password', 'error'); return; }
 
         localStorage.setItem('access_token',  data.access);
         localStorage.setItem('refresh_token', data.refresh);
 
-        showToast(`Welcome, ${data.user.username}! 🌿`, 'success');
-        setTimeout(() => { window.location.href = '/flowerapp/flowers/'; }, 1500);
+        const profileRes = await fetch('/flowerapp/api/v1/me/', {
+            headers: { 'Authorization': `Bearer ${data.access}` }
+        });
+        const profile = await profileRes.json();
+
+        showToast(`Welcome back, ${username}! 🌿`, 'success');
+        setTimeout(() => {
+            window.location.href = profile.role === 'superadmin'
+                ? '/flowerapp/admin/orders/'
+                : '/flowerapp/flowers/';
+        }, 1500);
 
     } catch (err) {
-        showToast('Signup failed. Please try again.', 'error');
+        showToast('Login failed. Please try again.', 'error');
     } finally {
         submitBtn.disabled    = false;
-        submitBtn.textContent = 'Create Account';
+        submitBtn.textContent = 'Sign In';
     }
 });
 
