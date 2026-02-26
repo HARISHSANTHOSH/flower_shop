@@ -698,7 +698,7 @@
         if (res.status === 401) { await refreshAccessToken(); opts.headers = getHeaders(); res = await fetch(url, opts); }
         return res;
     }
-    function logout(e) { e.preventDefault(); localStorage.clear(); window.location.href = '/flowerapp/signin/'; }
+ 
 
     // ── Profile ──
     async function loadProfile() {
@@ -710,6 +710,29 @@
             document.getElementById('profileEmail').textContent = data.email || '—';
             document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
         } catch (e) {}
+    }
+
+    async function logout(e) {
+        e.preventDefault();
+
+        try {
+            await fetch('/flowerapp/api/v1/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify({
+                    refresh: localStorage.getItem('refresh_token')
+                })
+            });
+        } catch (err) {
+            console.error('Logout error:', err);
+        } finally {
+            // ✅ always clear and redirect regardless
+            localStorage.clear();
+            window.location.href = '/flowerapp/signin/';
+        }
     }
     document.getElementById('profileBtn').addEventListener('click', () => document.getElementById('profileWrap').classList.toggle('open'));
     document.addEventListener('click', e => { if (!document.getElementById('profileWrap').contains(e.target)) document.getElementById('profileWrap').classList.remove('open'); });

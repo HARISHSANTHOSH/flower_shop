@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView
 
 
 urlpatterns = [
@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/v1/signup/',         SignupAPIView.as_view()),
     path('api/v1/me/',             MeView.as_view()),
 	path('api/v1/auth/google/', GoogleLoginAPIView.as_view()),
+    path('api/v1/logout/', LogoutAPIView.as_view()),
 
     # Flowers
     path('api/v1/flowers/',        FlowerListCreateAPIView.as_view()),
