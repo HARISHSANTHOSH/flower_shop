@@ -1613,6 +1613,7 @@
             <p class="sub">Confirm where to deliver your plants</p>
             <div class="form-group"><label>Full Name</label><input type="text" id="co-name" placeholder="Your name"></div>
             <div class="form-group"><label>Phone Number</label><input type="tel" id="co-phone" placeholder="+91 XXXXX XXXXX"></div>
+<<<<<<< Updated upstream
             <div class="form-group"><label>Delivery Address</label><textarea id="co-address" rows="3" placeholder="House no, Street, Area…"></textarea></div>
             <div class="form-row">
                 <div class="form-group">
@@ -1624,6 +1625,17 @@
                     <input type="text" id="co-pincode" placeholder="e.g. 688532" maxlength="6" inputmode="numeric"
                            oninput="this.value=this.value.replace(/\D/g,'')">
                 </div>
+=======
+            <div class="form-group"><label>Delivery Address</label><textarea id="co-address" rows="3" placeholder="House no, Street, Area… include pincode"></textarea></div>
+            <div class="form-group" style="position:relative">
+                <label>City</label>
+                <input type="text" id="co-city" placeholder="Type city..." autocomplete="off">
+                <div id="citySuggestions" style="
+                    position:absolute; top:100%; left:0; right:0; background:#fff;
+                    border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.1);
+                    max-height:180px; overflow-y:auto; z-index:999; display:none;
+                "></div>
+>>>>>>> Stashed changes
             </div>
             <button class="co-next-btn" onclick="coGoStep2()">Continue to Summary →</button>
         </div>
@@ -1813,16 +1825,24 @@
     // ── Auth helpers ──────────────────────────────
     async function refreshAccessToken() {
         const refresh = localStorage.getItem('refresh_token');
+<<<<<<< Updated upstream
         if (!refresh) throw new Error('no refresh token');
+=======
+        if (!refresh) { window.location.href = '/flowerapp/signin/'; throw new Error('no refresh'); }
+>>>>>>> Stashed changes
         const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
+<<<<<<< Updated upstream
         if (!res.ok) {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             throw new Error('token expired');
         }
+=======
+        if (!res.ok) { localStorage.clear(); window.location.href = '/flowerapp/signin/'; throw new Error('expired'); }
+>>>>>>> Stashed changes
         localStorage.setItem('access_token', (await res.json()).access);
     }
 
@@ -1928,7 +1948,11 @@
         document.getElementById('settingsOverlay').classList.add('open');
         document.body.style.overflow = 'hidden';
         try {
+<<<<<<< Updated upstream
             const res  = await authFetch(`${API_BASE}/api/v1/me/`);
+=======
+            const res = await authFetch(`${API_BASE}/api/v1/me/`);
+>>>>>>> Stashed changes
             const data = await res.json();
             document.getElementById('set-name').value     = data.first_name    || '';
             document.getElementById('set-username').value = data.username      || '';
@@ -2335,12 +2359,20 @@
         document.getElementById('checkoutOverlay').classList.add('open');
         document.body.style.overflow = 'hidden';
         try {
+<<<<<<< Updated upstream
             const res  = await authFetch(`${API_BASE}/api/v1/me/`);
+=======
+            const res = await authFetch(`${API_BASE}/api/v1/me/`);
+>>>>>>> Stashed changes
             const data = await res.json();
             document.getElementById('co-name').value    = data.first_name || data.username || '';
             document.getElementById('co-phone').value   = data.phone_number || '';
             document.getElementById('co-address').value = data.address || '';
+<<<<<<< Updated upstream
             document.getElementById('co-city').value    = data.city || 'Alappuzha';
+=======
+            document.getElementById('co-city').value    = data.city || 'Alappuzha'; 
+>>>>>>> Stashed changes
         } catch (e) {}
     }
 
@@ -2358,6 +2390,7 @@
         if (n <= 3) document.getElementById(`coPanel${n}`).classList.remove('hidden');
     }
 
+<<<<<<< Updated upstream
     const ALLOWED_PINCODES = new Set([
         '688523','688524','688525','688526','688527','688528','688529',
         '688530','688531','688532','688533','688535','688537','688539',
@@ -2382,6 +2415,120 @@
             return;
         }
         renderSummary(); coGoStep(2);
+=======
+    // ── City autocomplete ──
+    const ALLOWED_CITIES = [
+        'Alappuzha','Alleppey','Cherthala','Thuravoor',
+        'Arookutty','Arthingal','Chandiroor','Eramallur',
+        'Ezhupunna','Kadakkarapally','Kalavamkodam',
+        'Kanichukulangara','Kannankara','Karikad',
+        'Kochuramapuram','Kokkothamangalam','Kuthiathode',
+        'Manappuram','Mararikulam','Maruthorvattom',
+        'Mayithara','Muhamma','Muttathiparambu',
+        'Naduvathnagar','Olavaipu','Pallippuram',
+        'Pallithode','Panavally','Parayakad','Pattanacaud',
+        'Perumbalam','Poochackal','Sethulekshmipuram',
+        'Thanneermukkom','Thirumalabhagom','Thirunallur',
+        'Thuravoor South','Thycattussery','Trichattukulam',
+        'Vaduthala','Valamangalam','Varanadu','Varanam',
+        'Vayalar','Vettackal',
+    ];
+
+    const cityInput = document.getElementById('co-city');
+    const citySugg  = document.getElementById('citySuggestions');
+
+    cityInput.addEventListener('input', () => {
+        const val = cityInput.value.trim().toLowerCase();
+        citySugg.innerHTML = '';
+
+        if (!val) { citySugg.style.display = 'none'; return; }
+
+        // priority 1 — starts with typed text
+        const startsWith = ALLOWED_CITIES.filter(c => c.toLowerCase().startsWith(val));
+        // priority 2 — contains typed text (but not already in startsWith)
+        const contains   = ALLOWED_CITIES.filter(c => 
+            c.toLowerCase().includes(val) && !c.toLowerCase().startsWith(val)
+        );
+
+        const matches = [...startsWith, ...contains];
+
+        if (!matches.length) {
+            citySugg.style.display = 'none';
+            return;
+        }
+
+        matches.forEach(city => {
+            const div = document.createElement('div');
+
+            // highlight the matching part
+            const lowerCity = city.toLowerCase();
+            const idx       = lowerCity.indexOf(val);
+            const before    = city.slice(0, idx);
+            const match     = city.slice(idx, idx + val.length);
+            const after     = city.slice(idx + val.length);
+            div.innerHTML   = `${before}<strong style="color:#1e4d2b">${match}</strong>${after}`;
+
+            div.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:13px;color:#2e1f0f;border-bottom:1px solid #f0f0f0;';
+            div.addEventListener('mouseenter', () => div.style.background = '#f0f7f2');
+            div.addEventListener('mouseleave', () => div.style.background = '');
+            div.addEventListener('click', () => {
+                cityInput.value = city;
+                citySugg.style.display = 'none';
+            });
+            citySugg.appendChild(div);
+        });
+
+        citySugg.style.display = 'block';
+    });
+
+    // close suggestions when clicking outside
+    document.addEventListener('click', e => {
+        if (!cityInput.contains(e.target) && !citySugg.contains(e.target)) {
+            citySugg.style.display = 'none';
+        }
+    });
+
+
+
+
+    function coGoStep2() {
+        if (!document.getElementById('co-name').value.trim()) { 
+            showToast('Please enter your name', 'error'); return; 
+        }
+        if (!document.getElementById('co-phone').value.trim()) { 
+            showToast('Please enter your phone number', 'error'); return; 
+        }
+
+        const address = document.getElementById('co-address').value.trim();
+        if (!address) { 
+            showToast('Please enter your delivery address', 'error'); return; 
+        }
+
+        // pincode must be in address
+        if (!/688\d{3}/.test(address)) {
+            showToast('📍 Please include your pincode in the address (e.g. 688540)', 'error');
+            document.getElementById('co-address').style.borderColor = '#c0392b';
+            setTimeout(() => { 
+                document.getElementById('co-address').style.borderColor = ''; 
+            }, 3000);
+            return;
+        }
+
+        const city   = document.getElementById('co-city').value.trim().toLowerCase();
+        const cityOk = ALLOWED_CITIES.map(c => c.toLowerCase()).some(c => city.includes(c));
+
+        if (!cityOk) {
+            showToast('🚫 Sorry! We deliver only to Cherthala Taluk, Alappuzha area', 'error');
+            document.getElementById('co-city').style.borderColor = '#c0392b';
+            setTimeout(() => { 
+                document.getElementById('co-city').style.borderColor = ''; 
+            }, 3000);
+            return;
+        }
+
+        renderSummary();
+        coGoStep(2);
+>>>>>>> Stashed changes
     }
 
     function renderSummary() {
@@ -2389,7 +2536,11 @@
         const phone   = document.getElementById('co-phone').value.trim();
         const address = document.getElementById('co-address').value.trim();
         const city    = document.getElementById('co-city').value.trim();
+<<<<<<< Updated upstream
         const pincode = document.getElementById('co-pincode').value.trim();
+=======
+        // ← removed pin line
+>>>>>>> Stashed changes
 
         document.getElementById('coSummaryItems').innerHTML = coFlowers.map(f => {
             const img    = f.flower_image || f.image;
@@ -2404,10 +2555,19 @@
             </div>`;
         }).join('');
 
+<<<<<<< Updated upstream
         const grand = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
         document.getElementById('coGrandTotal').textContent = `₹${grand.toFixed(2)}`;
         document.getElementById('coAddrPreview').innerHTML  =
             `<strong>📍 Delivering to</strong>${name}${phone ? ' · '+phone : ''}<br>${address}${city ? ', '+city : ''}${pincode ? ' — '+pincode : ''}`;
+=======
+        const grand = coFlowers.reduce((s, f) => s + parseFloat(f.price) * (f.quantity || 1), 0);
+        document.getElementById('coGrandTotal').textContent = `₹${grand.toFixed(2)}`;
+        
+        document.getElementById('coAddrPreview').innerHTML = 
+            `<strong>📍 Delivering to</strong> ${name}${phone ? ' · ' + phone : ''}<br>${address}${city ? ', ' + city : ''}`;
+            // ← removed pin from preview too
+>>>>>>> Stashed changes
     }
 
     function selectPayment(method) {
@@ -2421,8 +2581,12 @@
         const address     = document.getElementById('co-address').value.trim();
         const phone       = document.getElementById('co-phone').value.trim();
         const city        = document.getElementById('co-city').value.trim();
+<<<<<<< Updated upstream
         const pincode     = document.getElementById('co-pincode').value.trim();
         const fullAddress = `${address}${city ? ', '+city : ''}${pincode ? ' '+pincode : ''}`;
+=======
+        const fullAddress = `${address}${city ? ', '+city : ''}`;
+>>>>>>> Stashed changes
         const flowerIds   = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
         const grandTotal  = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
 
@@ -2457,7 +2621,12 @@
                 rzp.open();
                 btn.disabled = false; btn.textContent = '🌿 Place Order';
             } else {
+<<<<<<< Updated upstream
                 await submitOrder(flowerIds, fullAddress, phone, city, pincode);
+=======
+                // COD — directly create order
+                await submitOrder(flowerIds, fullAddress, phone,city);
+>>>>>>> Stashed changes
             }
         } catch (e) {
             showToast('Network error', 'error');
@@ -2465,14 +2634,31 @@
         }
     }
 
+<<<<<<< Updated upstream
     async function submitOrder(flowerIds, address, phone, city, pincode) {
         const idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+=======
+    // ── Submit order after payment success or COD ─────────────────────────────
+    async function submitOrder(flowerIds, address, phone, city) { 
+        const idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;  // ✅
+>>>>>>> Stashed changes
         const btn = document.getElementById('placeOrderBtn');
         btn.disabled = true; btn.textContent = 'Placing Order…';
         try {
             const res  = await authFetch(`${API_BASE}/api/v1/buy-now/`, {
                 method: 'POST',
+<<<<<<< Updated upstream
                 body: JSON.stringify({ flowers: flowerIds, address, phone, city, pincode, payment_method: 'cod', idempotency_key: idempotencyKey })
+=======
+                body:   JSON.stringify({
+                    flowers:        flowerIds,
+                    address:        address,
+                    phone:          phone,
+                    city:           city,  
+                    payment_method: 'cod', 
+                    idempotency_key: idempotencyKey,
+                })
+>>>>>>> Stashed changes
             });
             const data = await res.json();
             if (res.ok) {
