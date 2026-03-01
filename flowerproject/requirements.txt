@@ -18,6 +18,7 @@ cryptography==46.0.3
 debugpy==1.8.20
 decorator==5.2.1
 defusedxml==0.7.1
+dj-database-url==3.1.2
 dj-rest-auth==7.0.1
 Django==5.2.8
 django-allauth==65.13.1
