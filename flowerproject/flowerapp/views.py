@@ -248,11 +248,7 @@ class BuyNowAPIView(APIView):
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
-<<<<<<< Updated upstream
         # ── save customer details ────────────────────────────────────
-=======
-        # ── save customer details ────────────────────────
->>>>>>> Stashed changes
         if address:
             customer.address = address
         if phone:
