@@ -31,7 +31,7 @@ from .tasks import send_order_confirmation_email,send_order_cancellation_email
 
 
 class FlowerListCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 	
     def get(self, request):
         flowers = (
@@ -66,7 +66,7 @@ class FlowerListCreateAPIView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class FlowerDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         try:
@@ -106,7 +106,7 @@ def login_page(request):
     return render(request,"signin.html")
 
 class MeView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         user     = request.user
@@ -227,16 +227,18 @@ class BuyNowAPIView(APIView):
 
         address         = request.data.get('address')
         phone           = request.data.get('phone')
-        city            = request.data.get('city', '')   
+        city            = request.data.get('city', '')
+        pincode         = request.data.get('pincode', '')          # ← NEW
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
-        # ── delivery zone check ──────────────────────────
+        # ── delivery zone check (pincode-based) ─────────────────────
         from .delivery_zones import is_delivery_allowed
-        if not is_delivery_allowed(city):
+        if not is_delivery_allowed(pincode):
             return Response({
-                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area'
+                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area. '
+                         'Please check your pincode.'
             }, status=400)
 
         if not flower_ids:
@@ -246,16 +248,20 @@ class BuyNowAPIView(APIView):
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
-        # ── save customer details ────────────────────────
+        # ── save customer details ────────────────────────────────────
         if address:
             customer.address = address
         if phone:
             customer.phone_number = phone
         if city:
-            customer.city     = city
+            customer.city = city
+        if pincode:
+            customer.pincode  = pincode               # ← NEW
             customer.district = 'Alappuzha'
             customer.state    = 'Kerala'
-        customer.save(update_fields=['address', 'phone_number', 'city', 'district', 'state'])
+        customer.save(update_fields=[
+            'address', 'phone_number', 'city', 'pincode', 'district', 'state'
+        ])
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
