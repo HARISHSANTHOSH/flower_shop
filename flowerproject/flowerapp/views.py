@@ -227,30 +227,18 @@ class BuyNowAPIView(APIView):
 
         address         = request.data.get('address')
         phone           = request.data.get('phone')
-<<<<<<< Updated upstream
         city            = request.data.get('city', '')
         pincode         = request.data.get('pincode', '')          # ← NEW
-=======
-        city            = request.data.get('city', '')   
->>>>>>> Stashed changes
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
-<<<<<<< Updated upstream
         # ── delivery zone check (pincode-based) ─────────────────────
         from .delivery_zones import is_delivery_allowed
         if not is_delivery_allowed(pincode):
             return Response({
                 'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area. '
                          'Please check your pincode.'
-=======
-        # ── delivery zone check ──────────────────────────
-        from .delivery_zones import is_delivery_allowed
-        if not is_delivery_allowed(city):
-            return Response({
-                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area'
->>>>>>> Stashed changes
             }, status=400)
 
         if not flower_ids:

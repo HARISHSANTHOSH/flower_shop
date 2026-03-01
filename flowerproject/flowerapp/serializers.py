@@ -38,11 +38,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Customer
-<<<<<<< Updated upstream
         fields = ['id', 'user', 'phone_number', 'address', 'city', 'district','pincode', 'state']
-=======
-        fields = ['id', 'user', 'phone_number', 'address', 'city', 'district', 'state']
->>>>>>> Stashed changes
         read_only_fields = ['user']
 
 class OrderItemSerializer(serializers.ModelSerializer):
