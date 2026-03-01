@@ -31,7 +31,7 @@ from .tasks import send_order_confirmation_email,send_order_cancellation_email
 
 
 class FlowerListCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 	
     def get(self, request):
         flowers = (
@@ -66,7 +66,7 @@ class FlowerListCreateAPIView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class FlowerDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         try:
@@ -103,10 +103,10 @@ def flower_detail_page(request, pk):
     return render(request, 'flower_detail.html')
 
 def login_page(request):
-    return render(request,"login.html")
+    return render(request,"signin.html")
 
 class MeView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         user     = request.user
@@ -115,9 +115,12 @@ class MeView(APIView):
         return Response({
             'username':     user.username,
             'email':        user.email,
-            'role': profile.role,
+            'role':         profile.role,
             'phone_number': customer.phone_number if customer else '',
             'address':      customer.address      if customer else '',
+            'city':         customer.city         if customer else '',
+            'district':     customer.district     if customer else 'Alappuzha',
+            'state':        customer.state        if customer else 'Kerala',
         })
 
 
@@ -224,16 +227,19 @@ class BuyNowAPIView(APIView):
 
         address         = request.data.get('address')
         phone           = request.data.get('phone')
+        city            = request.data.get('city', '')
+        pincode         = request.data.get('pincode', '')          # ← NEW
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
-        if address:
-            customer.address = address
-            customer.save(update_fields=['address'])
-        if phone:
-            customer.phone_number = phone
-            customer.save(update_fields=['phone_number'])
+        # ── delivery zone check (pincode-based) ─────────────────────
+        from .delivery_zones import is_delivery_allowed
+        if not is_delivery_allowed(pincode):
+            return Response({
+                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area. '
+                         'Please check your pincode.'
+            }, status=400)
 
         if not flower_ids:
             return Response({'error': 'No flowers found'}, status=400)
@@ -241,6 +247,21 @@ class BuyNowAPIView(APIView):
             return Response({'error': 'Idempotency key required'}, status=400)
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
+
+        # ── save customer details ────────────────────────────────────
+        if address:
+            customer.address = address
+        if phone:
+            customer.phone_number = phone
+        if city:
+            customer.city = city
+        if pincode:
+            customer.pincode  = pincode               # ← NEW
+            customer.district = 'Alappuzha'
+            customer.state    = 'Kerala'
+        customer.save(update_fields=[
+            'address', 'phone_number', 'city', 'pincode', 'district', 'state'
+        ])
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
@@ -252,8 +273,8 @@ class BuyNowAPIView(APIView):
                 'order_id':       existing_order.id,
                 'total':          existing_order.total_amount,
                 'status':         existing_order.status,
-                'payment_status': existing_order.payment_status,  # ✅ fixed
-                'payment_method': existing_order.payment_method,  # ✅ fixed
+                'payment_status': existing_order.payment_status,
+                'payment_method': existing_order.payment_method,
             })
 
         flowers    = models.Flower.objects.filter(id__in=flower_ids)
@@ -261,7 +282,6 @@ class BuyNowAPIView(APIView):
 
         total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
 
-        # ✅ atomic + removed order.save()
         with transaction.atomic():
             order = models.Order.objects.create(
                 customer=customer,
@@ -293,9 +313,10 @@ class BuyNowAPIView(APIView):
             'order_id':       order.id,
             'total':          total,
             'status':         order.status,
-            'payment_status': order.payment_status,  # ✅ consistent response
+            'payment_status': order.payment_status,
             'payment_method': order.payment_method,
         })
+
 class SignupAPIView(APIView):
     serializer_class = SignupSerializer
 
@@ -325,7 +346,7 @@ class OrderListAPIView(APIView):
                 'items',
                 queryset=models.OrderItem.objects.select_related('flower')
             )
-        ).select_related('customer')
+        ).select_related('customer','customer__user')
 
        
 
@@ -713,3 +734,4 @@ class OrderCancelAPIView(APIView):
             'payment_status': order.payment_status,
             'payment_method': order.payment_method,
         })
+

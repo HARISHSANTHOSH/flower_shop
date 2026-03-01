@@ -57,9 +57,9 @@ class Flower(models.Model):
         related_name='flowers',
         null=True
     )
-    light_requirement = models.CharField(max_length=50, default='Bright Indirect')
-    water_frequency = models.CharField(max_length=50, default='Weekly')
-    temperature = models.CharField(max_length=50, default='18–30°C')
+    light_requirement = models.CharField(max_length=150, default='Bright Indirect')
+    water_frequency = models.CharField(max_length=80, default='Weekly')
+    temperature = models.CharField(max_length=70, default='18–30°C')
 
     def __str__(self):
         return self.name
@@ -68,6 +68,10 @@ class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField()
+    city = models.CharField(max_length=100, blank=True, null=True)
+    pincode      = models.CharField(max_length=10, blank=True, null=True) 
+    district = models.CharField(max_length=100, default='Alappuzha')
+    state = models.CharField(max_length=100, default='Kerala')
 
     def __str__(self):
         return self.user.username

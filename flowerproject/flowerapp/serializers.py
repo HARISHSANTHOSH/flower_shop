@@ -34,21 +34,20 @@ class UserSerializer(serializers.ModelSerializer):
 		fields= ["id","username","email"]
 
 class CustomerSerializer(serializers.ModelSerializer):
-    # Nested representation of the linked User account
-    user = UserSerializer(read_only=True) 
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = models.Customer
-        fields = ['id', 'user', 'phone_number', 'address']
+        fields = ['id', 'user', 'phone_number', 'address', 'city', 'district','pincode', 'state']
         read_only_fields = ['user']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     # Use the FlowerSerializer (or a lighter version) for better readability
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
-    flower_image = serializers.ImageField(source='flower.image', read_only=True)
+    flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
         request = self.context.get('request')
-        image = obj.flower.flower_image  # try: obj.flower.image  if this fails
+        image = obj.flower.image  # try: obj.flower.image  if this fails
         if image and request:
             return request.build_absolute_uri(image.url)
         return None
@@ -61,15 +60,21 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True) 
-    
+    items            = OrderItemSerializer(many=True, read_only=True)
     customer_username = serializers.CharField(source='customer.user.username', read_only=True)
+    customer_phone   = serializers.CharField(source='customer.phone_number', read_only=True)
+    customer_address = serializers.CharField(source='customer.address', read_only=True)
+    customer_city    = serializers.CharField(source='customer.city', read_only=True)
 
     class Meta:
-        model = models.Order
-        fields = ['id', 'customer', 'customer_username', 'order_date', 'status', 'payment_method',  
-        'payment_status',  'total_amount', 'items']
-        read_only_fields = ['total_amount', 'order_date', 'customer'] # Customer is often set automatically on creation
+        model  = models.Order
+        fields = [
+            'id', 'customer', 'customer_username',
+            'customer_phone', 'customer_address', 'customer_city', 
+            'order_date', 'status', 'payment_method',
+            'payment_status', 'total_amount', 'items','created_at',
+        ]
+        read_only_fields = ['total_amount', 'order_date', 'customer']
 
 
 # serializers.py
