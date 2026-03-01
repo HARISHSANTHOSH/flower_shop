@@ -69,7 +69,10 @@ class Customer(models.Model):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField()
     city = models.CharField(max_length=100, blank=True, null=True)
+<<<<<<< Updated upstream
     pincode      = models.CharField(max_length=10, blank=True, null=True) 
+=======
+>>>>>>> Stashed changes
     district = models.CharField(max_length=100, default='Alappuzha')
     state = models.CharField(max_length=100, default='Kerala')
 

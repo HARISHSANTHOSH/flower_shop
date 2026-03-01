@@ -227,18 +227,30 @@ class BuyNowAPIView(APIView):
 
         address         = request.data.get('address')
         phone           = request.data.get('phone')
+<<<<<<< Updated upstream
         city            = request.data.get('city', '')
         pincode         = request.data.get('pincode', '')          # ← NEW
+=======
+        city            = request.data.get('city', '')   
+>>>>>>> Stashed changes
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
+<<<<<<< Updated upstream
         # ── delivery zone check (pincode-based) ─────────────────────
         from .delivery_zones import is_delivery_allowed
         if not is_delivery_allowed(pincode):
             return Response({
                 'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area. '
                          'Please check your pincode.'
+=======
+        # ── delivery zone check ──────────────────────────
+        from .delivery_zones import is_delivery_allowed
+        if not is_delivery_allowed(city):
+            return Response({
+                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area'
+>>>>>>> Stashed changes
             }, status=400)
 
         if not flower_ids:
@@ -248,12 +260,17 @@ class BuyNowAPIView(APIView):
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
+<<<<<<< Updated upstream
         # ── save customer details ────────────────────────────────────
+=======
+        # ── save customer details ────────────────────────
+>>>>>>> Stashed changes
         if address:
             customer.address = address
         if phone:
             customer.phone_number = phone
         if city:
+<<<<<<< Updated upstream
             customer.city = city
         if pincode:
             customer.pincode  = pincode               # ← NEW
@@ -262,6 +279,12 @@ class BuyNowAPIView(APIView):
         customer.save(update_fields=[
             'address', 'phone_number', 'city', 'pincode', 'district', 'state'
         ])
+=======
+            customer.city     = city
+            customer.district = 'Alappuzha'
+            customer.state    = 'Kerala'
+        customer.save(update_fields=['address', 'phone_number', 'city', 'district', 'state'])
+>>>>>>> Stashed changes
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
