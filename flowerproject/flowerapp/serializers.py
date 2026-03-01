@@ -38,7 +38,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Customer
-        fields = ['id', 'user', 'phone_number', 'address', 'city', 'district', 'state']
+        fields = ['id', 'user', 'phone_number', 'address', 'city', 'district','pincode', 'state']
         read_only_fields = ['user']
 
 class OrderItemSerializer(serializers.ModelSerializer):
