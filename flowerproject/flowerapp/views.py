@@ -254,7 +254,6 @@ class BuyNowAPIView(APIView):
         if phone:
             customer.phone_number = phone
         if city:
-<<<<<<< Updated upstream
             customer.city = city
         if pincode:
             customer.pincode  = pincode               # ← NEW
@@ -263,12 +262,6 @@ class BuyNowAPIView(APIView):
         customer.save(update_fields=[
             'address', 'phone_number', 'city', 'pincode', 'district', 'state'
         ])
-=======
-            customer.city     = city
-            customer.district = 'Alappuzha'
-            customer.state    = 'Kerala'
-        customer.save(update_fields=['address', 'phone_number', 'city', 'district', 'state'])
->>>>>>> Stashed changes
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
