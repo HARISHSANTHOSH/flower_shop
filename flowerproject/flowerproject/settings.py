@@ -135,6 +135,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'unexpressable-bettyann-germinally.ngrok-free.dev',  # ✅ add this
+    '.railway.app',
 ]
 
 CORS_ALLOWED_ORIGINS = [
