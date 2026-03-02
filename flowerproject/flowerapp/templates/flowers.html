@@ -1694,7 +1694,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-    const API_BASE = 'http://127.0.0.1:8000/flowerapp';
+    const API_BASE = 'https://flowershop-production-3889.up.railway.app/flowerapp';
     const PLACEHOLDER = [
         '/media/flowers/IMG20250917130730.jpg',
         '/media/flowers/IMG20251120162642.jpg',
@@ -1814,7 +1814,7 @@
     async function refreshAccessToken() {
         const refresh = localStorage.getItem('refresh_token');
         if (!refresh) throw new Error('no refresh token');
-        const res = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+        const res = await fetch('https://flowershop-production-3889.up.railway.app/api/token/refresh/', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
