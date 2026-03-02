@@ -49,7 +49,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         image = obj.flower.image  # try: obj.flower.image  if this fails
         if image and request:
-            return request.build_absolute_uri(image.url)
+            return image.url
         return None
 
     class Meta:
