@@ -23,9 +23,9 @@ class FlowerSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def get_flower_image(self, obj):
-        request = self.context.get('request')
-        if obj.image and request:
-            return obj.image.url
+        if obj.image:
+            image_name = str(obj.image)
+            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
         return None
 
 class UserSerializer(serializers.ModelSerializer):
@@ -46,10 +46,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
     flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
-        request = self.context.get('request')
-        image = obj.flower.image  # try: obj.flower.image  if this fails
-        if image and request:
-            return image.url
+        if obj.image:
+            image_name = str(obj.image)
+            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
         return None
 
     class Meta:
