@@ -1083,7 +1083,6 @@
         const list = getRVList();
         const recentInStock = list.filter(f => f.id != currentId && (f.stock ?? 999) > 0);
         let cards = recentInStock.slice(0, 4);
-        const isReallyViewed = cards.length > 0;
 
         if (cards.length < 4) {
             try {
@@ -1096,13 +1095,19 @@
                 for (const f of shuffled) {
                     if (cards.length >= 4) break;
                     if (!existingIds.has(f.id)) {
-                        cards.push({ id: f.id, name: f.name, price: f.price, image: f.flower_image || f.image || null, stock: f.stock ?? 999, _isRandom: true });
+                        cards.push({ 
+                            id: f.id, 
+                            name: f.name, 
+                            price: f.price, 
+                            image: f.flower_image || null,  // only use flower_image (Cloudinary URL)
+                            stock: f.stock ?? 999, 
+                            _isRandom: true 
+                        });
                         existingIds.add(f.id);
                     }
                 }
             } catch (e) {}
         }
-
         if (!cards.length) return;
 
         document.getElementById('recentlyViewedSection').style.display = 'block';
@@ -1258,10 +1263,13 @@
     // ════════════════════════════════════════
     function resolveImage(item) {
         const img = item.flower_image || item.image;
-        if (img) return img.startsWith('/') ? `${window.location.origin}${img}` : img;
+        if (img) {
+            if (img.startsWith('http')) return img;
+            if (img.startsWith('/')) return `${window.location.origin}${img}`;
+            return `https://res.cloudinary.com/dkofkn26y/image/upload/${img}`;
+        }
         return PLACEHOLDER[Math.abs(item.id || 0) % PLACEHOLDER.length];
     }
-
     function switchImage(src, thumbEl) {
         document.getElementById('mainPlantImg').src = src;
         document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
