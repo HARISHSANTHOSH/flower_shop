@@ -1975,7 +1975,12 @@
     // ── Helpers ──────────────────────────────────
     function resolveImage(item) {
         const img = item.flower_image || item.image;
-        if (img) return img.startsWith('/') ? `${window.location.origin}${img}` : img;
+        if (img) {
+            if (img.startsWith('http')) return img;
+            if (img.startsWith('/')) return `${window.location.origin}${img}`;
+            // Cloudinary path like "flowers/filename.jpg"
+            return `https://res.cloudinary.com/dkofkn26y/image/upload/${img}`;
+        }
         return PLACEHOLDER[Math.abs(item.id || 0) % PLACEHOLDER.length];
     }
     function stockBadge(flower) {
