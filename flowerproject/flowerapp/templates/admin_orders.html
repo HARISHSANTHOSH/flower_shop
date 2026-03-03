@@ -542,7 +542,7 @@
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE = isLocal
         ? "http://localhost:8000/flowerapp"
-        : "https://flowershop-production-3889.up.railway.app";
+        : "https://flowershop-production-3889.up.railway.app/flowerapp";
     const PAGE_SIZE = 10;
 
     let state = { page: 1, totalCount: 0, next: null, previous: null };
