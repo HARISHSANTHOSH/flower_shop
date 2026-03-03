@@ -135,9 +135,19 @@ class SignupSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
-    flower_image = serializers.ImageField(source='flower.image', read_only=True)
+    flower_image = serializers.SerializerMethodField()  # ← change to this
     unit_price   = serializers.DecimalField(source='flower.price', max_digits=10, decimal_places=2, read_only=True)
     total_price  = serializers.SerializerMethodField()
+
+    def get_flower_image(self, obj):
+        if not obj.flower.image:
+            return None
+        image_name = str(obj.flower.image)
+        if image_name.startswith('http'):
+            return image_name
+        if os.getenv('RAILWAY_ENVIRONMENT'):
+            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
+        return f"/media/{image_name}"
 
     class Meta:
         model  = models.CartItem
