@@ -26,22 +26,8 @@ class FlowerSerializer(serializers.ModelSerializer):
     def get_flower_image(self, obj):
         if not obj.image:
             return None
-        
-        image_name = str(obj.image)
-        
-        # already a full URL (cloudinary)
-        if image_name.startswith('http'):
-            return image_name
-        
-        # production — build cloudinary URL
-        if os.getenv('RAILWAY_ENVIRONMENT'):
-            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
-        
-        # local — build media URL
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f"/media/{image_name}")
-        return f"/media/{image_name}"
+        # Let Django/Cloudinary storage build the correct URL automatically
+        return obj.image.url  # ✅ returns Cloudinary URL always
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -63,22 +49,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
     def get_flower_image(self, obj):
         if not obj.image:
             return None
-        
-        image_name = str(obj.image)
-        
-        # already a full URL (cloudinary)
-        if image_name.startswith('http'):
-            return image_name
-        
-        # production — build cloudinary URL
-        if os.getenv('RAILWAY_ENVIRONMENT'):
-            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
-        
-        # local — build media URL
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f"/media/{image_name}")
-        return f"/media/{image_name}"
+        # Let Django/Cloudinary storage build the correct URL automatically
+        return obj.image.url  # ✅ returns Cloudinary URL always
 
     class Meta:
         model = models.OrderItem
@@ -140,14 +112,10 @@ class CartItemSerializer(serializers.ModelSerializer):
     total_price  = serializers.SerializerMethodField()
 
     def get_flower_image(self, obj):
-        if not obj.flower.image:
+        if not obj.image:
             return None
-        image_name = str(obj.flower.image)
-        if image_name.startswith('http'):
-            return image_name
-        if os.getenv('RAILWAY_ENVIRONMENT'):
-            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
-        return f"/media/{image_name}"
+        # Let Django/Cloudinary storage build the correct URL automatically
+        return obj.image.url  # ✅ returns Cloudinary URL always
 
     class Meta:
         model  = models.CartItem
