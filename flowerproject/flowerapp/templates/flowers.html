@@ -1207,6 +1207,16 @@
                 -webkit-perspective: 1000px;
                 perspective: 1000px;
             }
+            .card-body h3 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .btn-cart {
+                margin-top: auto;
+            }
 
             /* Stop card animations on mobile — causes repaint flicker during scroll */
             .flower-card {
@@ -2142,9 +2152,7 @@ function googleSignIn() {
         }
         body.innerHTML = '';
         items.forEach(item => {
-            const imgSrc = item.flower_image
-                ? (item.flower_image.startsWith('/') ? `${window.location.origin}${item.flower_image}` : item.flower_image)
-                : PLACEHOLDER[Math.abs(item.flower || 0) % PLACEHOLDER.length];
+            const imgSrc = resolveImage(item);
             const div = document.createElement('div');
             div.className = 'cart-item';
             div.innerHTML = `
@@ -2173,7 +2181,6 @@ function googleSignIn() {
             div.querySelector('h4').addEventListener('click', () => window.location.href = `/flowerapp/flowers/${item.flower}/`);
         });
     }
-
     function openCart() {
         if (!isAuthenticated) {
             document.getElementById("cartDrawer").classList.add("open");
