@@ -415,6 +415,196 @@ body {
 #toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
 #toast.error   { background: #5c1a1a; border-color: rgba(192,57,43,.3); }
 #toast.success { background: var(--mid); border-color: rgba(74,173,114,.3); }
+/* ═══════════════════════════════════════════════════════════
+   BLOOM HEAVEN — SIGNUP PAGE
+   COMPLETE PROFESSIONAL RESPONSIVE CSS
+   Paste at the BOTTOM of your existing <style> block
+═══════════════════════════════════════════════════════════ */
+
+html { -webkit-text-size-adjust: 100%; }
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ═══════════════════════════════════════
+   TABLET — still 2 col but tighter
+═══════════════════════════════════════ */
+@media (max-width: 860px) {
+    body { padding: 16px 0; align-items: flex-start; }
+
+    .page-wrap {
+        grid-template-columns: 1fr 360px;
+        width: min(760px, 96vw);
+    }
+
+    .left-panel  { padding: 40px 28px; }
+    .right-panel { padding: 36px 28px; }
+
+    .left-headline { font-size: 28px; }
+    .brand-name    { font-size: 22px; }
+    .left-desc     { font-size: 13px; }
+    .form-title    { font-size: 24px; }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE — single column
+═══════════════════════════════════════ */
+@media (max-width: 600px) {
+    html, body {
+        height: auto;
+        min-height: 100vh;
+        overflow: auto;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .bg-canvas { position: fixed; }
+
+    .page-wrap {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        animation: none;
+    }
+
+    /* ── LEFT PANEL — compact top banner ── */
+    .left-panel {
+        padding: 28px 22px 24px;
+        border-right: none;
+        border-bottom: 1px solid rgba(45,122,79,.2);
+        flex-direction: column;
+        gap: 14px;
+        min-height: unset;
+    }
+
+    .left-panel::before { display: none; }
+
+    .brand { animation: none; gap: 4px; flex-direction: row; align-items: center; gap: 10px; }
+    .brand-icon    { font-size: 24px; }
+    .brand-name    { font-size: 19px; }
+    .brand-tagline { display: none; }
+
+    /* Hide large headline on mobile */
+    .left-middle { display: none; }
+
+    /* Feature pills */
+    .features {
+        animation: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .feature-item {
+        font-size: 11px;
+        gap: 6px;
+        background: rgba(74,173,114,.08);
+        border: 1px solid rgba(74,173,114,.15);
+        border-radius: 100px;
+        padding: 4px 10px;
+    }
+
+    .feature-dot { width: 5px; height: 5px; }
+
+    /* ── RIGHT PANEL — full width form ── */
+    .right-panel {
+        padding: 28px 22px 44px;
+        animation: none;
+    }
+
+    .form-title    { font-size: 24px; margin-bottom: 4px; }
+    .form-subtitle { font-size: 12px; margin-bottom: 20px; }
+
+    /* Two-column row → single column on mobile */
+    .field-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 14px; }
+
+    .field label {
+        font-size: 10px;
+        margin-bottom: 6px;
+    }
+
+    .field input {
+        padding: 13px 14px;
+        font-size: 16px; /* prevent iOS zoom */
+        border-radius: 10px;
+    }
+
+    /* Strength bar */
+    .strength-wrap { margin-top: 6px; }
+    .strength-label { font-size: 10px; }
+
+    .submit-btn {
+        padding: 14px;
+        font-size: 14px;
+        border-radius: 10px;
+        margin-top: 4px;
+    }
+
+    .divider {
+        margin: 16px 0;
+        font-size: 11px;
+    }
+
+    .google-btn {
+        padding: 13px 16px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+
+    .google-btn img { width: 17px; height: 17px; }
+
+    .terms {
+        font-size: 10px;
+        margin-top: 12px;
+    }
+}
+
+/* ═══════════════════════════════════════
+   VERY SMALL PHONES (< 380px)
+═══════════════════════════════════════ */
+@media (max-width: 380px) {
+    .left-panel  { padding: 22px 16px 18px; }
+    .right-panel { padding: 22px 16px 36px; }
+
+    .brand-name  { font-size: 17px; }
+    .form-title  { font-size: 21px; }
+    .form-subtitle { font-size: 11px; }
+
+    .feature-item { font-size: 10px; padding: 3px 8px; }
+}
+
+/* ═══════════════════════════════════════
+   TOAST — MOBILE
+═══════════════════════════════════════ */
+@media (max-width: 600px) {
+    #toast {
+        width: calc(100vw - 32px);
+        text-align: center;
+        white-space: normal;
+        font-size: 12px;
+        padding: 11px 16px;
+        bottom: 20px;
+    }
+}
+
+/* ═══════════════════════════════════════
+   iPhone SAFE AREA
+═══════════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    @media (max-width: 600px) {
+        .right-panel {
+            padding-bottom: calc(44px + env(safe-area-inset-bottom));
+        }
+    }
+}
 </style>
 </head>
 <body>
@@ -523,7 +713,7 @@ body {
 
         <div class="divider">or continue with</div>
 
-        <button class="google-btn" onclick="handleGoogleLogin()">
+        <button class="google-btn" onclick="googleSignIn()">
             <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
             Sign up with Google
         </button>
@@ -541,37 +731,70 @@ body {
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
-window.onload = function() {
-    google.accounts.id.initialize({
-        client_id: '275756032838-2ip96oepiavveqjr2eu4o3famb6gmvdj.apps.googleusercontent.com',
-        callback: handleGoogleCredential
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // This acts exactly like your Python 'if ENV == "local"' logic
+    const API_BASE = isLocal 
+        ? "http://localhost:8000/flowerapp" 
+        : "https://flowershop-production-3889.up.railway.app";
+
+    console.log("Current API Base:", API_BASE);
+
+    function checkAuth() {
+        return !!(localStorage.getItem('access_token') && localStorage.getItem('refresh_token'));
+    }
+
+    // ✅ Initialize Google Sign In on page load
+    window.addEventListener('load', function() {
+        const GOOGLE_CLIENT_ID = "{{ google_client_id }}";
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse,
+            use_fedcm_for_prompt: false,
+        });
+        console.log('Google ID client ready ✅');
     });
-}
 
-function handleGoogleLogin() {
-    google.accounts.id.prompt();
-}
+    // ✅ Called when user clicks Google button
+    function googleSignIn() {
+        if (!google?.accounts?.id) {
+            alert('Google Sign-In not ready. Please refresh.');
+            return;
+        }
+        google.accounts.id.prompt((notification) => {
+            console.log('Moment type:', notification.getMomentType());
+            console.log('Dismissed:', notification.getDismissedReason());
+        });
+    }
 
-async function handleGoogleCredential(response) {
-    const token = response.credential;
-    try {
-        const res  = await fetch('/api/v1/auth/google/', {
+    // ✅ Called automatically by Google after user selects account
+    function handleCredentialResponse(response) {
+        fetch('/flowerapp/api/v1/auth/google/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
+            body: JSON.stringify({ token: response.credential }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            localStorage.setItem('email', data.email);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('name', data.name);
+            localStorage.setItem('role', data.role);
+
+            // ✅ Redirect based on role
+            window.location.href = data.role === 'superadmin'
+                ? '/flowerapp/admin/orders/'
+                : '/flowerapp/flowers/';
+        })
+        .catch(err => {
+            console.error('Google login failed:', err);
+            alert('Login failed. Please try again.');
         });
-        const data = await res.json();
-        if (!res.ok) { showToast(data.error || 'Google sign-up failed', 'error'); return; }
-
-        localStorage.setItem('access_token',  data.access);
-        localStorage.setItem('refresh_token', data.refresh);
-
-        showToast(`Welcome, ${data.name}! 🌿`, 'success');
-        setTimeout(() => { window.location.href = '/flowerapp/flowers/'; }, 1500);
-    } catch (err) {
-        showToast('Google sign-up failed', 'error');
     }
-}
 
 /* ── Password strength ── */
 document.getElementById('password').addEventListener('input', function() {
@@ -618,7 +841,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
     submitBtn.textContent = 'Creating account…';
 
     try {
-        const res  = await fetch('flowerapp/api/v1/signup/', {
+        const res  = await fetch(`${API_BASE}/api/v1/signup/`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ username, email, password, password2 })
@@ -635,7 +858,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
         localStorage.setItem('refresh_token', data.refresh);
 
         showToast(`Welcome, ${data.user.username}! 🌿`, 'success');
-        setTimeout(() => { window.location.href = '/flowerapp/flowers/'; }, 1500);
+        setTimeout(() => { window.location.href = `${API_BASE}/flowers/`; }, 1500);
 
     } catch (err) {
         showToast('Signup failed. Please try again.', 'error');

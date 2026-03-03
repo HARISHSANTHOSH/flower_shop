@@ -548,6 +548,439 @@
             .footer-grid { grid-template-columns: 1fr; gap: 24px; }
             footer { padding: 40px 20px 24px; }
         }
+        /* ═══════════════════════════════════════════════════════════
+        BLOOM HEAVEN — ORDERS PAGE
+        COMPLETE PROFESSIONAL RESPONSIVE CSS
+        Paste at the BOTTOM of your existing <style> block
+        ═══════════════════════════════════════════════════════════ */
+
+        html { -webkit-text-size-adjust: 100%; }
+        * { -webkit-tap-highlight-color: transparent; }
+
+        /* ═══════════════════════════════════════
+        NAVBAR — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            nav { height: 56px; }
+
+            .nav-brand-zone { padding: 0 14px; border-right: none; }
+            .nav-logo { width: 32px; height: 32px; font-size: 15px; }
+            .nav-brand-text .name { font-size: 15px; }
+            .nav-brand-text .sub  { display: none; }
+            .nav-delivery         { display: none; }
+
+            .nav-right-zone { padding: 0 10px 0 8px; gap: 4px; }
+
+            .orders-btn,
+            .profile-btn { width: 34px; height: 34px; font-size: 15px; }
+
+            .cart-btn { width: 34px; height: 34px; padding: 0 8px; font-size: 15px; }
+
+            .profile-dropdown {
+                right: -8px;
+                min-width: 250px;
+                max-width: calc(100vw - 16px);
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        PAGE HEADER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 24px 16px 22px;
+            }
+
+            .page-header::after {
+                font-size: 60px;
+                right: 16px;
+                opacity: .04;
+            }
+
+            .page-header h1 { font-size: 26px; margin-bottom: 4px; }
+            .page-header p  { font-size: 13px; }
+        }
+
+        /* ═══════════════════════════════════════
+        STATS BAR — MOBILE
+        Horizontal scroll on mobile
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .stats-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            .stats-inner {
+                padding: 0 16px;
+                gap: 0;
+                min-width: max-content; /* allow horizontal scroll */
+            }
+
+            .stat-item {
+                padding: 12px 20px 12px 0;
+                margin-right: 20px;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+
+            .stat-icon { font-size: 16px; }
+            .stat-info strong { font-size: 16px; }
+            .stat-info span   { font-size: 10px; }
+        }
+
+        /* ═══════════════════════════════════════
+        MAIN — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .main { padding: 16px 12px 80px; }
+        }
+
+        /* ═══════════════════════════════════════
+        FILTERS ROW — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .filters-row {
+                gap: 7px;
+                margin-bottom: 16px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 4px;
+                /* hide scrollbar */
+                scrollbar-width: none;
+            }
+            .filters-row::-webkit-scrollbar { display: none; }
+
+            .filter-pill {
+                font-size: 11px;
+                padding: 6px 13px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+
+            /* Search input goes on its own line */
+            .search-input {
+                width: 100%;
+                margin-left: 0;
+                flex-shrink: 0;
+                order: 99; /* push to end */
+                font-size: 14px;
+            }
+
+            /* Make filters wrap so search goes below */
+            .filters-row {
+                flex-wrap: wrap;
+            }
+
+            /* Pills stay on one line */
+            .filter-pill { order: 1; }
+            .search-input { order: 2; }
+        }
+
+        /* ═══════════════════════════════════════
+        ORDER CARD — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .order-card {
+                border-radius: 14px;
+                margin-bottom: 12px;
+            }
+
+            /* Order header — stack layout */
+            .order-header {
+                padding: 14px 16px;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .order-num { font-size: 17px; }
+            .order-id  { font-size: 10px; }
+
+            /* Meta — wrap on mobile */
+            .order-meta {
+                gap: 10px;
+                width: 100%;
+            }
+
+            .meta-label { font-size: 9px; }
+            .meta-value { font-size: 12px; }
+
+            /* Status row — full width */
+            .order-status {
+                width: 100%;
+                margin-left: 0;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+
+            .order-total-big { font-size: 18px; }
+            .chevron { font-size: 11px; }
+
+            /* Cancel button */
+            .cancel-btn {
+                font-size: 11px;
+                padding: 7px 14px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        ORDER BODY / ITEMS — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .order-items {
+                padding: 14px 14px;
+                gap: 10px;
+            }
+
+            .order-item {
+                padding: 12px;
+                gap: 10px;
+                border-radius: 10px;
+                flex-wrap: nowrap;
+            }
+
+            .order-item img,
+            .order-item-img-placeholder {
+                width: 56px;
+                height: 56px;
+                border-radius: 8px;
+                font-size: 22px;
+                flex-shrink: 0;
+            }
+
+            .item-name { font-size: 13px; margin-bottom: 2px; }
+            .item-sub  { font-size: 11px; }
+
+            .item-price-block { flex-shrink: 0; }
+            .item-unit-price  { font-size: 11px; }
+            .item-total-price { font-size: 15px; }
+        }
+
+        /* ═══════════════════════════════════════
+        ORDER FOOTER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .order-footer {
+                padding: 12px 14px;
+                gap: 8px;
+            }
+
+            .order-footer-info  { font-size: 11px; }
+            .order-footer-total { font-size: 13px; }
+            .order-footer-total strong { font-size: 16px; }
+        }
+
+        /* ═══════════════════════════════════════
+        PROGRESS TRACKER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .order-progress {
+                padding: 12px 14px 4px;
+            }
+
+            .step-dot {
+                width: 20px;
+                height: 20px;
+                font-size: 8px;
+            }
+
+            .step-label { font-size: 9px; }
+
+            .progress-steps::before {
+                top: 10px;
+            }
+
+            .progress-fill { top: 10px; }
+        }
+
+        /* ═══════════════════════════════════════
+        EMPTY STATE — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .empty-state {
+                padding: 60px 16px;
+            }
+
+            .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
+            .empty-state h2    { font-size: 22px; }
+            .empty-state p     { font-size: 13px; }
+
+            .shop-now-btn {
+                padding: 12px 24px;
+                font-size: 13px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        CART DRAWER — MOBILE (bottom sheet)
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .cart-drawer {
+                width: 100vw;
+                top: auto;
+                bottom: 0;
+                height: 90vh;
+                border-radius: 20px 20px 0 0;
+                transform: translateY(100%);
+            }
+
+            .cart-drawer.open { transform: translateY(0); }
+
+            .cart-drawer::before {
+                content: '';
+                display: block;
+                width: 36px; height: 4px;
+                background: rgba(0,0,0,.1);
+                border-radius: 2px;
+                margin: 10px auto 0;
+            }
+
+            .drawer-header    { padding: 10px 18px 14px; }
+            .drawer-header h2 { font-size: 18px; }
+            .drawer-body      { padding: 12px 18px; }
+
+            .cart-item     { gap: 10px; padding: 12px 0; }
+            .cart-item img { width: 58px; height: 58px; border-radius: 10px; }
+            .cart-item-info h4        { font-size: 13px; }
+            .cart-item-info .item-price { font-size: 14px; }
+
+            .qty-btn { width: 26px; height: 26px; font-size: 13px; }
+            .qty-num { font-size: 13px; }
+
+            .drawer-footer { padding: 12px 18px 20px; }
+            .cart-total strong { font-size: 22px; }
+            .checkout-btn { padding: 13px; font-size: 14px; border-radius: 12px; }
+        }
+
+        /* ═══════════════════════════════════════
+        MODALS — MOBILE (bottom sheet)
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .modal-overlay { align-items: flex-end; }
+
+            .modal {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                padding: 24px 18px 28px;
+                max-height: 92vh;
+                overflow-y: auto;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                transform: none;
+                position: fixed;
+            }
+
+            .modal-overlay.open .modal { transform: none; }
+
+            .modal h2 { font-size: 22px; }
+            .modal p  { font-size: 13px; }
+
+            /* Checkout steps */
+            .checkout-modal   { max-height: 92vh; }
+            .checkout-steps   { margin-bottom: 18px; }
+            .co-step span     { width: 28px; height: 28px; font-size: 11px; }
+            .co-step small    { font-size: 9px; }
+            .co-step-line     { min-width: 20px; }
+            .co-step-panel h2 { font-size: 20px; }
+            .co-step-panel .sub { font-size: 12px; margin-bottom: 16px; }
+
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+
+            .co-btn-row { grid-template-columns: 1fr 1.5fr; gap: 8px; }
+
+            /* Summary */
+            .summary-item img     { width: 42px; height: 42px; }
+            .summary-item-info h4 { font-size: 12px; }
+            .summary-row.grand strong { font-size: 20px; }
+
+            /* Payment */
+            .pay-option  { padding: 13px 12px; gap: 10px; }
+            .pay-icon    { font-size: 22px; }
+            .pay-option strong { font-size: 13px; }
+            .pay-option small  { font-size: 11px; }
+
+            /* Settings */
+            .settings-modal  { border-radius: 20px 20px 0 0; }
+            .settings-header { padding: 20px 20px 16px; }
+            .settings-header h2 { font-size: 22px; }
+            .settings-body   { padding: 16px 20px 24px; }
+            .settings-row    { grid-template-columns: 1fr; gap: 0; }
+
+            /* Contact */
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ═══════════════════════════════════════
+        FOOTER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            footer { padding: 32px 18px 24px; }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                margin-bottom: 24px;
+            }
+
+            .footer-brand p { max-width: 100%; }
+            .footer-brand .socials { flex-wrap: wrap; }
+            .footer-col h4 { margin-bottom: 10px; }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 6px;
+                text-align: center;
+                font-size: 11px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        TOAST — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .toast-container {
+                bottom: 72px;
+                right: 12px;
+                left: 12px;
+            }
+
+            .toast {
+                max-width: 100%;
+                font-size: 12px;
+                padding: 11px 14px;
+                border-radius: 10px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        PREVENT iOS INPUT ZOOM
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="password"],
+            input[type="number"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        iPhone SAFE AREA (notch / home bar)
+        ═══════════════════════════════════════ */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .cart-drawer        { padding-bottom: env(safe-area-inset-bottom); }
+            .modal              { padding-bottom: env(safe-area-inset-bottom); }
+            .drawer-footer      { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+        }
     </style>
 </head>
 <body>
@@ -831,7 +1264,14 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-    const API_BASE = '/flowerapp';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // This acts exactly like your Python 'if ENV == "local"' logic
+    const API_BASE = isLocal 
+        ? "http://localhost:8000/flowerapp" 
+        : "https://flowershop-production-3889.up.railway.app";
+
+    console.log("Current API Base:", API_BASE);
     const PLACEHOLDER_EMOJI = ['🌿','🌵','🪴','🌸','🌴','🌺'];
     const PLACEHOLDER_IMGS  = [
         '/media/flowers/IMG20250917130730.jpg',

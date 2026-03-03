@@ -47,6 +47,7 @@
             padding: 40px 32px;
         }
 
+        /* ── Page Header ── */
         .page-header {
             display: flex;
             align-items: center;
@@ -65,7 +66,7 @@
         .header-text h1 { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
         .header-text .subtitle { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; letter-spacing: .05em; }
 
-        /* Filter Panel */
+        /* ── Filter Panel ── */
         .filter-panel {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -74,17 +75,53 @@
             margin-bottom: 20px;
             box-shadow: var(--shadow-sm);
         }
-        .filter-panel h2 {
+
+        /* Desktop h2 */
+        .filter-title-desktop {
             font-size: 11px; font-weight: 600; letter-spacing: .1em;
             text-transform: uppercase; color: var(--muted);
             margin-bottom: 18px;
             display: flex; align-items: center; gap: 8px;
         }
-        .filter-panel h2::before {
+        .filter-title-desktop::before {
             content: ''; display: inline-block;
             width: 16px; height: 2px;
             background: var(--accent); border-radius: 1px;
         }
+
+        /* Mobile toggle button */
+        .filter-toggle {
+            display: none;
+            width: 100%; background: none; border: none; padding: 0;
+            cursor: pointer; font-family: var(--sans);
+            align-items: center; justify-content: space-between;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-toggle-label {
+            font-size: 11px; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--muted);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .filter-toggle-label::before {
+            content: ''; display: inline-block;
+            width: 16px; height: 2px;
+            background: var(--accent); border-radius: 1px;
+        }
+        .toggle-chevron {
+            width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); transition: transform .25s ease;
+        }
+        .toggle-chevron svg { display: block; }
+        .filter-panel.open .toggle-chevron { transform: rotate(180deg); }
+
+        /* Collapsible body */
+        .filter-body {
+            overflow: hidden;
+            transition: max-height .32s ease, opacity .25s ease;
+        }
+        /* default open on desktop — max-height set via JS on mobile */
+
         .filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -121,6 +158,7 @@
             border: none; border-radius: 8px; cursor: pointer;
             font-family: var(--sans); font-size: 13px; font-weight: 600;
             padding: 9px 20px; transition: all .15s; letter-spacing: .01em;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn:active { transform: scale(.97); }
         .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(193,125,60,.25); }
@@ -128,7 +166,7 @@
         .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
         .btn-ghost:hover { border-color: var(--border-hi); color: var(--text-2); background: var(--surface-2); }
 
-        /* Results bar */
+        /* ── Results bar ── */
         .results-bar {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 14px; min-height: 32px;
@@ -148,7 +186,7 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Table */
+        /* ── Desktop Table ── */
         .table-wrap {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -176,7 +214,6 @@
         .order-id { color: var(--muted); font-family: var(--mono); font-size: 12px; font-weight: 500; }
         .customer-name { font-weight: 600; color: var(--text); }
 
-        /* delivery info cell */
         .delivery-cell { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
         .delivery-phone {
             display: flex; align-items: center; gap: 5px;
@@ -189,13 +226,8 @@
             font-size: 11px; font-weight: 600;
             width: fit-content;
         }
-        .delivery-address {
-            font-size: 11px; color: var(--muted);
-            line-height: 1.4;
-            max-width: 220px;
-        }
+        .delivery-address { font-size: 11px; color: var(--muted); line-height: 1.4; max-width: 220px; }
 
-        /* copy button */
         .copy-btn {
             background: none; border: none; cursor: pointer;
             color: var(--muted); font-size: 11px; padding: 0;
@@ -203,7 +235,7 @@
         }
         .copy-btn:hover { opacity: 1; color: var(--accent); }
 
-        /* status badges */
+        /* ── Status badges & select ── */
         .badge {
             border-radius: 5px; display: inline-block;
             font-family: var(--mono); font-size: 10px; font-weight: 500;
@@ -250,7 +282,53 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Pagination */
+        /* ── Mobile Cards ── */
+        .cards-list {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .cards-state {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 48px 16px;
+            text-align: center; color: var(--muted); font-size: 13px;
+            box-shadow: var(--shadow-sm);
+        }
+        .order-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .card-header-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+        .card-order-id { font-family: var(--mono); font-size: 10px; color: var(--muted); font-weight: 500; }
+        .card-customer { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+        .card-row { display: flex; align-items: flex-start; gap: 8px; }
+        .card-label {
+            font-size: 10px; font-weight: 600; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .07em;
+            min-width: 56px; padding-top: 2px; flex-shrink: 0;
+        }
+        .card-value { font-size: 12px; color: var(--text-2); flex: 1; line-height: 1.5; }
+        .card-items { display: flex; flex-wrap: wrap; gap: 4px; }
+        .card-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px;
+            border-top: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .card-date { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+        .card-total { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--green); }
+
+        /* ── Pagination ── */
         .pagination {
             display: flex; align-items: center; justify-content: space-between;
             margin-top: 18px; padding: 0 2px;
@@ -262,11 +340,12 @@
             border-radius: 8px; color: var(--text-2); cursor: pointer;
             font-family: var(--sans); font-size: 12px; font-weight: 500;
             padding: 7px 16px; transition: all .15s; box-shadow: var(--shadow-sm);
+            -webkit-tap-highlight-color: transparent;
         }
         .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
         .page-btn:disabled { opacity: .35; cursor: default; }
 
-        /* Toast */
+        /* ── Toast ── */
         #toast {
             background: var(--text); border-radius: 10px;
             bottom: 28px; color: #fff; display: none;
@@ -274,11 +353,66 @@
             left: 50%; padding: 11px 22px; position: fixed;
             transform: translateX(-50%); z-index: 999;
             box-shadow: var(--shadow-lg); font-family: var(--sans);
+            white-space: nowrap; max-width: calc(100vw - 32px);
+            text-align: center;
+        }
+
+        /* ════════════════════════════
+           MOBILE RESPONSIVE
+           ════════════════════════════ */
+        @media (max-width: 767px) {
+            body { padding: 16px 14px 32px; }
+
+            /* Header */
+            .page-header { gap: 12px; margin-bottom: 18px; }
+            .header-icon { width: 38px; height: 38px; font-size: 17px; }
+            .header-text h1 { font-size: 18px; }
+            .header-text .subtitle { font-size: 10px; }
+
+            /* Filter panel */
+            .filter-panel { padding: 14px 14px; margin-bottom: 12px; }
+            .filter-title-desktop { display: none; }
+            .filter-toggle { display: flex; }
+            .filter-body { max-height: 0; opacity: 0; }
+            .filter-panel.open .filter-body { opacity: 1; /* max-height set by JS */ }
+            .filter-body-inner { padding-top: 14px; }
+
+            /* Filters 2-col grid */
+            .filters-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .filter-group.span-full { grid-column: 1 / -1; }
+            .filter-group label { font-size: 10px; }
+            .filter-group input,
+            .filter-group select { font-size: 13px; padding: 8px 10px; }
+
+            /* Buttons full-width */
+            .filter-actions { flex-wrap: wrap; margin-top: 12px; gap: 8px; }
+            .btn { flex: 1; min-width: 0; justify-content: center; }
+
+            /* Results bar */
+            .results-bar { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+            .ordering-select { font-size: 11px; }
+
+            /* Hide table, show cards */
+            .table-wrap { display: none !important; }
+            .cards-list { display: flex; }
+
+            /* Pagination */
+            .pagination { flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+            .page-btns { flex: 1; gap: 8px; }
+            .page-btn { flex: 1; text-align: center; padding: 9px 10px; }
+            .page-info { width: 100%; text-align: center; order: -1; }
+        }
+
+        @media (min-width: 768px) {
+            /* Always show filter body on desktop */
+            .filter-body { max-height: none !important; opacity: 1 !important; overflow: visible !important; }
+            .filter-toggle { display: none !important; }
         }
     </style>
 </head>
 <body>
 
+<!-- Header -->
 <div class="page-header">
     <div class="header-icon">🌸</div>
     <div class="header-text">
@@ -288,51 +422,69 @@
 </div>
 
 <!-- Filters -->
-<div class="filter-panel">
-    <h2>Filters</h2>
-    <div class="filters-grid">
-        <div class="filter-group">
-            <label>Customer</label>
-            <input type="text" id="filterCustomer" placeholder="username…">
+<div class="filter-panel" id="filterPanel">
+
+    <!-- Desktop title -->
+    <div class="filter-title-desktop">Filters</div>
+
+    <!-- Mobile toggle -->
+    <button class="filter-toggle" id="filterToggle" aria-expanded="false" aria-controls="filterBody">
+        <span class="filter-toggle-label">Filters</span>
+        <span class="toggle-chevron">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </span>
+    </button>
+
+    <!-- Collapsible body -->
+    <div class="filter-body" id="filterBody">
+        <div class="filter-body-inner">
+            <div class="filters-grid">
+                <div class="filter-group span-full">
+                    <label>Customer</label>
+                    <input type="text" id="filterCustomer" placeholder="username…" autocomplete="off">
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="filterStatus">
+                        <option value="">All statuses</option>
+                        <option value="payment_pending">Payment Pending</option>
+                        <option value="payment_failed">Payment Failed</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="refunded">Refunded</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Flower Name</label>
+                    <input type="text" id="filterFlower" placeholder="e.g. rose…" autocomplete="off">
+                </div>
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="date" id="filterDateFrom">
+                </div>
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="date" id="filterDateTo">
+                </div>
+                <div class="filter-group">
+                    <label>Min Total (₹)</label>
+                    <input type="number" id="filterTotalMin" placeholder="0" min="0" step="0.01">
+                </div>
+                <div class="filter-group">
+                    <label>Max Total (₹)</label>
+                    <input type="number" id="filterTotalMax" placeholder="any" min="0" step="0.01">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                <button class="btn btn-ghost" id="clearFilters">Clear All</button>
+            </div>
         </div>
-        <div class="filter-group">
-            <label>Status</label>
-            <select id="filterStatus">
-                <option value="">All statuses</option>
-                <option value="payment_pending">Payment Pending</option>
-                <option value="payment_failed">Payment Failed</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="refunded">Refunded</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Flower Name</label>
-            <input type="text" id="filterFlower" placeholder="e.g. rose…">
-        </div>
-        <div class="filter-group">
-            <label>Date From</label>
-            <input type="date" id="filterDateFrom">
-        </div>
-        <div class="filter-group">
-            <label>Date To</label>
-            <input type="date" id="filterDateTo">
-        </div>
-        <div class="filter-group">
-            <label>Min Total (₹)</label>
-            <input type="number" id="filterTotalMin" placeholder="0" min="0" step="0.01">
-        </div>
-        <div class="filter-group">
-            <label>Max Total (₹)</label>
-            <input type="number" id="filterTotalMax" placeholder="any" min="0" step="0.01">
-        </div>
-    </div>
-    <div class="filter-actions">
-        <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
-        <button class="btn btn-ghost" id="clearFilters">Clear All</button>
     </div>
 </div>
 
@@ -347,7 +499,7 @@
     </select>
 </div>
 
-<!-- Table -->
+<!-- Desktop Table -->
 <div class="table-wrap">
     <table>
         <thead>
@@ -369,6 +521,11 @@
     </table>
 </div>
 
+<!-- Mobile Cards -->
+<div class="cards-list" id="cardsList">
+    <div class="cards-state"><span class="spinner"></span> Loading…</div>
+</div>
+
 <!-- Pagination -->
 <div class="pagination">
     <span class="page-info" id="pageInfo">—</span>
@@ -381,11 +538,31 @@
 <div id="toast"></div>
 
 <script>
-    const BASE_URL = 'https://flowershop-production-3889.up.railway.app/flowerapp';
+    /* ── Config ── */
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = isLocal
+        ? "http://localhost:8000/flowerapp"
+        : "https://flowershop-production-3889.up.railway.app";
     const PAGE_SIZE = 10;
 
     let state = { page: 1, totalCount: 0, next: null, previous: null };
 
+    /* ── Filter toggle (mobile) ── */
+    const filterPanel  = document.getElementById('filterPanel');
+    const filterToggle = document.getElementById('filterToggle');
+    const filterBody   = document.getElementById('filterBody');
+
+    filterToggle.addEventListener('click', () => {
+        const isOpen = filterPanel.classList.toggle('open');
+        filterToggle.setAttribute('aria-expanded', isOpen);
+        if (isOpen) {
+            filterBody.style.maxHeight = filterBody.scrollHeight + 'px';
+        } else {
+            filterBody.style.maxHeight = '0';
+        }
+    });
+
+    /* ── Helpers ── */
     function getFilters() {
         return {
             customer:    document.getElementById('filterCustomer').value.trim(),
@@ -407,22 +584,68 @@
         return params.toString();
     }
 
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '—';
+        const d = new Date(raw);
+        if (isNaN(d)) return raw;
+        return d.toLocaleString('en-IN', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true,
+            timeZone: 'Asia/Kolkata'
+        });
+    }
+
+    function statusOptionsHtml(current) {
+        const statuses = [
+            ['payment_pending', 'Payment Pending'],
+            ['payment_failed',  'Payment Failed'],
+            ['confirmed',       'Confirmed'],
+            ['processing',      'Processing'],
+            ['shipped',         'Shipped'],
+            ['delivered',       'Delivered'],
+            ['cancelled',       'Cancelled'],
+            ['refunded',        'Refunded'],
+        ];
+        return statuses.map(([val, label]) =>
+            `<option value="${val}" ${val === current ? 'selected' : ''}>${label}</option>`
+        ).join('');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        clearTimeout(t._t);
+        t._t = setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    /* ── Fetch ── */
     async function fetchOrders(page = 1) {
         state.page = page;
         const filters = getFilters();
         const qs  = buildQueryString(filters, page);
-        const url = `${BASE_URL}/api/v1/orders/?${qs}`;
+        const url = `${API_BASE}/api/v1/orders/?${qs}`;
         setLoading(true);
 
         const token = localStorage.getItem('access_token');
         try {
-            const response = await fetch(url, {
+            const res = await fetch(url, {
                 headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
             });
-            if (response.status === 401) { window.location.href = '/flowerapp/signin/'; return; }
-            if (!response.ok) { showToast(`Error ${response.status}`); setLoading(false); return; }
+            if (res.status === 401) { window.location.href = `${API_BASE}/flowerapp/signin/`; return; }
+            if (!res.ok) { showToast(`Error ${res.status}`); setLoading(false); return; }
 
-            const data = await response.json();
+            const data = await res.json();
             state.totalCount = data.count;
             state.next       = data.next;
             state.previous   = data.previous;
@@ -431,20 +654,32 @@
             renderPagination();
             updateResultsCount();
             syncURL(filters, page);
+
+            /* Close filter panel on mobile after apply */
+            if (window.innerWidth < 768 && filterPanel.classList.contains('open')) {
+                filterPanel.classList.remove('open');
+                filterToggle.setAttribute('aria-expanded', 'false');
+                filterBody.style.maxHeight = '0';
+            }
         } catch (err) {
             showToast('Network error — could not reach server.');
+            setLoading(false);
         }
-        setLoading(false);
     }
 
+    /* ── Render desktop table rows ── */
     function renderOrders(orders) {
         const tbody = document.getElementById('ordersBody');
-        tbody.innerHTML = '';
+        const cards = document.getElementById('cardsList');
 
         if (!orders || orders.length === 0) {
             tbody.innerHTML = '<tr class="state-row"><td colspan="7">No orders found.</td></tr>';
+            cards.innerHTML = '<div class="cards-state">No orders found.</div>';
             return;
         }
+
+        tbody.innerHTML = '';
+        const cardsHtml = [];
 
         orders.forEach(order => {
             const itemsHtml = (order.items || []).map(item =>
@@ -458,27 +693,18 @@
                 );
             }
 
-            const dateStr = order.order_date || order.created_at
-            ? new Date(order.order_date || order.created_at).toLocaleString('en-IN', {
-                day:      '2-digit',
-                month:    'short',
-                year:     'numeric',
-                hour:     '2-digit',
-                minute:   '2-digit',
-                hour12:   true,
-                timeZone: 'Asia/Kolkata',
-            })
-            : '—';
-
+            const dateStr   = formatDate(order.order_date || order.created_at);
             const statusKey = (order.status || '').toLowerCase();
             const phone     = order.customer_phone   || '—';
             const city      = order.customer_city    || '—';
             const address   = order.customer_address || '—';
+            const username  = order.customer_username || '—';
 
+            /* Desktop row */
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><span class="order-id">#${order.id}</span></td>
-                <td><span class="customer-name">${escHtml(order.customer_username || '—')}</span></td>
+                <td><span class="customer-name">${escHtml(username)}</span></td>
                 <td>
                     <div class="delivery-cell">
                         <div class="delivery-phone">
@@ -493,14 +719,7 @@
                     <select class="status-select badge badge-${statusKey}"
                             data-order-id="${order.id}"
                             onchange="updateStatus(this)">
-                        <option value="payment_pending" ${statusKey==='payment_pending'?'selected':''}>Payment Pending</option>
-                        <option value="payment_failed"  ${statusKey==='payment_failed' ?'selected':''}>Payment Failed</option>
-                        <option value="confirmed"       ${statusKey==='confirmed'      ?'selected':''}>Confirmed</option>
-                        <option value="processing"      ${statusKey==='processing'     ?'selected':''}>Processing</option>
-                        <option value="shipped"         ${statusKey==='shipped'        ?'selected':''}>Shipped</option>
-                        <option value="delivered"       ${statusKey==='delivered'      ?'selected':''}>Delivered</option>
-                        <option value="cancelled"       ${statusKey==='cancelled'      ?'selected':''}>Cancelled</option>
-                        <option value="refunded"        ${statusKey==='refunded'       ?'selected':''}>Refunded</option>
+                        ${statusOptionsHtml(statusKey)}
                     </select>
                 </td>
                 <td><div class="items-list">${itemsHtml || '—'}</div></td>
@@ -508,21 +727,76 @@
                 <td><span class="date-cell">${dateStr}</span></td>
             `;
             tbody.appendChild(tr);
+
+            /* Mobile card */
+            cardsHtml.push(`
+            <div class="order-card">
+                <div class="card-header">
+                    <div class="card-header-left">
+                        <span class="card-order-id">#${order.id}</span>
+                        <span class="card-customer">${escHtml(username)}</span>
+                    </div>
+                    <select class="status-select badge badge-${statusKey}"
+                            data-order-id="${order.id}"
+                            onchange="updateStatus(this)">
+                        ${statusOptionsHtml(statusKey)}
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div class="card-row">
+                        <span class="card-label">Phone</span>
+                        <span class="card-value" style="font-family:var(--mono);font-size:12px;">
+                            ${escHtml(phone)}
+                            <button class="copy-btn" onclick="copyText('${escHtml(phone)}')" style="margin-left:4px;" title="Copy">⧉</button>
+                        </span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-label">City</span>
+                        <span class="card-value">
+                            <span class="delivery-city">📍 ${escHtml(city)}</span>
+                        </span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-label">Address</span>
+                        <span class="card-value">${escHtml(address)}</span>
+                    </div>
+                    ${(order.items || []).length ? `
+                    <div class="card-row">
+                        <span class="card-label">Items</span>
+                        <span class="card-value">
+                            <div class="card-items">${itemsHtml}</div>
+                        </span>
+                    </div>` : ''}
+                </div>
+                <div class="card-footer">
+                    <span class="card-date">${dateStr}</span>
+                    <span class="card-total">₹${total.toFixed(2)}</span>
+                </div>
+            </div>`);
         });
+
+        cards.innerHTML = cardsHtml.join('');
     }
 
+    /* ── Update status ── */
     async function updateStatus(selectEl) {
         const orderId   = selectEl.dataset.orderId;
         const newStatus = selectEl.value;
         const token     = localStorage.getItem('access_token');
+
+        /* Sync both selects (table + card) for same order */
+        document.querySelectorAll(`[data-order-id="${orderId}"]`).forEach(el => {
+            el.className = `status-select badge badge-${newStatus}`;
+            el.value = newStatus;
+        });
+
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/orders/${orderId}/`, {
+            const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: newStatus }),
             });
-            if (response.ok) {
-                selectEl.className = `status-select badge badge-${newStatus}`;
+            if (res.ok) {
                 showToast(`Order #${orderId} → ${newStatus}`);
             } else {
                 showToast('Failed to update status');
@@ -534,8 +808,16 @@
         }
     }
 
-    function copyText(text) {
-        navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    /* ── UI helpers ── */
+    function setLoading(yes) {
+        if (yes) {
+            document.getElementById('ordersBody').innerHTML =
+                '<tr class="state-row"><td colspan="7"><span class="spinner"></span> Loading…</td></tr>';
+            document.getElementById('cardsList').innerHTML =
+                '<div class="cards-state"><span class="spinner"></span> Loading…</div>';
+            document.getElementById('btnPrev').disabled = true;
+            document.getElementById('btnNext').disabled = true;
+        }
     }
 
     function renderPagination() {
@@ -549,15 +831,6 @@
         const c = state.totalCount;
         document.getElementById('resultsCount').innerHTML =
             `<strong>${c}</strong> order${c !== 1 ? 's' : ''} found`;
-    }
-
-    function setLoading(yes) {
-        if (yes) {
-            document.getElementById('ordersBody').innerHTML =
-                '<tr class="state-row"><td colspan="7"><span class="spinner"></span> Loading…</td></tr>';
-            document.getElementById('btnPrev').disabled = true;
-            document.getElementById('btnNext').disabled = true;
-        }
     }
 
     function syncURL(filters, page) {
@@ -580,20 +853,9 @@
         return parseInt(params.get('page') || '1', 10);
     }
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 3500);
-    }
-
-    function escHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
+    /* ── Event listeners ── */
     document.getElementById('applyFilters').addEventListener('click', () => fetchOrders(1));
+
     document.getElementById('clearFilters').addEventListener('click', () => {
         ['filterCustomer','filterFlower','filterDateFrom','filterDateTo',
          'filterTotalMin','filterTotalMax'].forEach(id => document.getElementById(id).value = '');
@@ -601,13 +863,16 @@
         document.getElementById('orderingSelect').value = '-created_at';
         fetchOrders(1);
     });
+
     document.getElementById('orderingSelect').addEventListener('change', () => fetchOrders(1));
     document.getElementById('btnPrev').addEventListener('click', () => { if (state.previous) fetchOrders(state.page - 1); });
     document.getElementById('btnNext').addEventListener('click', () => { if (state.next) fetchOrders(state.page + 1); });
+
     document.querySelectorAll('.filter-group input').forEach(el => {
         el.addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrders(1); });
     });
 
+    /* ── Init ── */
     const startPage = restoreFromURL();
     fetchOrders(startPage);
 </script>

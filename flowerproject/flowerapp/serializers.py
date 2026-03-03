@@ -46,8 +46,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
     flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
-        if obj.image:
-            image_name = str(obj.image)
+        if obj.flower.image:
+            image_name = str(obj.flower.image)
             return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
         return None
 

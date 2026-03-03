@@ -7,6 +7,7 @@
     <title>Bloom Heaven — Indoor & Outdoor Plants</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -647,13 +648,13 @@
 
         .hero-slide:nth-child(1) { background: #f0f7f2; }
         .hero-slide:nth-child(1) .slide-image { background: #f0f7f2; }
-        .hero-slide:nth-child(1) .slide-image::after {
+        /* .hero-slide:nth-child(1) .slide-image::after {
             background:
                 linear-gradient(to right,  #f0f7f2 0%, transparent 35%),
                 linear-gradient(to left,   #f0f7f2 0%, transparent 20%),
                 linear-gradient(to bottom, #f0f7f2 0%, transparent 20%),
                 linear-gradient(to top,    #f0f7f2 0%, transparent 20%);
-        }
+        } */
 
         .hero-slide:nth-child(2) { background: #faf7f0; }
         .hero-slide:nth-child(2) .slide-image { background: #faf7f0; }
@@ -1229,6 +1230,570 @@
             .footer-grid { grid-template-columns: 1fr; gap: 24px; }
             .flower-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         }
+        /* ═══════════════════════════════════════════════════
+        BLOOM HEAVEN — COMPLETE MOBILE RESPONSIVE CSS
+        Drop this at the END of your existing <style> block
+        ═══════════════════════════════════════════════════ */
+
+        /* ── BASE MOBILE RESETS ── */
+        html { -webkit-text-size-adjust: 100%; }
+        * { -webkit-tap-highlight-color: transparent; }
+
+        /* ═══════════════════════════════════════
+        NAVBAR — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            nav {
+                height: 58px;
+                padding: 0;
+            }
+
+            .nav-brand-zone {
+                padding: 0 14px;
+                border-right: none;
+            }
+
+            .nav-brand-text .name { font-size: 16px; }
+            .nav-brand-text .sub  { display: none; }
+            .nav-logo { width: 32px; height: 32px; font-size: 15px; }
+
+            .nav-right-zone {
+                padding: 0 10px 0 8px;
+                gap: 6px;
+            }
+
+            .nav-delivery { display: none; }
+
+            /* Shrink nav buttons */
+            .orders-btn,
+            .cart-btn,
+            .profile-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+                padding: 0;
+            }
+
+            .cart-btn { padding: 0 8px; min-width: 36px; }
+
+            .nav-signin-btn {
+                font-size: 12px;
+                padding: 0 10px;
+                height: 36px;
+                gap: 6px;
+            }
+
+            .nav-signin-btn span:last-child {
+                display: none; /* hide "Sign in with Google" text, show only icon */
+            }
+
+            /* Profile dropdown — full width on mobile */
+            .profile-dropdown {
+                right: -10px;
+                min-width: 260px;
+                max-width: calc(100vw - 20px);
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        HERO SLIDER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .hero {
+                height: auto;
+                min-height: 320px;
+            }
+
+            .hero-slide {
+                flex-direction: column-reverse;
+                align-items: stretch;
+                min-height: 320px;
+            }
+
+            .slide-image {
+                width: 100%;
+                height: 200px;
+                flex-shrink: 0;
+            }
+
+            .slide-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .slide-content {
+                padding: 24px 20px 48px;
+                flex: none;
+            }
+
+            .slide-content h1 {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+            .slide-desc {
+                font-size: 13px;
+                line-height: 1.6;
+                margin-bottom: 16px;
+                max-width: 100%;
+            }
+
+            .slide-kicker {
+                font-size: 9px;
+                padding: 4px 10px;
+                margin-bottom: 12px;
+            }
+
+            .slide-stats {
+                gap: 8px;
+            }
+
+            .slide-stat {
+                padding: 7px 10px;
+            }
+
+            .slide-stat strong { font-size: 15px; }
+            .slide-stat span   { font-size: 10px; }
+
+            .slide-badge {
+                font-size: 12px;
+                margin-bottom: 16px;
+            }
+
+            .hero-dots {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 16px;
+            }
+
+            .hero-arrow {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .hero-arrow.prev { left: 10px; }
+            .hero-arrow.next { right: 10px; }
+        }
+
+        /* ═══════════════════════════════════════
+        MAIN & COLLECTION — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .main {
+                padding: 16px 12px 80px;
+            }
+
+            .collection-canvas {
+                padding: 20px 16px 32px;
+                border-radius: 16px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .section-title { font-size: 22px; }
+
+            .filters-bar {
+                width: 100%;
+                gap: 8px;
+            }
+
+            .filter-label { display: none; }
+
+            .filter-select {
+                flex: 1;
+                min-width: 0;
+                font-size: 12px;
+                padding: 8px 28px 8px 10px;
+            }
+
+            .results-info {
+                margin-left: 0;
+                font-size: 11px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        FLOWER GRID — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .flower-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .flower-card {
+                border-radius: 12px;
+            }
+
+            .card-img-wrap {
+                height: 160px;
+            }
+
+            .card-body {
+                padding: 12px 12px 14px;
+                gap: 6px;
+            }
+
+            .card-body h3 {
+                font-size: 13px;
+                line-height: 1.3;
+            }
+
+            .price {
+                font-size: 14px;
+            }
+
+            .btn-cart {
+                font-size: 12px;
+                padding: 10px 0;
+                border-radius: 8px;
+                margin-top: 4px;
+            }
+
+            /* Skeletons */
+            .skel-img { height: 160px; }
+        }
+
+        @media (max-width: 360px) {
+            .flower-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .card-img-wrap { height: 140px; }
+            .card-body h3  { font-size: 12px; }
+            .btn-cart      { font-size: 11px; padding: 9px 0; }
+        }
+
+        /* ═══════════════════════════════════════
+        PAGINATION — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .pagination {
+                margin-top: 28px;
+                gap: 8px;
+            }
+
+            .page-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+
+            .page-info {
+                font-size: 12px;
+                min-width: 80px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        CART DRAWER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .cart-drawer {
+                /* Full screen bottom sheet on mobile */
+                width: 100vw;
+                top: auto;
+                bottom: 0;
+                height: 92vh;
+                border-radius: 20px 20px 0 0;
+                transform: translateY(100%);
+                transition: transform .35s cubic-bezier(.4,0,.2,1);
+            }
+
+            .cart-drawer.open {
+                transform: translateY(0);
+            }
+
+            /* Drag handle indicator */
+            .cart-drawer::before {
+                content: '';
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: rgba(0,0,0,.12);
+                border-radius: 2px;
+                margin: 10px auto 0;
+                flex-shrink: 0;
+            }
+
+            .drawer-header {
+                padding: 12px 18px 14px;
+            }
+
+            .drawer-header h2 { font-size: 18px; }
+
+            .drawer-body {
+                padding: 14px 18px;
+            }
+
+            .cart-item {
+                gap: 12px;
+                padding: 12px 0;
+            }
+
+            .cart-item img {
+                width: 60px;
+                height: 60px;
+                border-radius: 10px;
+            }
+
+            .cart-item-info h4    { font-size: 13px; }
+            .cart-item-info .item-price { font-size: 14px; }
+
+            .qty-btn { width: 26px; height: 26px; font-size: 13px; }
+            .qty-num { font-size: 13px; }
+
+            .drawer-footer {
+                padding: 14px 18px 20px;
+            }
+
+            .cart-total strong { font-size: 24px; }
+
+            .checkout-btn {
+                padding: 14px;
+                font-size: 14px;
+                border-radius: 14px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        AUTH MODAL — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .auth-overlay {
+                align-items: flex-end;
+            }
+
+            .auth-modal {
+                width: 100%;
+                border-radius: 24px 24px 0 0;
+                max-height: 92vh;
+                overflow-y: auto;
+                transform: translateY(100%);
+            }
+
+            .auth-overlay.open .auth-modal {
+                transform: translateY(0);
+            }
+
+            .auth-hero-band {
+                padding: 28px 24px 22px;
+            }
+
+            .auth-plants { font-size: 40px; margin-bottom: 10px; }
+            .auth-hero-band h2 { font-size: 22px; }
+            .auth-hero-band p  { font-size: 12px; }
+
+            .auth-body {
+                padding: 20px 24px 32px;
+            }
+
+            .auth-google-btn {
+                padding: 13px 16px;
+                font-size: 14px;
+            }
+
+            .auth-perks {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .auth-perk {
+                font-size: 11px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        CHECKOUT MODAL — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .modal-overlay {
+                align-items: flex-end;
+            }
+
+            .modal {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                padding: 28px 20px 32px;
+                max-height: 92vh;
+                overflow-y: auto;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                transform: translateY(0);
+                position: fixed;
+            }
+
+            .modal-overlay.open .modal {
+                transform: translateY(0);
+            }
+
+            .modal h2 { font-size: 22px; }
+            .modal p  { font-size: 13px; }
+
+            /* Checkout steps */
+            .checkout-modal { max-height: 92vh; }
+
+            .checkout-steps { margin-bottom: 20px; }
+            .co-step span   { width: 30px; height: 30px; font-size: 12px; }
+            .co-step small  { font-size: 9px; }
+            .co-step-line   { min-width: 24px; }
+
+            .co-step-panel h2 { font-size: 20px; }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px; /* prevents iOS zoom on focus */
+            }
+
+            .co-btn-row {
+                grid-template-columns: 1fr 1.5fr;
+                gap: 8px;
+            }
+
+            /* Summary items */
+            .summary-item img { width: 44px; height: 44px; }
+            .summary-item-info h4 { font-size: 12px; }
+            .summary-row.grand strong { font-size: 20px; }
+
+            /* Payment */
+            .pay-option { padding: 14px 12px; gap: 10px; }
+            .pay-icon   { font-size: 22px; }
+            .pay-option strong { font-size: 13px; }
+            .pay-option small  { font-size: 11px; }
+
+            /* Settings modal */
+            .settings-modal { border-radius: 20px 20px 0 0; }
+            .settings-header { padding: 22px 22px 18px; }
+            .settings-header h2 { font-size: 22px; }
+            .settings-body { padding: 18px 22px 24px; }
+            .settings-row { grid-template-columns: 1fr; gap: 0; }
+
+            /* About / Contact modal */
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ═══════════════════════════════════════
+        GUEST NUDGE BANNER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .guest-nudge-banner {
+                width: calc(100vw - 24px);
+                bottom: 16px;
+                padding: 10px 14px 10px 14px;
+                gap: 8px;
+                border-radius: 16px;
+                white-space: normal;
+                flex-wrap: nowrap;
+            }
+
+            .nudge-plants { font-size: 16px; flex-shrink: 0; }
+
+            .nudge-text {
+                font-size: 11px;
+                flex: 1;
+                min-width: 0;
+                white-space: normal;
+                line-height: 1.4;
+            }
+
+            .nudge-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+
+            .nudge-close {
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        FOOTER — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            footer {
+                padding: 36px 20px 24px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                margin-bottom: 28px;
+            }
+
+            .footer-brand p { max-width: 100%; }
+
+            .footer-brand .socials { flex-wrap: wrap; }
+
+            .footer-col h4 { margin-bottom: 12px; }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+                font-size: 11px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        TOAST — MOBILE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .toast-container {
+                bottom: 80px; /* above cart button area */
+                right: 12px;
+                left: 12px;
+            }
+
+            .toast {
+                max-width: 100%;
+                font-size: 12px;
+                padding: 11px 14px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        INPUTS — PREVENT iOS ZOOM
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="password"],
+            input[type="number"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+        SAFE AREA — iPhone notch / home bar
+        ═══════════════════════════════════════ */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .cart-drawer.open  { padding-bottom: env(safe-area-inset-bottom); }
+            .auth-modal        { padding-bottom: env(safe-area-inset-bottom); }
+            .modal             { padding-bottom: env(safe-area-inset-bottom); }
+            .guest-nudge-banner { bottom: calc(16px + env(safe-area-inset-bottom)); }
+        }
     </style>
 </head>
 <body>
@@ -1254,7 +1819,7 @@
             </div>
 
             <!-- Google OAuth button -->
-            <button class="auth-google-btn" onclick="initiateGoogleSignIn()">
+            <button class="auth-google-btn" onclick="googleSignIn()">
                 <svg class="g-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -1398,7 +1963,7 @@
                 </div>
             </div>
             <div class="slide-image">
-                <img src="{% static 'images/greenhouse-still-life.jpg' %}" alt="Indoor Plants">
+                <img src="{% static 'images/bgg.jpeg' %}" alt="Indoor Plants">
             </div>
         </div>
 
@@ -1694,7 +2259,15 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-    const API_BASE = 'https://flowershop-production-3889.up.railway.app/flowerapp';
+    // Check if the current website is running on your computer
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // This acts exactly like your Python 'if ENV == "local"' logic
+    const API_BASE = isLocal 
+        ? "http://localhost:8000/flowerapp" 
+        : "https://flowershop-production-3889.up.railway.app";
+
+    console.log("Current API Base:", API_BASE);
     const PLACEHOLDER = [
         '/media/flowers/IMG20250917130730.jpg',
         '/media/flowers/IMG20251120162642.jpg',
@@ -1777,44 +2350,95 @@
         if (e.target === e.currentTarget) closeAuthModal();
     });
 
-    /**
-     * Initiate Google OAuth2 sign-in.
-     * Replace GOOGLE_CLIENT_ID and REDIRECT_URI with your actual values.
-     * On redirect back, your Django backend should exchange the code for tokens
-     * and store them in localStorage, then redirect back here.
-     */
-    function initiateGoogleSignIn() {
-        // ─── CONFIGURE THESE ───────────────────────────────────
-        const GOOGLE_CLIENT_ID = '{{ google_client_id }}'; // pass from Django context
-        const REDIRECT_URI     = window.location.origin + '/flowerapp/auth/google/callback/';
-        // ───────────────────────────────────────────────────────
+    let googleClient = null;
 
-        const params = new URLSearchParams({
-            client_id:     GOOGLE_CLIENT_ID,
-            redirect_uri:  REDIRECT_URI,
-            response_type: 'code',
-            scope:         'openid email profile',
-            access_type:   'offline',
-            prompt:        'select_account',
-        });
+    window.addEventListener('load', function() {
+    const GOOGLE_CLIENT_ID = "{{ google_client_id }}";
 
-        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-    }
+    google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        use_fedcm_for_prompt: false,
+    });
 
-    // Guard: require auth for any protected action
-    function requireAuth(reason, callback) {
-        if (isAuthenticated) {
-            callback();
-        } else {
-            openAuthModal(reason);
+    console.log('Google ID client ready ✅');
+});
+
+function handleCredentialResponse(response) {
+    console.log('ID token received ✅');
+
+    fetch('/flowerapp/api/v1/auth/google/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.credential }),
+    })
+    .then(res => {
+        console.log('DEBUG 1 - backend status:', res.status);
+        return res.json();
+    })
+    .then(data => {
+        console.log('DEBUG 2 - backend data:', data);
+
+        if (data.error) {
+            console.error('DEBUG 2 FAILED - backend error:', data.error);
+            alert(data.error);
+            return;
         }
-    }
+
+        // DEBUG 3 - check tokens exist in response
+        console.log('DEBUG 3 - access token exists:', !!data.access);
+        console.log('DEBUG 3 - refresh token exists:', !!data.refresh);
+        console.log('DEBUG 3 - role:', data.role);
+
+        if (!data.access || !data.refresh) {
+            console.error('DEBUG 3 FAILED - tokens missing in response!');
+            alert('Login failed - no tokens received');
+            return;
+        }
+
+        // DEBUG 4 - store tokens
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+        localStorage.setItem('email', data.email);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('name', data.name);
+        localStorage.setItem('role', data.role); // ✅ store role
+
+        // DEBUG 5 - verify stored correctly
+        console.log('DEBUG 5 - stored access_token:', !!localStorage.getItem('access_token'));
+        console.log('DEBUG 5 - stored refresh_token:', !!localStorage.getItem('refresh_token'));
+        console.log('DEBUG 5 - stored role:', localStorage.getItem('role'));
+        console.log('DEBUG 5 - checkAuth result:', checkAuth());
+
+        // ✅ Redirect based on role
+        if (data.role === 'superadmin') {
+            console.log('DEBUG 6 - redirecting to admin panel');
+            window.location.href = '/flowerapp/admin/orders/';
+        } else {
+            console.log('DEBUG 6 - redirecting to flowers page');
+            window.location.href = '/flowerapp/flowers/';
+        }
+    })
+    .catch(err => {
+        console.error('DEBUG FAILED - fetch error:', err);
+        alert('Login failed. Please try again.');
+    });
+}
+function googleSignIn() {
+    google.accounts.id.prompt((notification) => {
+        console.log('Prompt notification:', notification);
+        console.log('Moment type:', notification.getMomentType());
+        console.log('Dismissed reason:', notification.getDismissedReason());
+        console.log('Skipped reason:', notification.getSkippedReason());
+    });
+}
+
 
     // ── Auth helpers ──────────────────────────────
     async function refreshAccessToken() {
         const refresh = localStorage.getItem('refresh_token');
         if (!refresh) throw new Error('no refresh token');
-        const res = await fetch('https://flowershop-production-3889.up.railway.app/api/token/refresh/', {
+        const res = await fetch(`/api/token/refresh/`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh })
         });
@@ -1841,7 +2465,7 @@
                 res = await fetch(url, opts);
             } catch (e) {
                 applyAuthState(false);
-                window.location.href = '/flowerapp/signin/';
+                window.location.href = `${API_BASE}/signin/`;
                 throw e;
             }
         }
@@ -1883,10 +2507,12 @@
         try {
             const res  = await authFetch(`${API_BASE}/api/v1/me/`);
             const data = await res.json();
+            console.log("res",res);
 
             const name  = data.first_name || data.username || 'User';
             const email = data.email || '—';
             const photo = data.profile_photo || data.picture || null; // Google avatar if stored
+            console.log("data",data);
 
             document.getElementById('profileName').textContent  = name;
             document.getElementById('profileEmail').textContent = email;
@@ -1909,7 +2535,7 @@
                 body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') })
             });
         } catch (err) {}
-        finally { localStorage.clear(); window.location.href = '/flowerapp/signin/'; }
+        finally { localStorage.clear(); window.location.href = `${API_BASE}/signin/`; }
     }
 
     document.getElementById('profileBtn').addEventListener('click', () => {

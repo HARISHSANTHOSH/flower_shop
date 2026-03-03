@@ -97,13 +97,18 @@ class FlowerDetailAPIView(APIView):
 
 def flower_page(request):
     categories = models.Category.objects.all().order_by("name")
-    return render(request, "flowers.html", {"categories": categories})
+    return render(request, "flowers.html", {
+        "categories": categories,
+        "google_client_id": settings.GOOGLE_CLIENT_ID
+    })
 
 def flower_detail_page(request, pk):
     return render(request, 'flower_detail.html')
 
 def login_page(request):
-    return render(request,"signin.html")
+    return render(request, "signin.html", {
+        'google_client_id': settings.GOOGLE_CLIENT_ID  # ✅ add this
+    })
 
 class MeView(APIView):
     permission_classes = [AllowAny]
@@ -123,7 +128,8 @@ class MeView(APIView):
             'state':        customer.state        if customer else 'Kerala',
         })
 
-
+import logging
+logger = logging.getLogger(__name__)
 
 class GoogleLoginAPIView(APIView):
     permission_classes = [AllowAny]
@@ -131,48 +137,111 @@ class GoogleLoginAPIView(APIView):
     def post(self, request):
         token = request.data.get('token')
 
+        logger.info(f"Google login attempt, token prefix: {token[:20] if token else 'None'}")
+
         if not token:
             return Response({'error': 'Token required'}, status=400)
 
         try:
-            # ✅ verify token with Google using allauth
+            # Verify ID token with Google
             google_response = python_requests.get(
-                'https://www.googleapis.com/oauth2/v3/tokeninfo',
+                'https://oauth2.googleapis.com/tokeninfo',
                 params={'id_token': token}
             )
+
+            logger.info(f"Google response status: {google_response.status_code}")
+            logger.info(f"Google response: {google_response.text}")
+
             idinfo = google_response.json()
 
-            if 'error' in idinfo:
+            if 'error_description' in idinfo or 'error' in idinfo:
+                logger.warning(f"Google token error: {idinfo}")
                 return Response({'error': 'Invalid Google token'}, status=400)
 
+            # Verify audience
             if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+                logger.warning(f"AUD mismatch: {idinfo.get('aud')} != {settings.GOOGLE_CLIENT_ID}")
                 return Response({'error': 'Token client mismatch'}, status=400)
 
-            email    = idinfo.get('email')
-            name     = idinfo.get('name', '')
-            username = email.split('@')[0]
+            # Verify email is verified
+            if idinfo.get('email_verified') not in [True, 'true']:
+                return Response({'error': 'Email not verified by Google'}, status=400)
 
-            # ✅ get or create user
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(
+            # Extract user info
+            email         = idinfo.get('email', '').lower().strip()
+            name          = idinfo.get('name', '')
+            first_name    = idinfo.get('given_name', '')
+            last_name     = idinfo.get('family_name', '')
+            base_username = email.split('@')[0]
+
+            if not email:
+                return Response({'error': 'Email not found in token'}, status=400)
+
+            # Get or create user
+            user, created = models.User.objects.get_or_create(
                 email=email,
                 defaults={
-                    'username': username,
-                    'first_name': name,
+                    'username':   base_username,
+                    'first_name': first_name,
+                    'last_name':  last_name,
                 }
             )
 
-            # ✅ generate JWT tokens same as normal login
+            if created:
+                # Handle username collision
+                if models.User.objects.filter(username=base_username).exclude(pk=user.pk).exists():
+                    user.username = email.replace('@', '_').replace('.', '_')
+
+                # No password — Google handles auth
+                user.set_unusable_password()
+                user.save()
+
+                # ✅ Create Customer profile only for non-staff users
+                if not user.is_superuser and not user.is_staff:
+                    models.Customer.objects.get_or_create(user=user)
+                    logger.info(f"Customer profile created for: {email}")
+
+                logger.info(f"New user created via Google: {email}")
+
+            else:
+                # Update name on existing users
+                user.first_name = first_name
+                user.last_name  = last_name
+                user.save(update_fields=['first_name', 'last_name'])
+
+                # ✅ Create Customer if missing (safety net for existing users)
+                if not user.is_superuser and not user.is_staff:
+                    models.Customer.objects.get_or_create(user=user)
+
+                logger.info(f"Existing user logged in via Google: {email}")
+
+            # ✅ Determine role for frontend redirect
+            if user.is_superuser or user.is_staff:
+                role = 'superadmin'
+            else:
+                role = 'customer'
+
+            logger.info(f"User role: {role} for {email}")
+
+            # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
 
             return Response({
-                'access':  str(refresh.access_token),
-                'refresh': str(refresh),
-                'email':   email,
-                'name':    name,
-            })
+                'access':      str(refresh.access_token),
+                'refresh':     str(refresh),
+                'email':       email,
+                'name':        name,
+                'username':    user.username,
+                'is_new_user': created,
+                'role':        role,  # ✅ frontend uses this to redirect
+            }, status=200)
+
+        except python_requests.exceptions.RequestException as e:
+            logger.error(f"Network error verifying Google token: {e}")
+            return Response({'error': 'Could not reach Google servers'}, status=503)
 
         except Exception as e:
+            logger.error(f"Google login error: {e}", exc_info=True)
             return Response({'error': 'Google login failed'}, status=400)
 
 class LoginAPIView(APIView):
@@ -216,7 +285,9 @@ class LogoutAPIView(APIView):
             return Response({'error': 'Invalid token'}, status=400)
 
 def signup_page(request):
-    return render(request, "signup.html")
+    return render(request, "signup.html", {
+        'google_client_id': settings.GOOGLE_CLIENT_ID  # ✅ add this
+    })
 
 class BuyNowAPIView(APIView):
     permission_classes = [IsAuthenticated]

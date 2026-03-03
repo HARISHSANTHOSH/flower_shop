@@ -19,12 +19,22 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'temporary-build-key-not-for-production')
 
 # DEBUG: True locally, False on Railway
 DEBUG = not os.getenv('RAILWAY_ENVIRONMENT')
+import os
+
+ENV = os.getenv("ENV", "local")
+if ENV == "local":
+    DEBUG = True
+    API_BASE = "http://localhost:8000"
+else:
+    DEBUG = False
+    API_BASE = "https://flowershop-production-3889.up.railway.app"
+
+print("API_BASE",API_BASE);
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.railway.app',
-    'unexpressable-bettyann-germinally.ngrok-free.dev',
 ]
 
 # Application definition
@@ -220,3 +230,15 @@ RAZORPAY_WEBHOOK_SECRET = os.getenv('RAZORPAY_WEBHOOK_SECRET')
 # Google OAuth
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+print("google_client_id",GOOGLE_CLIENT_ID);
+print("google_client_secret",GOOGLE_CLIENT_SECRET);
+
+
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+else:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
