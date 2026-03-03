@@ -143,11 +143,16 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'OVERWRITE': True,
+    'UNIQUE_FILENAME': False,
+    'MEDIA_FOLDER': 'flowers',  # ← this ensures uploads go to /flowers/
 }
 
-if os.getenv('RAILWAY_ENVIRONMENT'):
+if os.getenv('CLOUDINARY_CLOUD_NAME'):
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
