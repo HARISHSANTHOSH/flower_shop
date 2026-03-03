@@ -15,7 +15,7 @@ cloudinary.config(
     api_secret = os.getenv('CLOUDINARY_API_SECRET'),
 )
 
-# Only load .env locally, not on Railway
+
 if not os.getenv('RAILWAY_ENVIRONMENT'):
     load_dotenv()
 
