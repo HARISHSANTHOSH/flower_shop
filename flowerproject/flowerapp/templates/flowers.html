@@ -1188,6 +1188,35 @@
             .modal               { padding-bottom: env(safe-area-inset-bottom); }
             .guest-nudge-banner  { bottom: calc(14px + env(safe-area-inset-bottom)); }
         }
+        /* ── FIX MOBILE BLINK ── */
+        @media (max-width: 768px) {
+            /* Kill mix-blend-mode — main cause of white flash on mobile */
+            .slide-image img {
+                mix-blend-mode: normal !important;
+            }
+
+            /* Force GPU layer — prevents compositing flash */
+            .hero,
+            .hero-slider,
+            .hero-slide {
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                -webkit-perspective: 1000px;
+                perspective: 1000px;
+            }
+
+            /* Stop card animations on mobile — causes repaint flicker during scroll */
+            .flower-card {
+                animation: none !important;
+            }
+
+            /* Prevent body repaint during scroll */
+            body {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1819,34 +1848,7 @@ function googleSignIn() {
         return res;
     }
 
-    // ── Hero Slider ──────────────────────────────
-    (function() {
-        const slider = document.getElementById('heroSlider');
-        const dots   = document.querySelectorAll('.hero-dot');
-        const slides = document.querySelectorAll('.hero-slide');
-        const DURATION = 4500;
-        let current = 0, timer;
-
-        function goTo(n) {
-            slides[current].classList.remove('active');
-            dots[current].classList.remove('active');
-            current = (n + slides.length) % slides.length;
-            slides[current].classList.add('active');
-            dots[current].classList.add('active');
-            slider.style.transform = `translateX(-${current * 100}%)`;
-        }
-
-        function startAuto() {
-            clearInterval(timer);
-            timer = setInterval(() => goTo(current + 1), DURATION);
-        }
-
-        document.getElementById('heroPrev').addEventListener('click', () => { goTo(current - 1); startAuto(); });
-        document.getElementById('heroNext').addEventListener('click', () => { goTo(current + 1); startAuto(); });
-        dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); startAuto(); }));
-
-        startAuto();
-    })();
+  
 
     // ── Profile ──────────────────────────────────
     async function loadProfile() {
