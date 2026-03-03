@@ -26,8 +26,10 @@ class FlowerSerializer(serializers.ModelSerializer):
     def get_flower_image(self, obj):
         if not obj.image:
             return None
-        # Let Django/Cloudinary storage build the correct URL automatically
-        return obj.image.url  # ✅ returns Cloudinary URL always
+        image_name = str(obj.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -47,10 +49,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
     flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
-        if not obj.image:
+        if not obj.flower.image:
             return None
-        # Let Django/Cloudinary storage build the correct URL automatically
-        return obj.image.url  # ✅ returns Cloudinary URL always
+        image_name = str(obj.flower.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
     class Meta:
         model = models.OrderItem
@@ -112,10 +116,12 @@ class CartItemSerializer(serializers.ModelSerializer):
     total_price  = serializers.SerializerMethodField()
 
     def get_flower_image(self, obj):
-        if not obj.image:
+        if not obj.flower.image:
             return None
-        # Let Django/Cloudinary storage build the correct URL automatically
-        return obj.image.url  # ✅ returns Cloudinary URL always
+        image_name = str(obj.flower.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
     class Meta:
         model  = models.CartItem
