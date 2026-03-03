@@ -2,6 +2,7 @@ from flowerapp import models
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+import os
 
 
 class LoginSerializer(serializers.Serializer):
@@ -23,10 +24,24 @@ class FlowerSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def get_flower_image(self, obj):
-        if obj.image:
-            image_name = str(obj.image)
+        if not obj.image:
+            return None
+        
+        image_name = str(obj.image)
+        
+        # already a full URL (cloudinary)
+        if image_name.startswith('http'):
+            return image_name
+        
+        # production — build cloudinary URL
+        if os.getenv('RAILWAY_ENVIRONMENT'):
             return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
-        return None
+        
+        # local — build media URL
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f"/media/{image_name}")
+        return f"/media/{image_name}"
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -46,10 +61,24 @@ class OrderItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
     flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
-        if obj.flower.image:
-            image_name = str(obj.flower.image)
+        if not obj.image:
+            return None
+        
+        image_name = str(obj.image)
+        
+        # already a full URL (cloudinary)
+        if image_name.startswith('http'):
+            return image_name
+        
+        # production — build cloudinary URL
+        if os.getenv('RAILWAY_ENVIRONMENT'):
             return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
-        return None
+        
+        # local — build media URL
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f"/media/{image_name}")
+        return f"/media/{image_name}"
 
     class Meta:
         model = models.OrderItem
