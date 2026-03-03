@@ -35,7 +35,7 @@ class FlowerSerializer(serializers.ModelSerializer):
         
         # production — build cloudinary URL
         if os.getenv('RAILWAY_ENVIRONMENT'):
-            return f"https://res.cloudinary.com/dkofkn26y/image/upload/v1234567890/{image_name}"
+            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
         
         # local — build media URL
         request = self.context.get('request')
@@ -72,7 +72,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         
         # production — build cloudinary URL
         if os.getenv('RAILWAY_ENVIRONMENT'):
-            return f"https://res.cloudinary.com/dkofkn26y/image/upload/v1234567890/{image_name}"
+            return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
         
         # local — build media URL
         request = self.context.get('request')
