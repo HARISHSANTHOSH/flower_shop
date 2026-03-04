@@ -111,7 +111,7 @@ def login_page(request):
     })
 
 class MeView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]  
 
     def get(self, request):
         user     = request.user
@@ -245,6 +245,7 @@ class GoogleLoginAPIView(APIView):
             return Response({'error': 'Google login failed'}, status=400)
 
 class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
