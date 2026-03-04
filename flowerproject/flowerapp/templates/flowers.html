@@ -1123,18 +1123,23 @@
             .auth-perks { grid-template-columns: 1fr 1fr; gap: 7px; }
             .auth-perk { font-size: 11px; padding: 8px 10px; }
 
-            /* ── MODALS — bottom sheets ── */
             .modal-overlay { align-items: flex-end; }
             .modal {
-                width: 100%;
-                max-width: 100%;
+                width: 100% !important;
+                max-width: 100% !important;
                 border-radius: 20px 20px 0 0;
                 padding: 26px 20px 28px;
                 max-height: 90vh;
                 overflow-y: auto;
-                top: auto; bottom: 0; left: 0;
-                transform: translateY(0);
-                position: fixed;
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                transform: none !important;
+                position: fixed !important;
+            }
+            .modal-overlay.open .modal {
+                transform: none !important;
             }
             .modal h2 { font-size: 22px; }
             .modal p  { font-size: 13px; }
@@ -2456,7 +2461,15 @@
                 const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).slice(2)}`;
                 const payRes  = await authFetch(`${API_BASE}/api/v1/create-payment/`, {
                     method: 'POST',
-                    body: JSON.stringify({ amount: grandTotal, flowers: flowerIds, idempotency_key: idempotencyKey })
+                    body: JSON.stringify({ 
+                        amount:          grandTotal, 
+                        flowers:         flowerIds, 
+                        idempotency_key: idempotencyKey,
+                        address:         address,
+                        phone:           phone,
+                        city:            city,
+                        pincode:         pincode,
+                    })
                 });
                 const payData = await payRes.json();
                 if (!payRes.ok) {

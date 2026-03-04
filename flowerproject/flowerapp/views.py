@@ -624,9 +624,15 @@ class CreatePaymentOrderAPIView(APIView):
         user        = request.user
         customer, _ = models.Customer.objects.get_or_create(user=user)
 
-        amount     = request.data.get('amount')
-        flower_ids = request.data.get('flowers', [])
+        amount          = request.data.get('amount')
+        flower_ids      = request.data.get('flowers', [])
         idempotency_key = request.data.get('idempotency_key')
+
+        # ← ADD THESE
+        address = request.data.get('address', '')
+        phone   = request.data.get('phone', '')
+        city    = request.data.get('city', '')
+        pincode = request.data.get('pincode', '')
 
         if not amount:
             return Response({'error': 'Amount required'}, status=400)
@@ -634,6 +640,18 @@ class CreatePaymentOrderAPIView(APIView):
             return Response({'error': 'No flowers found'}, status=400)
         if not idempotency_key:
             return Response({'error': 'Idempotency key required'}, status=400)
+
+        # ← ADD THIS — save address to customer profile
+        if address: customer.address      = address
+        if phone:   customer.phone_number = phone
+        if city:    customer.city         = city
+        if pincode:
+            customer.pincode  = pincode
+            customer.district = 'Alappuzha'
+            customer.state    = 'Kerala'
+        customer.save(update_fields=[
+            'address', 'phone_number', 'city', 'pincode', 'district', 'state'
+        ])
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
@@ -664,7 +682,6 @@ class CreatePaymentOrderAPIView(APIView):
             'payment_capture': 1
         })
 
-        # ✅ wrapped in atomic — removed order.save()
         with transaction.atomic():
             order = models.Order.objects.create(
                 customer=customer,
