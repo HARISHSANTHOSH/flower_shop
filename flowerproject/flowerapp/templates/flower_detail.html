@@ -985,7 +985,7 @@
             transform: none !important;
         }
 
-           
+            .modal-overlay.open .modal { transform: none; }
 
             .modal h2 { font-size: 22px; }
 
@@ -1335,6 +1335,92 @@
         <ul class="rv-grid" id="rvGrid"></ul>
     </div>
 </div>
+<!-- ═══════════════ PLANT CARE GUIDE MODAL ═══════════════ -->
+<div class="modal-overlay" id="plantCareOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closePlantCare()">✕</button>
+        <h2>🌱 Plant Care Guide</h2>
+        <p>Every plant in our collection comes with basic care instructions. Here are some general tips to keep your plants thriving:</p>
+        <div class="contact-grid">
+            <div class="contact-card full">
+                <div class="label">💧 Watering</div>
+                <div class="value">Water when the top inch of soil feels dry. Overwatering is the most common cause of plant death — less is often more.</div>
+            </div>
+            <div class="contact-card full">
+                <div class="label">☀️ Sunlight</div>
+                <div class="value">Most indoor plants prefer bright, indirect light. Outdoor plants generally need 4–6 hours of direct sunlight daily.</div>
+            </div>
+            <div class="contact-card full">
+                <div class="label">🌡️ Temperature</div>
+                <div class="value">Keep indoor plants away from AC vents and cold drafts. Most tropical plants thrive between 18°C – 32°C.</div>
+            </div>
+            <div class="contact-card full" style="margin-bottom:10px">
+                <div class="label">🪴 Soil & Fertiliser</div>
+                <div class="value">Use well-draining potting mix. Feed with a balanced liquid fertiliser once a month during the growing season (March–September).</div>
+            </div>
+        </div>
+        <p style="font-size:13px;color:#999">Have plant care questions? <a href="" onclick="closePlantCare(); openContact(event)" style="color:var(--sage);text-decoration:none;font-weight:600">Contact us</a> — we're happy to help!</p>
+    </div>
+</div>
+
+<!-- ═══════════════ SHIPPING POLICY MODAL ═══════════════ -->
+<div class="modal-overlay" id="shippingOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeShipping()">✕</button>
+        <h2>🚚 Shipping Policy</h2>
+        <p>We deliver carefully packed plants right to your door across Cherthala Taluk, Alappuzha.</p>
+        <div class="contact-grid">
+            <div class="contact-card full">
+                <div class="label">📍 Delivery Area</div>
+                <div class="value">Currently serving Cherthala Taluk and surrounding areas in Alappuzha district, Kerala (pincodes 688523–688582).</div>
+            </div>
+            <div class="contact-card">
+                <div class="label">⏱️ Delivery Time</div>
+                <div class="value">2–3 business days after order confirmation.</div>
+            </div>
+            <div class="contact-card">
+                <div class="label">🌿 Delivery Fee</div>
+                <div class="value">FREE on all orders. No hidden charges.</div>
+            </div>
+            <div class="contact-card full">
+                <div class="label">📦 Packaging</div>
+                <div class="value">Plants are carefully wrapped and cushioned to ensure they arrive healthy and undamaged. We use eco-friendly packaging materials.</div>
+            </div>
+            <div class="contact-card full" style="margin-bottom:10px">
+                <div class="label">📞 Order Tracking</div>
+                <div class="value">You can track your order from your account's Orders page. For updates, call us at +91 88486 22015.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ RETURNS MODAL ═══════════════ -->
+<div class="modal-overlay" id="returnsOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeReturns()">✕</button>
+        <h2>↩️ Returns & Refunds</h2>
+        <p>We take great care in delivering healthy plants. If something isn't right, we'll make it right.</p>
+        <div class="contact-grid">
+            <div class="contact-card full">
+                <div class="label">✅ Eligible for Return</div>
+                <div class="value">Plants that arrive damaged, wilted, or significantly different from what was ordered are eligible for a replacement or refund.</div>
+            </div>
+            <div class="contact-card full">
+                <div class="label">⏰ Return Window</div>
+                <div class="value">Report any issues within 24 hours of delivery with a photo of the plant to +91 88486 22015 on WhatsApp or call us.</div>
+            </div>
+            <div class="contact-card full">
+                <div class="label">🔄 Resolution</div>
+                <div class="value">We'll offer a replacement plant or a full refund — whichever you prefer. Processed within 2–3 business days.</div>
+            </div>
+            <div class="contact-card full" style="margin-bottom:10px">
+                <div class="label">⚠️ Not Eligible</div>
+                <div class="value">Plants that show signs of neglect after delivery (underwatering, overwatering, wrong sunlight) are not eligible for returns.</div>
+            </div>
+        </div>
+        <p style="font-size:13px;color:#999">Need help with a return? <a href="" onclick="closeReturns(); openContact(event)" style="color:var(--sage);text-decoration:none;font-weight:600">Get in touch</a> — we respond within a few hours.</p>
+    </div>
+</div>
 
 <!-- ══════════════ FOOTER ══════════════ -->
 <footer>
@@ -1343,17 +1429,17 @@
             <div class="footer-brand-name">🌿 Bloom <em>Heaven</em></div>
             <p>Kerala's trusted source for premium indoor and outdoor plants. Same-week delivery, carefully curated.</p>
             <div class="socials">
-                <a class="social-btn" href="#">📘 Facebook</a>
-                <a class="social-btn" href="#">📸 Instagram</a>
-                <a class="social-btn" href="#">💬 WhatsApp</a>
+                <a class="social-btn" href="https://www.instagram.com/yourusername">📘 Facebook</a>
+                <a class="social-btn" href="https://www.instagram.com/yourusername">📸 Instagram</a>
+                <a class="social-btn" href="https://wa.me/918848622015">💬 WhatsApp</a>
             </div>
         </div>
         <div class="footer-col">
             <h4>Help</h4>
             <ul>
-                <li><a href="">Plant Care Guide</a></li>
-                <li><a href="">Shipping Policy</a></li>
-                <li><a href="">Returns</a></li>
+                <li><a href=""onclick="openPlantCare(event)">Plant Care Guide</a></li>
+                <li><a href=""onclick="openShipping(event)">Shipping Policy</a></li>
+                <li><a href=""onclick="openReturns(event)">Returns</a></li>
                 <li><a href="#" onclick="openAbout(event)">About Us</a></li>
                 <li><a href="#" onclick="openContact(event)">Contact</a></li>
             </ul>
@@ -1385,16 +1471,23 @@
 </div>
 
 <!-- CONTACT MODAL -->
+<!-- ═══════════════ CONTACT MODAL ═══════════════ -->
+<!-- ═══════════════ CONTACT MODAL ═══════════════ -->
 <div class="modal-overlay" id="contactOverlay">
     <div class="modal">
         <button class="modal-close" onclick="closeContact()">✕</button>
         <h2>Get in Touch</h2>
         <p>We'd love to hear from you. Reach out for orders, plant advice, or anything else.</p>
         <div class="contact-grid">
-            <div class="contact-card full"><span class="label">Owner</span><span class="value">Harish Santhosh Kumar</span></div>
-            <div class="contact-card full"><span class="label">Address</span><span class="value">Kottinattu House, Thirumala Bhagom PO, Thuravoor, Cherthala, Alappuzha, Kerala — 688 540</span></div>
-            <div class="contact-card"><span class="label">Phone</span><span class="value"><a href="tel:8848622015" style="color:var(--text);text-decoration:none">+91 88486 22015</a></span></div>
-            <div class="contact-card"><span class="label">Delivery</span><span class="value">2–3 Business Days</span></div>
+            <div class="contact-card full">
+                <span class="value">Harish Santhosh Kumar</span>
+            </div>
+            <div class="contact-card full">
+                <span class="value">Kottinattu House, Thirumala Bhagom PO<br>Thuravoor, Cherthala, Alappuzha<br>Kerala — 688 540</span>
+            </div>
+            <div class="contact-card full"style="margin-bottom: 30px;">
+                <span class="value" ><a href="tel:8848622015" style="color:var(--text);text-decoration:none">+91 88486 22015</a></span>
+            </div>
         </div>
     </div>
 </div>
@@ -1848,6 +1941,19 @@
             });
         } finally { localStorage.clear(); window.location.href = '/flowerapp/signin/'; }
     }
+    function openPlantCare(e) { e.preventDefault(); document.getElementById('profileWrap').classList.remove('open'); document.getElementById('plantCareOverlay').classList.add('open'); }
+function closePlantCare() { document.getElementById('plantCareOverlay').classList.remove('open'); }
+
+function openShipping(e) { e.preventDefault(); document.getElementById('profileWrap').classList.remove('open'); document.getElementById('shippingOverlay').classList.add('open'); }
+function closeShipping() { document.getElementById('shippingOverlay').classList.remove('open'); }
+
+function openReturns(e) { e.preventDefault(); document.getElementById('profileWrap').classList.remove('open'); document.getElementById('returnsOverlay').classList.add('open'); }
+function closeReturns() { document.getElementById('returnsOverlay').classList.remove('open'); }
+
+// Close on backdrop click
+document.getElementById('plantCareOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closePlantCare(); });
+document.getElementById('shippingOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeShipping(); });
+document.getElementById('returnsOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeReturns(); });
 
     document.getElementById('profileBtn').addEventListener('click', () => document.getElementById('profileWrap').classList.toggle('open'));
     document.addEventListener('click', e => { if (!document.getElementById('profileWrap').contains(e.target)) document.getElementById('profileWrap').classList.remove('open'); });
