@@ -9,783 +9,471 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --forest:     #0d2818;
-    --deep:       #081a10;
-    --mid:        #1a4a2e;
-    --leaf:       #2d7a4f;
-    --mint:       #4aad72;
-    --pale:       #a8d5b5;
-    --cream:      #f5f0e8;
-    --warm:       #e8dcc8;
-    --gold:       #c9a84c;
-    --text-light: #f0ede6;
-    --text-muted: rgba(240,237,230,0.55);
+    --forest:  #0a2416;
+    --leaf:    #1e5c38;
+    --sage:    #3a8f5c;
+    --mint:    #5dba80;
+    --cream:   #faf7f2;
+    --warm:    #f0ebe0;
+    --gold:    #b8892e;
+    --border:  #e2ddd5;
+    --muted:   #8a7f70;
+    --text:    #1a1008;
 }
 
-html, body { height: 100%; overflow: hidden; }
+html, body {
+    min-height: 100%;
+    background: #f5f3ef;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
 
 body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--deep);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    position: relative;
+    padding: 32px 16px;
 }
 
-/* ── Botanical background ── */
-.bg-canvas {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: 0;
-}
-
-/* radial glow spots */
-.bg-canvas::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(ellipse 60% 50% at 15% 50%, rgba(45,122,79,.18) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 85% 20%, rgba(26,74,46,.25) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 40% at 70% 80%, rgba(13,40,24,.4) 0%, transparent 70%);
-}
-
-/* animated floating leaves */
-.leaf {
-    position: absolute;
-    opacity: 0;
-    animation: floatLeaf linear infinite;
-    pointer-events: none;
-}
-
-.leaf svg { display: block; }
-
-@keyframes floatLeaf {
-    0%   { transform: translateY(110vh) rotate(0deg) scale(0.8); opacity: 0; }
-    5%   { opacity: 0.12; }
-    90%  { opacity: 0.08; }
-    100% { transform: translateY(-10vh) rotate(720deg) scale(1.1); opacity: 0; }
-}
-
-/* grid lines texture */
-.bg-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(45,122,79,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(45,122,79,.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-}
-
-/* ── Split layout ── */
-.page-wrap {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    width: min(960px, 96vw);
-    min-height: 580px;
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow:
-        0 0 0 1px rgba(45,122,79,.2),
-        0 40px 80px rgba(0,0,0,.6),
-        0 0 120px rgba(45,122,79,.08);
-    animation: fadeUp .8s cubic-bezier(.16,1,.3,1) both;
-}
-
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(32px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Left panel ── */
-.left-panel {
-    background:
-        linear-gradient(160deg, rgba(13,40,24,.95) 0%, rgba(8,26,16,.98) 100%);
-    padding: 56px 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    border-right: 1px solid rgba(45,122,79,.15);
-}
-
-.left-panel::before {
-    content: '';
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 300px; height: 300px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(45,122,79,.12) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.brand {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    animation: fadeUp .8s .1s cubic-bezier(.16,1,.3,1) both;
-}
-
-.brand-icon {
-    font-size: 36px;
-    line-height: 1;
-    filter: drop-shadow(0 4px 12px rgba(74,173,114,.4));
-}
-
-.brand-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-light);
-    letter-spacing: -.3px;
-    line-height: 1.1;
-}
-
-.brand-name em {
-    font-style: italic;
-    color: var(--mint);
-}
-
-.brand-tagline {
-    font-size: 12px;
-    color: var(--text-muted);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    margin-top: 4px;
-}
-
-.left-middle {
-    animation: fadeUp .8s .2s cubic-bezier(.16,1,.3,1) both;
-}
-
-.left-headline {
-    font-family: 'Playfair Display', serif;
-    font-size: 38px;
-    font-weight: 600;
-    color: var(--text-light);
-    line-height: 1.15;
-    letter-spacing: -.5px;
-    margin-bottom: 16px;
-}
-
-.left-headline span {
-    color: var(--mint);
-    font-style: italic;
-}
-
-.left-desc {
-    font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.7;
-    max-width: 280px;
-}
-
-.features {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    animation: fadeUp .8s .3s cubic-bezier(.16,1,.3,1) both;
-}
-
-.feature-item {
+/* ── Top brand bar ── */
+.top-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--text-muted);
+    gap: 10px;
+    margin-bottom: 32px;
+    text-decoration: none;
 }
 
-.feature-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--mint);
-    flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(74,173,114,.5);
+.top-brand .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, rgba(30,92,56,.1), rgba(184,137,46,.1));
+    border: 1.5px solid rgba(30,92,56,.18);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
 }
 
-/* ── Right panel (form) ── */
-.right-panel {
-    background: var(--cream);
-    padding: 52px 44px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0;
-    animation: fadeUp .8s .15s cubic-bezier(.16,1,.3,1) both;
-}
-
-.form-title {
+.top-brand .name {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--forest);
-    letter-spacing: -.4px;
+    letter-spacing: -.2px;
+}
+
+.top-brand .name em {
+    font-style: italic;
+    color: var(--gold);
+}
+
+/* ── Card ── */
+.card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 32px rgba(10,36,22,.07), 0 1px 4px rgba(0,0,0,.04);
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 40px 36px;
+}
+
+/* ── Card header ── */
+.card-header {
+    margin-bottom: 28px;
+}
+
+.card-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--forest);
+    letter-spacing: -.3px;
     margin-bottom: 6px;
 }
 
-.form-subtitle {
-    font-size: 13px;
-    color: #7a7060;
-    margin-bottom: 32px;
+.card-header h1 em {
+    font-style: italic;
+    color: var(--sage);
 }
 
-.form-subtitle a {
+.card-header p {
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.card-header p a {
     color: var(--leaf);
     text-decoration: none;
     font-weight: 500;
 }
 
-.form-subtitle a:hover { text-decoration: underline; }
+.card-header p a:hover { text-decoration: underline; }
 
+/* ── Form fields ── */
 .field {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .field label {
     display: block;
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: .08em;
+    letter-spacing: .07em;
     text-transform: uppercase;
-    color: #5a5248;
-    margin-bottom: 7px;
+    color: var(--muted);
+    margin-bottom: 6px;
 }
 
 .field input {
     width: 100%;
-    padding: 13px 16px;
-    background: #fff;
-    border: 1.5px solid #ddd5c8;
+    padding: 11px 14px;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
-    color: var(--forest);
+    color: var(--text);
     outline: none;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s, box-shadow .2s, background .2s;
 }
 
-.field input::placeholder { color: #bbb3a8; }
+.field input::placeholder { color: #c5bfb6; }
 
 .field input:focus {
     border-color: var(--leaf);
-    box-shadow: 0 0 0 3px rgba(45,122,79,.1);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(30,92,56,.08);
 }
 
+/* ── Submit button ── */
 .submit-btn {
     width: 100%;
-    padding: 14px;
+    padding: 13px;
     background: var(--forest);
-    color: var(--text-light);
+    color: #fff;
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     font-weight: 600;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    letter-spacing: .03em;
-    transition: all .2s;
+    letter-spacing: .02em;
+    transition: background .2s, transform .15s, box-shadow .2s;
     margin-top: 4px;
-    position: relative;
-    overflow: hidden;
 }
 
-.submit-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(74,173,114,.15) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity .2s;
+.submit-btn:hover {
+    background: var(--leaf);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(10,36,22,.2);
 }
 
-.submit-btn:hover { background: var(--mid); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(13,40,24,.25); }
-.submit-btn:hover::before { opacity: 1; }
 .submit-btn:active { transform: translateY(0); }
-.submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
+.submit-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Divider ── */
 .divider {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 20px 0;
-    color: #bbb3a8;
-    font-size: 12px;
+    margin: 18px 0;
+    color: #c5bfb6;
+    font-size: 11.5px;
 }
-.divider::before,
-.divider::after {
+
+.divider::before, .divider::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: #e0d8ce;
+    background: var(--border);
 }
 
+/* ── Google button ── */
 .google-btn {
     width: 100%;
     padding: 12px 16px;
     background: #fff;
-    border: 1.5px solid #ddd5c8;
+    border: 1.5px solid var(--border);
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     font-weight: 500;
-    color: #3c3630;
+    color: var(--text);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: all .2s;
+    transition: border-color .2s, box-shadow .2s, background .2s;
 }
 
-.google-btn:hover { background: #f8f4ef; border-color: #c8bfb4; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.google-btn:hover {
+    background: var(--cream);
+    border-color: #c8c0b4;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
 .google-btn img { width: 18px; height: 18px; }
+
+/* ── Perks strip ── */
+.perks {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.perk {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.perk .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--mint);
+    flex-shrink: 0;
+}
 
 /* ── Toast ── */
 #toast {
     position: fixed;
-    bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
     background: var(--forest);
-    color: var(--text-light);
-    padding: 12px 24px;
+    color: #fff;
+    padding: 11px 22px;
     border-radius: 100px;
     font-size: 13px;
     font-weight: 500;
     font-family: 'DM Sans', sans-serif;
     opacity: 0;
-    transition: all .35s cubic-bezier(.16,1,.3,1);
-    z-index: 999;
     pointer-events: none;
+    transition: all .3s cubic-bezier(.16,1,.3,1);
+    z-index: 999;
     white-space: nowrap;
-    border: 1px solid rgba(45,122,79,.3);
-    box-shadow: 0 8px 32px rgba(0,0,0,.3);
-}
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-#toast.error { background: #5c1a1a; border-color: rgba(192,57,43,.3); }
-#toast.success { background: var(--mid); border-color: rgba(74,173,114,.3); }
-
-/* ═══════════════════════════════════════════════════════════
-   BLOOM HEAVEN — SIGNIN PAGE
-   COMPLETE PROFESSIONAL RESPONSIVE CSS
-   Paste at the BOTTOM of your existing <style> block
-═══════════════════════════════════════════════════════════ */
-
-html { -webkit-text-size-adjust: 100%; }
-* { -webkit-tap-highlight-color: transparent; }
-
-/* ═══════════════════════════════════════
-   TABLET — side by side but smaller
-═══════════════════════════════════════ */
-@media (max-width: 860px) {
-    html, body { overflow: auto; height: auto; }
-
-    .page-wrap {
-        grid-template-columns: 1fr 360px;
-        width: min(760px, 96vw);
-        min-height: 520px;
-    }
-
-    .left-panel { padding: 40px 32px; }
-
-    .left-headline { font-size: 28px; }
-    .left-desc     { font-size: 13px; }
-    .brand-name    { font-size: 22px; }
-
-    .right-panel { padding: 40px 32px; }
-    .form-title  { font-size: 24px; }
+    border: 1px solid rgba(93,186,128,.2);
+    box-shadow: 0 8px 28px rgba(0,0,0,.2);
 }
 
-/* ═══════════════════════════════════════
-   MOBILE — single column, form only
-═══════════════════════════════════════ */
-@media (max-width: 600px) {
-    html, body {
-        overflow: auto;
-        height: auto;
-        min-height: 100vh;
-        align-items: flex-start;
-    }
+#toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error   { background: #5c1a1a; border-color: rgba(192,57,43,.3); }
+#toast.success { background: var(--leaf); border-color: rgba(93,186,128,.3); }
 
-    body {
-        align-items: stretch;
-        justify-content: flex-start;
-    }
+/* ══════════════════════
+   MOBILE
+══════════════════════ */
+@media (max-width: 480px) {
+    body { padding: 20px 0; justify-content: flex-start; }
 
-    /* Background */
-    .bg-canvas { position: fixed; }
+    .top-brand { margin-bottom: 20px; }
 
-    /* Full screen card */
-    .page-wrap {
-        /* Switch to single column — form on top, branding below */
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-        animation: none;
-    }
-
-    /* ── LEFT PANEL — becomes compact top banner ── */
-    .left-panel {
-        padding: 32px 24px 28px;
+    .card {
+        border-radius: 20px 20px 0 0;
+        border-left: none;
         border-right: none;
-        border-bottom: 1px solid rgba(45,122,79,.2);
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0;
-        justify-content: space-between;
-        min-height: unset;
+        border-bottom: none;
+        box-shadow: 0 -4px 24px rgba(0,0,0,.06);
+        padding: 28px 22px 40px;
+        max-width: 100%;
+        min-height: calc(100vh - 120px);
     }
 
-    .left-panel::before { display: none; }
+    .card-header { margin-bottom: 22px; }
+    .card-header h1 { font-size: 23px; }
 
-    /* Brand — left side */
-    .brand {
-        animation: none;
-        gap: 4px;
-    }
+    .field input { font-size: 16px; } /* prevent iOS zoom */
 
-    .brand-icon    { font-size: 26px; }
-    .brand-name    { font-size: 20px; }
-    .brand-tagline { font-size: 10px; margin-top: 2px; }
-
-    /* Hide headline and features on mobile — keep it compact */
-    .left-middle { display: none; }
-
-    .features {
-        animation: none;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
-        width: 100%;
-        margin-top: 16px;
-    }
-
-    .feature-item {
-        font-size: 11px;
-        gap: 6px;
-        background: rgba(74,173,114,.08);
-        border: 1px solid rgba(74,173,114,.15);
-        border-radius: 100px;
-        padding: 4px 10px;
-    }
-
-    .feature-dot { width: 5px; height: 5px; }
-
-    /* ── RIGHT PANEL — full width form ── */
-    .right-panel {
-        padding: 32px 24px 40px;
-        animation: none;
-        background: var(--cream);
-        min-height: unset;
-    }
-
-    .form-title    { font-size: 26px; margin-bottom: 4px; }
-    .form-subtitle { font-size: 12px; margin-bottom: 24px; }
-
-    /* Fields */
-    .field { margin-bottom: 14px; }
-
-    .field label {
-        font-size: 10px;
-        margin-bottom: 6px;
-    }
-
-    .field input {
-        padding: 13px 14px;
-        font-size: 16px; /* prevent iOS zoom */
-        border-radius: 10px;
-    }
-
-    .submit-btn {
-        padding: 14px;
-        font-size: 14px;
-        border-radius: 10px;
-        margin-top: 6px;
-    }
-
-    .divider {
-        margin: 16px 0;
-        font-size: 11px;
-    }
-
-    .google-btn {
-        padding: 13px 16px;
-        font-size: 14px;
-        border-radius: 10px;
-    }
-
-    .google-btn img { width: 17px; height: 17px; }
+    .perks { gap: 12px; margin-top: 20px; }
+    .perk  { font-size: 11px; }
 }
 
-/* ═══════════════════════════════════════
-   VERY SMALL PHONES (< 380px)
-═══════════════════════════════════════ */
-@media (max-width: 380px) {
-    .left-panel  { padding: 24px 18px 20px; }
-    .right-panel { padding: 24px 18px 32px; }
-
-    .brand-name    { font-size: 18px; }
-    .brand-tagline { display: none; }
-
-    .form-title    { font-size: 22px; }
-    .form-subtitle { font-size: 11px; }
-
-    .features { gap: 6px; }
-    .feature-item { font-size: 10px; padding: 3px 8px; }
+@media (max-width: 360px) {
+    .card { padding: 22px 16px 36px; }
+    .card-header h1 { font-size: 20px; }
 }
 
-/* ═══════════════════════════════════════
-   TOAST — MOBILE
-═══════════════════════════════════════ */
-@media (max-width: 600px) {
-    #toast {
-        width: calc(100vw - 32px);
-        text-align: center;
-        white-space: normal;
-        font-size: 12px;
-        padding: 11px 16px;
-        bottom: 20px;
-    }
-}
-
-/* ═══════════════════════════════════════
-   iPhone SAFE AREA
-═══════════════════════════════════════ */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    @media (max-width: 600px) {
-        .right-panel {
-            padding-bottom: calc(40px + env(safe-area-inset-bottom));
-        }
+    @media (max-width: 480px) {
+        .card   { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+        #toast  { bottom: calc(20px + env(safe-area-inset-bottom)); }
     }
 }
-
 </style>
 </head>
 <body>
 
-<!-- Botanical background -->
-<div class="bg-canvas">
-    <div class="bg-grid"></div>
+<!-- Brand -->
+<a class="top-brand" href="/flowerapp/flowers/">
+    <div class="logo">🌿</div>
+    <div class="name">Bloom <em>Heaven</em></div>
+</a>
+
+<!-- Card -->
+<div class="card">
+    <div class="card-header">
+        <h1>Welcome <em>back</em></h1>
+        <p>New here? <a href="/flowerapp/signup/">Create an account</a></p>
+    </div>
+
+    <form id="loginForm">
+        <div class="field">
+            <label>Username</label>
+            <input id="username" type="text" placeholder="Enter your username" required autocomplete="username">
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+    </form>
+
+    <!-- Google sign-in — disabled until custom domain is ready -->
+    <!--
+    <div class="divider">or continue with</div>
+    <button class="google-btn" onclick="googleSignIn()">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
+        Continue with Google
+    </button>
+    -->
 </div>
 
-<!-- Floating leaves -->
-<script>
-    const leafShapes = [
-        `<svg width="24" height="36" viewBox="0 0 24 36" fill="none"><path d="M12 0C12 0 0 8 0 20C0 28.837 5.373 36 12 36C18.627 36 24 28.837 24 20C24 8 12 0 12 0Z" fill="#2d7a4f"/></svg>`,
-        `<svg width="20" height="32" viewBox="0 0 20 32" fill="none"><path d="M10 0C10 0 0 10 2 20C4 28 10 32 10 32C10 32 16 28 18 20C20 10 10 0 10 0Z" fill="#1a4a2e"/></svg>`,
-        `<svg width="28" height="20" viewBox="0 0 28 20" fill="none"><ellipse cx="14" cy="10" rx="14" ry="10" fill="#4aad72"/></svg>`,
-    ];
-    const canvas = document.querySelector('.bg-canvas');
-    for (let i = 0; i < 18; i++) {
-        const leaf = document.createElement('div');
-        leaf.className = 'leaf';
-        leaf.innerHTML = leafShapes[i % leafShapes.length];
-        leaf.style.cssText = `
-            left: ${Math.random() * 100}%;
-            animation-duration: ${12 + Math.random() * 20}s;
-            animation-delay: ${-Math.random() * 25}s;
-            transform: scale(${0.5 + Math.random() * 1.2});
-        `;
-        canvas.appendChild(leaf);
-    }
-</script>
-
-<div class="page-wrap">
-    <!-- Left branding panel -->
-    <div class="left-panel">
-        <div class="brand">
-            <div class="brand-icon">🌿</div>
-            <div class="brand-name">Bloom <em>Heaven</em></div>
-            <div class="brand-tagline">Cherthala · Alappuzha · Kerala</div>
-        </div>
-
-        <div class="left-middle">
-            <h2 class="left-headline">
-                Fresh plants,<br>
-                delivered to<br>
-                your <span>doorstep</span>
-            </h2>
-            <p class="left-desc">
-                Handpicked plants from local growers, delivered fresh across Cherthala Taluk every day.
-            </p>
-        </div>
-
-        <div class="features">
-            <div class="feature-item">
-                <div class="feature-dot"></div>
-                Local delivery across Cherthala Taluk
-            </div>
-            <div class="feature-item">
-                <div class="feature-dot"></div>
-                Fresh plants from local growers
-            </div>
-            <div class="feature-item">
-                <div class="feature-dot"></div>
-                Cash on delivery available
-            </div>
-        </div>
-    </div>
-
-    <!-- Right form panel -->
-    <div class="right-panel">
-        <h1 class="form-title">Welcome back</h1>
-        <p class="form-subtitle">
-            New here? <a href="/flowerapp/signup/">Create an account</a>
-        </p>
-
-        <form id="loginForm">
-            <div class="field">
-                <label>Username</label>
-                <input id="username" type="text" placeholder="Enter your username" required autocomplete="username">
-            </div>
-            <div class="field">
-                <label>Password</label>
-                <input id="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
-        </form>
-
-        <div class="divider">or continue with</div>
-
-        <button class="google-btn" onclick="googleSignIn()">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
-            Sign in with Google
-        </button>
-    </div>
+<!-- Perks below card -->
+<div class="perks">
+    <div class="perk"><div class="dot"></div>Local delivery</div>
+    <div class="perk"><div class="dot"></div>Track orders</div>
+    <div class="perk"><div class="dot"></div>Cash on delivery</div>
+    <div class="perk"><div class="dot"></div>Fresh plants</div>
 </div>
 
 <div id="toast"></div>
 
-<!-- Google SDK -->
+<!-- Google SDK — kept for future use -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-
 <script>
-    // Check if the current website is running on your computer
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    // This acts exactly like your Python 'if ENV == "local"' logic
-    const API_BASE = isLocal 
-        ? "http://localhost:8000/flowerapp" 
+    const API_BASE = isLocal
+        ? "http://localhost:8000/flowerapp"
         : "https://flowershop-production-3889.up.railway.app/flowerapp";
 
     console.log("Current API Base:", API_BASE);
 
+    // ── Google Sign-In — DISABLED until custom domain is configured ──
+    // window.addEventListener('load', function() {
+    //     const GOOGLE_CLIENT_ID = "{{ google_client_id }}";
+    //     google.accounts.id.initialize({
+    //         client_id: GOOGLE_CLIENT_ID,
+    //         callback: handleCredentialResponse,
+    //         use_fedcm_for_prompt: false,
+    //     });
+    //     console.log('Google ID client ready ✅');
+    // });
 
-    function checkAuth() {
-        return !!(localStorage.getItem('access_token') && localStorage.getItem('refresh_token'));
-    }
+    // function googleSignIn() {
+    //     if (!google?.accounts?.id) {
+    //         alert('Google Sign-In not ready. Please refresh.');
+    //         return;
+    //     }
+    //     google.accounts.id.prompt((notification) => {
+    //         console.log('Moment type:', notification.getMomentType());
+    //         console.log('Dismissed:', notification.getDismissedReason());
+    //     });
+    // }
 
-    // ✅ Initialize Google Sign In on page load
-    window.addEventListener('load', function() {
-        const GOOGLE_CLIENT_ID = "{{ google_client_id }}";
-        google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleCredentialResponse,
-            use_fedcm_for_prompt: false,
-        });
-        console.log('Google ID client ready ✅');
+    // function handleCredentialResponse(response) {
+    //     fetch('/flowerapp/api/v1/auth/google/', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({ token: response.credential }),
+    //     })
+    //     .then(res => res.json())
+    //     .then(data => {
+    //         if (data.error) { alert(data.error); return; }
+    //         localStorage.setItem('access_token', data.access);
+    //         localStorage.setItem('refresh_token', data.refresh);
+    //         localStorage.setItem('email', data.email);
+    //         localStorage.setItem('username', data.username);
+    //         localStorage.setItem('name', data.name);
+    //         localStorage.setItem('role', data.role);
+    //         window.location.href = data.role === 'superadmin'
+    //             ? '/flowerapp/admin/orders/'
+    //             : '/flowerapp/flowers/';
+    //     })
+    //     .catch(err => {
+    //         console.error('Google login failed:', err);
+    //         alert('Login failed. Please try again.');
+    //     });
+    // }
+
+    /* ── Login form ── */
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username  = document.getElementById('username').value.trim();
+        const password  = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submitBtn');
+
+        submitBtn.disabled    = true;
+        submitBtn.textContent = 'Signing in…';
+
+        try {
+            const res  = await fetch(`${API_BASE}/api/v1/login/`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showToast(data.detail || data.error || 'Invalid username or password', 'error');
+                return;
+            }
+
+            localStorage.setItem('access_token',  data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+
+            // Fetch profile to get role
+            const profileRes = await fetch(`${API_BASE}/api/v1/me/`, {
+                headers: { 'Authorization': `Bearer ${data.access}` }
+            });
+            const profile = await profileRes.json();
+
+            showToast(`Welcome back, ${username}! 🌿`, 'success');
+            setTimeout(() => {
+                window.location.href = profile.role === 'superadmin'
+                    ? '/flowerapp/admin/orders/'
+                    : '/flowerapp/flowers/';
+            }, 1500);
+
+        } catch (err) {
+            showToast('Login failed. Please try again.', 'error');
+        } finally {
+            submitBtn.disabled    = false;
+            submitBtn.textContent = 'Sign In';
+        }
     });
 
-    // ✅ Called when user clicks Google button
-    function googleSignIn() {
-        if (!google?.accounts?.id) {
-            alert('Google Sign-In not ready. Please refresh.');
-            return;
-        }
-        google.accounts.id.prompt((notification) => {
-            console.log('Moment type:', notification.getMomentType());
-            console.log('Dismissed:', notification.getDismissedReason());
-        });
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className   = `show ${type}`;
+        setTimeout(() => { toast.className = ''; }, 3500);
     }
-
-    // ✅ Called automatically by Google after user selects account
-    function handleCredentialResponse(response) {
-        fetch('/flowerapp/api/v1/auth/google/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: response.credential }),
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) { alert(data.error); return; }
-
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
-            localStorage.setItem('email', data.email);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('name', data.name);
-            localStorage.setItem('role', data.role);
-
-            // ✅ Redirect based on role
-            window.location.href = data.role === 'superadmin'
-                ? '/flowerapp/admin/orders/'
-                : '/flowerapp/flowers/';
-        })
-        .catch(err => {
-            console.error('Google login failed:', err);
-            alert('Login failed. Please try again.');
-        });
-    }
-
-
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const username  = document.getElementById('username').value.trim();
-    const password  = document.getElementById('password').value;
-    const submitBtn = document.getElementById('submitBtn');
-
-    submitBtn.disabled    = true;
-    submitBtn.textContent = 'Signing in…';
-
-    try {
-        const res  = await fetch(`${API_BASE}/api/v1/login/`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (!res.ok) { showToast(data.detail || 'Invalid username or password', 'error'); return; }
-
-        localStorage.setItem('access_token',  data.access);
-        localStorage.setItem('refresh_token', data.refresh);
-
-        const profileRes = await fetch(`${API_BASE}/api/v1/me/`, {
-            headers: { 'Authorization': `Bearer ${data.access}` }
-        });
-        const profile = await profileRes.json();
-
-        showToast(`Welcome back, ${username}! 🌿`, 'success');
-        setTimeout(() => {
-            window.location.href = profile.role === 'superadmin'
-                ? '/flowerapp/admin/orders/'
-                : '/flowerapp/flowers/';
-        }, 1500);
-
-    } catch (err) {
-        showToast('Login failed. Please try again.', 'error');
-    } finally {
-        submitBtn.disabled    = false;
-        submitBtn.textContent = 'Sign In';
-    }
-});
-
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.className   = `show ${type}`;
-    setTimeout(() => { toast.className = ''; }, 3500);
-}
 </script>
 </body>
 </html>
