@@ -27,7 +27,7 @@ from .serializers import SignupSerializer, LoginSerializer,OrderSerializer
 from .permissions import IsSuperAdmin
 from .pagination import FlowerPagination
 from .paginator import AdminOrderPagination
-from .tasks import send_order_confirmation_email,send_order_cancellation_email
+from .tasks import send_order_confirmation_email,send_order_cancellation_email,send_status_update_email
 
 
 class FlowerListCreateAPIView(APIView):
@@ -509,11 +509,14 @@ class OrderDetailAPIView(APIView):
 
         order.status = new_status.lower()
         order.save(update_fields=['status'])
+        if new_status.lower() in ('shipped', 'delivered'):
+            send_status_update_email.delay(order.id, new_status.lower())
         return Response({'id': order.id, 'status': order.status})
 
         
 def admin_orders_page(request):
     return render(request, 'admin_orders.html')
+
 def admin_order_detail_page(request, pk):
     return render(request, 'order_detail.html')
 
