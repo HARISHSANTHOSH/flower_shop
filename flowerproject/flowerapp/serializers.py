@@ -77,6 +77,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'customer_phone', 'customer_address', 'customer_city', 
             'order_date', 'status', 'payment_method',
             'payment_status', 'total_amount', 'items','created_at',
+            'razorpay_payment_id',  # 👈 add this
         ]
         read_only_fields = ['total_amount', 'order_date', 'customer']
 

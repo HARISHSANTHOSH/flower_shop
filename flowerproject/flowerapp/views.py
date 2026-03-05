@@ -23,7 +23,7 @@ import requests as python_requests
 
 # Local
 from flowerapp import models, serializers
-from .serializers import SignupSerializer, LoginSerializer
+from .serializers import SignupSerializer, LoginSerializer,OrderSerializer
 from .permissions import IsSuperAdmin
 from .pagination import FlowerPagination
 from .paginator import AdminOrderPagination
@@ -480,14 +480,51 @@ class OrderListAPIView(APIView):
 
         return paginator.get_paginated_response(serializer.data)
 
+class OrderDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        if request.user.is_staff or request.user.is_superuser:
+            order = get_object_or_404(models.Order, pk=pk)
+        else:
+            order = get_object_or_404(models.Order, pk=pk, customer__user=request.user)
+
+        serializer = serializers.OrderSerializer(order)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        if request.user.is_staff or request.user.is_superuser:
+            order = get_object_or_404(models.Order, pk=pk)
+        else:
+            order = get_object_or_404(models.Order, pk=pk, customer__user=request.user)
+
+        new_status = request.data.get('status')
+
+        allowed = [
+            'payment_pending', 'payment_failed', 'confirmed',
+            'processing', 'shipped', 'delivered', 'cancelled', 'refunded',
+        ]
+        if not new_status or new_status.lower() not in allowed:
+            return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
+
+        order.status = new_status.lower()
+        order.save(update_fields=['status'])
+        return Response({'id': order.id, 'status': order.status})
+
         
 def admin_orders_page(request):
     return render(request, 'admin_orders.html')
-
+def admin_order_detail_page(request, pk):
+    return render(request, 'order_detail.html')
 
 
 class OrderDetailAPIView(APIView):
     permission_classes = [IsSuperAdmin]
+
+    def get(self, request, pk):
+        order = get_object_or_404(models.Order, pk=pk)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
     def patch(self, request, pk):
         order = get_object_or_404(models.Order, pk=pk)
@@ -508,10 +545,9 @@ class OrderDetailAPIView(APIView):
             return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
 
         order.status = new_status.lower()
-        order.save(update_fields=['status'])  # only updates status column, nothing else
+        order.save(update_fields=['status'])
 
         return Response({'id': order.id, 'status': order.status})
-
 
 class CartAPIView(APIView):
     permission_classes = [IsAuthenticated]
