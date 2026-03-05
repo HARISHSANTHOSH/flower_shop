@@ -518,36 +518,6 @@ def admin_order_detail_page(request, pk):
     return render(request, 'order_detail.html')
 
 
-class OrderDetailAPIView(APIView):
-    permission_classes = [IsSuperAdmin]
-
-    def get(self, request, pk):
-        order = get_object_or_404(models.Order, pk=pk)
-        serializer = OrderSerializer(order)
-        return Response(serializer.data)
-
-    def patch(self, request, pk):
-        order = get_object_or_404(models.Order, pk=pk)
-
-        new_status = request.data.get('status')
-
-        allowed = [
-            'payment_pending',
-            'payment_failed',
-            'confirmed',
-            'processing',
-            'shipped',
-            'delivered',
-            'cancelled',
-            'refunded',
-        ]
-        if not new_status or new_status.lower() not in allowed:
-            return Response({'error': f'Invalid status. Choose from {allowed}'}, status=400)
-
-        order.status = new_status.lower()
-        order.save(update_fields=['status'])
-
-        return Response({'id': order.id, 'status': order.status})
 
 class CartAPIView(APIView):
     permission_classes = [IsAuthenticated]
