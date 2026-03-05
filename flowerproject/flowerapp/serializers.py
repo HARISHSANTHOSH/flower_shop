@@ -69,12 +69,15 @@ class OrderSerializer(serializers.ModelSerializer):
     customer_phone   = serializers.CharField(source='customer.phone_number', read_only=True)
     customer_address = serializers.CharField(source='customer.address', read_only=True)
     customer_city    = serializers.CharField(source='customer.city', read_only=True)
+    customer_state    = serializers.CharField(source='customer.state', read_only=True)    # 👈
+    customer_pincode  = serializers.CharField(source='customer.pincode', read_only=True)  # 👈
 
     class Meta:
         model  = models.Order
         fields = [
             'id', 'customer', 'customer_username',
             'customer_phone', 'customer_address', 'customer_city', 
+            'customer_state', 'customer_pincode',  
             'order_date', 'status', 'payment_method',
             'payment_status', 'total_amount', 'items','created_at',
             'razorpay_payment_id',  # 👈 add this

@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+
+[deploy]
+startCommand = "celery -A flowerproject worker --loglevel=info"
+```
+
+**2. Worker service Settings → Config File Path** — set it to:
+```
+railway.worker.toml
