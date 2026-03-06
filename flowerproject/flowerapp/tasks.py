@@ -1,24 +1,25 @@
 from celery import shared_task
-from django.core.mail import send_mail
 from django.conf import settings
 from .models import Order
+import resend
+import os
 
-
-
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 
 @shared_task(bind=True, max_retries=3)
 def send_order_confirmation_email(self, order_id):
     try:
         order = Order.objects.select_related("customer__user").get(id=order_id)
-
         user_email = order.customer.user.email
         if not user_email:
             return "No email found"
 
-        subject = f"Order #{order.id} Confirmation"
-        message = f"""
-Hi {order.customer.user.username},
+        resend.Emails.send({
+            "from": "Bloom Heaven <onboarding@resend.dev>",
+            "to": [user_email],
+            "subject": f"Order #{order.id} Confirmation",
+            "text": f"""Hi {order.customer.user.username},
 
 Your order has been placed successfully!
 
@@ -28,40 +29,40 @@ Status: {order.status}
 
 Thank you for shopping with us 🌸
 """
-
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user_email],
-            fail_silently=False,
-        )
-
+        })
         return "Email sent successfully"
 
     except Exception as exc:
         raise self.retry(exc=exc, countdown=10)
 
 
-@shared_task
-def send_order_cancellation_email(order_id):
-    order    = Order.objects.get(id=order_id)
-    customer = order.customer
-    email    = customer.user.email
+@shared_task(bind=True, max_retries=3)
+def send_order_cancellation_email(self, order_id):
+    try:
+        order    = Order.objects.select_related("customer__user").get(id=order_id)
+        customer = order.customer
+        email    = customer.user.email
+        if not email:
+            return "No email found"
 
-    subject = 'Order Cancelled - Bloom Haven'
-    message = f'''
-    Hi {customer.user.username},
+        resend.Emails.send({
+            "from": "Bloom Heaven <onboarding@resend.dev>",
+            "to": [email],
+            "subject": "Order Cancelled - Bloom Heaven",
+            "text": f"""Hi {customer.user.username},
 
-    Your order #{order.id} has been cancelled successfully.
+Your order #{order.id} has been cancelled successfully.
 
-    {'A refund of ₹' + str(order.total_amount) + ' will be credited in 5-7 business days.' 
-     if order.payment_method == 'online' else ''}
+{'A refund of ₹' + str(order.total_amount) + ' will be credited in 5-7 business days.'
+ if order.payment_method == 'online' else ''}
 
-    Thank you for shopping with Bloom Haven.
-    '''
+Thank you for shopping with Bloom Heaven.
+"""
+        })
+        return "Cancellation email sent"
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=10)
 
 
 @shared_task(bind=True, max_retries=3)
@@ -107,13 +108,12 @@ Thank you for shopping with Bloom Heaven 🌸
         else:
             return f"No email needed for status: {new_status}"
 
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user_email],
-            fail_silently=False,
-        )
+        resend.Emails.send({
+            "from": "Bloom Heaven <onboarding@resend.dev>",
+            "to": [user_email],
+            "subject": subject,
+            "text": message,
+        })
         return f"Email sent for {new_status}"
 
     except Exception as exc:
