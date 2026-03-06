@@ -56,6 +56,62 @@
         .header-text h1 { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
         .header-text .subtitle { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; letter-spacing: .05em; }
 
+        /* ── WS Status Badge ── */
+        .ws-status {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 7px;
+            font-size: 11px; font-family: var(--mono); color: var(--muted);
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; padding: 5px 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        .ws-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--muted); flex-shrink: 0;
+            transition: background .3s;
+        }
+        .ws-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,122,79,.5); animation: pulse 2s infinite; }
+        .ws-dot.error { background: var(--red); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+
+        /* ── New Order Banner ── */
+        .new-order-banner {
+            display: none;
+            align-items: center; justify-content: space-between; gap: 12px;
+            background: linear-gradient(135deg, #fff8f0, #fff3e6);
+            border: 1.5px solid var(--accent); border-radius: var(--radius);
+            padding: 14px 20px; margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(193,125,60,.15);
+            animation: slideDown .3s ease;
+        }
+        .new-order-banner.show { display: flex; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .banner-left { display: flex; align-items: center; gap: 12px; }
+        .banner-icon { font-size: 22px; }
+        .banner-text strong { display: block; font-size: 14px; font-weight: 700; color: var(--text); }
+        .banner-text span { font-size: 12px; color: var(--text-2); font-family: var(--mono); }
+        .banner-actions { display: flex; gap: 8px; align-items: center; }
+        .btn-refresh {
+            background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; padding: 8px 16px; font-size: 12px;
+            font-weight: 600; cursor: pointer; font-family: var(--sans);
+            box-shadow: 0 2px 8px rgba(193,125,60,.3);
+        }
+        .btn-refresh:hover { background: var(--accent-2); }
+        .btn-dismiss {
+            background: none; border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 7px 14px; font-size: 12px;
+            font-weight: 500; cursor: pointer; color: var(--muted);
+            font-family: var(--sans);
+        }
+        .btn-dismiss:hover { border-color: var(--border-hi); color: var(--text-2); }
+
         .filter-panel {
             background: var(--surface); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 24px 28px;
@@ -149,6 +205,15 @@
         tbody tr:last-child { border-bottom: none; }
         tbody tr:hover { background: #fdf6ee; }
         tbody td { color: var(--text); font-size: 13px; padding: 14px 16px; vertical-align: top; }
+
+        /* NEW order highlight */
+        tbody tr.new-order-row {
+            animation: highlightRow 3s ease forwards;
+        }
+        @keyframes highlightRow {
+            0%   { background: rgba(193,125,60,.18); }
+            100% { background: transparent; }
+        }
 
         td.view-cell { text-align: right; color: var(--muted); font-size: 16px; vertical-align: middle; }
         tbody tr:hover td.view-cell { color: var(--accent); }
@@ -277,6 +342,7 @@
         .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
         .page-btn:disabled { opacity: .35; cursor: default; }
 
+        /* Toast */
         #toast {
             background: var(--text); border-radius: 10px;
             bottom: 28px; color: #fff; display: none;
@@ -286,13 +352,16 @@
             box-shadow: var(--shadow-lg); font-family: var(--sans);
             white-space: nowrap; max-width: calc(100vw - 32px); text-align: center;
         }
+        /* New order toast variant */
+        #toast.new-order { background: var(--accent); }
 
         @media (max-width: 767px) {
             body { padding: 16px 14px 32px; }
-            .page-header { gap: 12px; margin-bottom: 18px; }
+            .page-header { gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
             .header-icon { width: 38px; height: 38px; font-size: 17px; }
             .header-text h1 { font-size: 18px; }
             .header-text .subtitle { font-size: 10px; }
+            .ws-status { font-size: 10px; padding: 4px 10px; }
             .filter-panel { padding: 14px 14px; margin-bottom: 12px; }
             .filter-title-desktop { display: none; }
             .filter-toggle { display: flex; }
@@ -313,6 +382,9 @@
             .page-btns { flex: 1; gap: 8px; }
             .page-btn { flex: 1; text-align: center; padding: 9px 10px; }
             .page-info { width: 100%; text-align: center; order: -1; }
+            .new-order-banner { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .banner-actions { width: 100%; }
+            .btn-refresh, .btn-dismiss { flex: 1; text-align: center; }
         }
         @media (min-width: 768px) {
             .filter-body { max-height: none !important; opacity: 1 !important; overflow: visible !important; }
@@ -327,6 +399,26 @@
     <div class="header-text">
         <h1>Orders</h1>
         <div class="subtitle">admin · bloom heaven</div>
+    </div>
+    <!-- WebSocket live indicator -->
+    <div class="ws-status" id="wsStatus">
+        <div class="ws-dot" id="wsDot"></div>
+        <span id="wsLabel">connecting…</span>
+    </div>
+</div>
+
+<!-- New Order Banner (shown on WS new_order event) -->
+<div class="new-order-banner" id="newOrderBanner">
+    <div class="banner-left">
+        <div class="banner-icon">🌸</div>
+        <div class="banner-text">
+            <strong id="bannerTitle">New Order Received!</strong>
+            <span id="bannerSub">—</span>
+        </div>
+    </div>
+    <div class="banner-actions">
+        <button class="btn-refresh" onclick="refreshAndDismiss()">Refresh Orders</button>
+        <button class="btn-dismiss" onclick="dismissBanner()">Dismiss</button>
     </div>
 </div>
 
@@ -442,11 +534,113 @@
     const API_BASE = isLocal
         ? "http://localhost:8000/flowerapp"
         : "https://flowershop-production-3889.up.railway.app/flowerapp";
-    const PAGE_SIZE = 10;
 
+    const WS_BASE = isLocal
+        ? "ws://localhost:8000"
+        : "wss://flowershop-production-3889.up.railway.app";
+
+    const PAGE_SIZE = 10;
     let state = { page: 1, totalCount: 0, next: null, previous: null };
 
-    /* ── Filter toggle (mobile) ── */
+    /* ════════════════════════════════════════
+       WEBSOCKET — Admin Notifications
+    ════════════════════════════════════════ */
+    let ws = null;
+    let wsReconnectTimer = null;
+    let pendingNewOrders = []; // store incoming orders before refresh
+
+    function connectAdminWS() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const dot   = document.getElementById('wsDot');
+        const label = document.getElementById('wsLabel');
+
+        // Update UI to connecting
+        dot.className   = 'ws-dot';
+        label.textContent = 'connecting…';
+
+        ws = new WebSocket(`${WS_BASE}/ws/notifications/?token=${token}`);
+
+        ws.onopen = () => {
+            dot.className     = 'ws-dot connected';
+            label.textContent = 'live';
+            clearTimeout(wsReconnectTimer);
+            console.log('[WS] Admin notifications connected');
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                handleAdminNotification(data);
+            } catch (e) {
+                console.error('[WS] Parse error', e);
+            }
+        };
+
+        ws.onclose = () => {
+            dot.className     = 'ws-dot error';
+            label.textContent = 'reconnecting…';
+            // Auto reconnect after 4 seconds
+            wsReconnectTimer = setTimeout(connectAdminWS, 4000);
+        };
+
+        ws.onerror = (err) => {
+            console.error('[WS] Error', err);
+            ws.close();
+        };
+    }
+
+    function handleAdminNotification(data) {
+        if (data.type === 'new_order') {
+            // Show banner
+            document.getElementById('bannerTitle').textContent =
+                `🌸 New Order #${data.order_id} received!`;
+            document.getElementById('bannerSub').textContent =
+                `${data.customer} · ₹${data.total} · ${data.payment_method?.toUpperCase()}`;
+
+            const banner = document.getElementById('newOrderBanner');
+            banner.classList.add('show');
+
+            // Toast
+            showToast(`🌸 New order from ${data.customer} — ₹${data.total}`, true);
+
+            // Play sound (browser beep)
+            playNotificationSound();
+
+            // Store for highlight after refresh
+            pendingNewOrders.push(data.order_id);
+        }
+    }
+
+    function playNotificationSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 520;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.6);
+        } catch (e) { /* silently skip if audio blocked */ }
+    }
+
+    function refreshAndDismiss() {
+        dismissBanner();
+        fetchOrders(1); // go to page 1 to see newest order
+    }
+
+    function dismissBanner() {
+        document.getElementById('newOrderBanner').classList.remove('show');
+    }
+
+    /* ════════════════════════════════════════
+       Filter toggle (mobile)
+    ════════════════════════════════════════ */
     const filterPanel  = document.getElementById('filterPanel');
     const filterToggle = document.getElementById('filterToggle');
     const filterBody   = document.getElementById('filterBody');
@@ -458,7 +652,6 @@
     });
 
     /* ── Navigate to detail page ── */
-    // FIX 1: Use API_BASE so the prefix is never hardcoded or duplicated
     function goToDetail(orderId) {
         window.location.href = `${API_BASE}/admin/orders/${orderId}/`;
     }
@@ -522,24 +715,23 @@
         const badgeCls = isCod ? 'badge-cod' : 'badge-online';
         const icon     = isCod ? '💵' : '💳';
         const label    = isCod ? 'COD' : 'Online';
-
-        const ps = (payStatus || '').toLowerCase();
+        const ps       = (payStatus || '').toLowerCase();
         let psCls = '';
         if (ps === 'paid') psCls = 'paid';
         else if (ps === 'failed') psCls = 'failed';
-
         return `
             <span class="badge-payment ${badgeCls}">${icon} ${label}</span>
             <div class="pay-status ${psCls}">${ps || '—'}</div>
         `;
     }
 
-    function showToast(msg) {
+    function showToast(msg, isNewOrder = false) {
         const t = document.getElementById('toast');
         t.textContent = msg;
+        t.className   = isNewOrder ? 'new-order' : '';
         t.style.display = 'block';
         clearTimeout(t._t);
-        t._t = setTimeout(() => { t.style.display = 'none'; }, 3500);
+        t._t = setTimeout(() => { t.style.display = 'none'; }, 4000);
     }
 
     function copyText(e, text) {
@@ -560,7 +752,6 @@
             const res = await fetch(url, {
                 headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
             });
-            // FIX 2: Removed duplicate /flowerapp — API_BASE already contains it
             if (res.status === 401) { window.location.href = `${API_BASE}/signin/`; return; }
             if (!res.ok) { showToast(`Error ${res.status}`); setLoading(false); return; }
 
@@ -620,8 +811,13 @@
             const payMethod = order.payment_method   || '';
             const payStatus = order.payment_status   || '';
 
+            // Highlight if it was a new WS-notified order
+            const isNew = pendingNewOrders.includes(order.id);
+
             const tr = document.createElement('tr');
             tr.setAttribute('data-order-id', order.id);
+            if (isNew) tr.classList.add('new-order-row');
+
             tr.innerHTML = `
                 <td><span class="order-id">#${order.id}</span></td>
                 <td><span class="customer-name">${escHtml(username)}</span></td>
@@ -655,7 +851,7 @@
             tbody.appendChild(tr);
 
             cardsHtml.push(`
-            <div class="order-card" onclick="goToDetail(${order.id})">
+            <div class="order-card ${isNew ? 'new-order-row' : ''}" onclick="goToDetail(${order.id})">
                 <div class="card-header">
                     <div class="card-header-left">
                         <span class="card-order-id">#${order.id}</span>
@@ -702,6 +898,9 @@
         });
 
         cards.innerHTML = cardsHtml.join('');
+
+        // Clear pending highlights after render
+        pendingNewOrders = [];
     }
 
     /* ── Update status ── */
@@ -724,6 +923,7 @@
             });
             if (res.ok) {
                 showToast(`Order #${orderId} → ${newStatus}`);
+                // Customer gets notified automatically via Django backend WS
             } else {
                 showToast('Failed to update status');
                 fetchOrders(state.page);
@@ -779,6 +979,7 @@
         return parseInt(params.get('page') || '1', 10);
     }
 
+    /* ── Event listeners ── */
     document.getElementById('applyFilters').addEventListener('click', () => fetchOrders(1));
     document.getElementById('clearFilters').addEventListener('click', () => {
         ['filterCustomer','filterFlower','filterDateFrom','filterDateTo',
@@ -794,8 +995,10 @@
         el.addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrders(1); });
     });
 
+    /* ── Init ── */
     const startPage = restoreFromURL();
     fetchOrders(startPage);
+    connectAdminWS(); // 🔌 Start WebSocket connection
 </script>
 </body>
 </html>
