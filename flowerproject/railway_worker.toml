@@ -2,4 +2,4 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "C_FORCE_ROOT=true celery -A flowerproject worker --loglevel=info"
+startCommand = "celery -A flowerproject worker --loglevel=info"
