@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView,FlowerDetailAPIView,flower_detail_page
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView,FlowerDetailAPIView,flower_detail_page,admin_order_detail_page
 
 
 urlpatterns = [
@@ -17,8 +17,9 @@ urlpatterns = [
 
     # Orders
     path('api/v1/orders/',         OrderListAPIView.as_view()),
+     path('api/v1/my-orders/',      CustomerOrderListAPIView.as_view()),
+    path('admin/orders/<int:pk>/', admin_order_detail_page,      name='admin-order-detail'), 
     path('api/v1/orders/<int:pk>/', OrderDetailAPIView.as_view()),
-    path('api/v1/my-orders/',      CustomerOrderListAPIView.as_view()),
     path('api/v1/buy-now/',        BuyNowAPIView.as_view()),
 	path('api/v1/orders/<int:order_id>/cancel/', OrderCancelAPIView.as_view()),
 
