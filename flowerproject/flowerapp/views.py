@@ -738,17 +738,18 @@ class RazorpayWebhookAPIView(APIView):
             rp_order_id = payment['order_id']
 
             try:
-                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
-                order.status              = 'confirmed'
-                order.payment_status      = 'paid'
-                order.razorpay_payment_id = payment['id']
-                order.save()
-                models.CartItem.objects.filter(cart__customer=order.customer).delete()
-                print("ORDER CONFIRMED:", order.id)
+                with transaction.atomic():
+                    order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                    order.status              = 'confirmed'
+                    order.payment_status      = 'paid'
+                    order.razorpay_payment_id = payment['id']
+                    order.save()
+                    models.CartItem.objects.filter(cart__customer=order.customer).delete()
+                    print("ORDER CONFIRMED:", order.id)
 
-                transaction.on_commit(
-                    lambda: send_order_confirmation_email.delay(order.id)
-                )
+                    transaction.on_commit(
+                        lambda: send_order_confirmation_email.delay(order.id)
+                    )
             except models.Order.DoesNotExist:
                 return Response({'error': 'Order not found'}, status=404)
 
@@ -757,16 +758,16 @@ class RazorpayWebhookAPIView(APIView):
             rp_order_id = payment['order_id']
 
             try:
-                order = models.Order.objects.get(razorpay_order_id=rp_order_id)
-                order.status         = 'payment_failed'
-                order.payment_status = 'failed'
-                order.save()
-                print("ORDER FAILED:", order.id)
+                with transaction.atomic():
+                    order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                    order.status         = 'payment_failed'
+                    order.payment_status = 'failed'
+                    order.save()
+                    print("ORDER FAILED:", order.id)
             except models.Order.DoesNotExist:
                 return Response({'error': 'Order not found'}, status=404)
 
         return Response({'status': 'ok'})
-
 
 
 class OrderCancelAPIView(APIView):
