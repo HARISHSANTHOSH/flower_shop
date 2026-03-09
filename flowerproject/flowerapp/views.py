@@ -637,7 +637,6 @@ class CreatePaymentOrderAPIView(APIView):
         flower_ids      = request.data.get('flowers', [])
         idempotency_key = request.data.get('idempotency_key')
 
-        # ← ADD THESE
         address = request.data.get('address', '')
         phone   = request.data.get('phone', '')
         city    = request.data.get('city', '')
@@ -650,7 +649,6 @@ class CreatePaymentOrderAPIView(APIView):
         if not idempotency_key:
             return Response({'error': 'Idempotency key required'}, status=400)
 
-        # ← ADD THIS — save address to customer profile
         if address: customer.address      = address
         if phone:   customer.phone_number = phone
         if city:    customer.city         = city
@@ -658,10 +656,8 @@ class CreatePaymentOrderAPIView(APIView):
             customer.pincode  = pincode
             customer.district = 'Alappuzha'
             customer.state    = 'Kerala'
-        customer.save(update_fields=[
-            'address', 'phone_number', 'city', 'pincode', 'district', 'state'
-        ])
-        customer.save()
+
+        customer.save()  # ← only ONE save, no update_fields
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
@@ -721,7 +717,7 @@ class CreatePaymentOrderAPIView(APIView):
             'amount':            payment_order['amount'],
             'currency':          'INR',
             'key_id':            settings.RAZORPAY_KEY_ID,
-        }) 
+        })
 
 class RazorpayWebhookAPIView(APIView):
     authentication_classes = []
