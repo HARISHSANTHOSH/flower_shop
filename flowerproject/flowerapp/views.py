@@ -661,6 +661,7 @@ class CreatePaymentOrderAPIView(APIView):
         customer.save(update_fields=[
             'address', 'phone_number', 'city', 'pincode', 'district', 'state'
         ])
+        customer.save()
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
@@ -720,7 +721,7 @@ class CreatePaymentOrderAPIView(APIView):
             'amount':            payment_order['amount'],
             'currency':          'INR',
             'key_id':            settings.RAZORPAY_KEY_ID,
-        })
+        }) 
 
 class RazorpayWebhookAPIView(APIView):
     authentication_classes = []
