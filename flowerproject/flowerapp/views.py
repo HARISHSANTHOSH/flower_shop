@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from .firebase import send_order_notification_to_all
 
 # Third party
 import json
@@ -379,6 +380,9 @@ class BuyNowAPIView(APIView):
 
             transaction.on_commit(
                 lambda: send_order_confirmation_email.delay(order.id)
+            )
+            transaction.on_commit(
+                lambda: send_order_notification_to_all(order)
             )
 
         return Response({
@@ -833,3 +837,16 @@ class OrderCancelAPIView(APIView):
             'payment_method': order.payment_method,
         })
 
+
+class SaveFCMTokenView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token required'}, status=400)
+        models.FCMToken.objects.get_or_create(
+            token=token,
+            defaults={'user': request.user}  # 👈 use defaults to avoid duplicate conflict
+        )
+        return Response({'status': 'saved'})

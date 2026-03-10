@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 import os
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from .firebase_helper import send_push_notification
+from .firebase import send_push_notification
 
 
 # ─────────────────────────────────────────────

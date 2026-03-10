@@ -44,3 +44,14 @@ def send_push_notification(fcm_token, title, body, data=None):
     except Exception as e:
         print(f"FCM Error: {e}")
         return None
+
+def send_order_notification_to_all(order):
+    from flowerapp.models import FCMToken
+    tokens = list(FCMToken.objects.values_list('token', flat=True))
+    for token in tokens:
+        send_push_notification(
+            fcm_token=token,
+            title="🌸 New Order Received!",
+            body=f"Order #{order.id} - ₹{order.total_amount} from {order.full_name}",
+            data={"order_id": str(order.id), "type": "new_order"}
+        )

@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Orders</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- ══════════════════════════════════════
+         FIREBASE SDK
+    ══════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -56,8 +63,8 @@
         .header-text h1 { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
         .header-text .subtitle { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; letter-spacing: .05em; }
 
-        /* ── WS Status Badge ── */
-        .ws-status {
+        /* ── FCM Status Badge ── */
+        .fcm-status {
             margin-left: auto;
             display: flex; align-items: center; gap: 7px;
             font-size: 11px; font-family: var(--mono); color: var(--muted);
@@ -65,16 +72,16 @@
             border-radius: 20px; padding: 5px 12px;
             box-shadow: var(--shadow-sm);
         }
-        .ws-dot {
+        .fcm-dot {
             width: 8px; height: 8px; border-radius: 50%;
             background: var(--muted); flex-shrink: 0;
             transition: background .3s;
         }
-        .ws-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,122,79,.5); animation: pulse 2s infinite; }
-        .ws-dot.error { background: var(--red); }
+        .fcm-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(45,122,79,.5); animation: pulse 2s infinite; }
+        .fcm-dot.error  { background: var(--red); }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: .4; }
+            50%       { opacity: .4; }
         }
 
         /* ── New Order Banner ── */
@@ -206,10 +213,7 @@
         tbody tr:hover { background: #fdf6ee; }
         tbody td { color: var(--text); font-size: 13px; padding: 14px 16px; vertical-align: top; }
 
-        /* NEW order highlight */
-        tbody tr.new-order-row {
-            animation: highlightRow 3s ease forwards;
-        }
+        tbody tr.new-order-row { animation: highlightRow 3s ease forwards; }
         @keyframes highlightRow {
             0%   { background: rgba(193,125,60,.18); }
             100% { background: transparent; }
@@ -241,12 +245,12 @@
             font-family: var(--mono); font-size: 10px; font-weight: 600;
             letter-spacing: .04em; padding: 3px 8px; text-transform: uppercase; white-space: nowrap;
         }
-        .badge-cod { background: var(--amber-lo); color: var(--amber); }
-        .badge-online { background: var(--blue-lo); color: var(--blue); }
+        .badge-cod    { background: var(--amber-lo); color: var(--amber); }
+        .badge-online { background: var(--blue-lo);  color: var(--blue);  }
 
         .pay-status { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
-        .pay-status.paid { color: var(--green); font-weight: 600; }
-        .pay-status.failed { color: var(--red); font-weight: 600; }
+        .pay-status.paid   { color: var(--green); font-weight: 600; }
+        .pay-status.failed { color: var(--red);   font-weight: 600; }
 
         .badge {
             border-radius: 5px; display: inline-block;
@@ -325,13 +329,13 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 10px 14px; border-top: 1px solid var(--border); background: var(--surface-2);
         }
-        .card-date { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+        .card-date  { font-family: var(--mono); font-size: 10px; color: var(--muted); }
         .card-total { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--green); }
         .card-arrow { color: var(--muted); font-size: 14px; }
 
         .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding: 0 2px; }
-        .page-info { color: var(--muted); font-family: var(--mono); font-size: 12px; }
-        .page-btns { display: flex; gap: 8px; }
+        .page-info  { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+        .page-btns  { display: flex; gap: 8px; }
         .page-btn {
             background: var(--surface); border: 1.5px solid var(--border);
             border-radius: 8px; color: var(--text-2); cursor: pointer;
@@ -342,7 +346,6 @@
         .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
         .page-btn:disabled { opacity: .35; cursor: default; }
 
-        /* Toast */
         #toast {
             background: var(--text); border-radius: 10px;
             bottom: 28px; color: #fff; display: none;
@@ -352,7 +355,6 @@
             box-shadow: var(--shadow-lg); font-family: var(--sans);
             white-space: nowrap; max-width: calc(100vw - 32px); text-align: center;
         }
-        /* New order toast variant */
         #toast.new-order { background: var(--accent); }
 
         @media (max-width: 767px) {
@@ -361,7 +363,7 @@
             .header-icon { width: 38px; height: 38px; font-size: 17px; }
             .header-text h1 { font-size: 18px; }
             .header-text .subtitle { font-size: 10px; }
-            .ws-status { font-size: 10px; padding: 4px 10px; }
+            .fcm-status { font-size: 10px; padding: 4px 10px; }
             .filter-panel { padding: 14px 14px; margin-bottom: 12px; }
             .filter-title-desktop { display: none; }
             .filter-toggle { display: flex; }
@@ -400,14 +402,14 @@
         <h1>Orders</h1>
         <div class="subtitle">admin · bloom heaven</div>
     </div>
-    <!-- WebSocket live indicator -->
-    <div class="ws-status" id="wsStatus">
-        <div class="ws-dot" id="wsDot"></div>
-        <span id="wsLabel">connecting…</span>
+    <!-- FCM push notification status indicator -->
+    <div class="fcm-status" id="fcmStatus">
+        <div class="fcm-dot" id="fcmDot"></div>
+        <span id="fcmLabel">notifications off</span>
     </div>
 </div>
 
-<!-- New Order Banner (shown on WS new_order event) -->
+<!-- New Order Banner (shown on FCM push) -->
 <div class="new-order-banner" id="newOrderBanner">
     <div class="banner-left">
         <div class="banner-icon">🌸</div>
@@ -535,88 +537,103 @@
         ? "http://localhost:8000/flowerapp"
         : "https://flowershop-production-3889.up.railway.app/flowerapp";
 
-    const WS_BASE = isLocal
-        ? "ws://localhost:8000"
-        : "wss://flowershop-production-3889.up.railway.app";
-
     const PAGE_SIZE = 10;
     let state = { page: 1, totalCount: 0, next: null, previous: null };
+    let pendingNewOrders = [];
 
     /* ════════════════════════════════════════
-       WEBSOCKET — Admin Notifications
+       FIREBASE FCM — Push Notifications
     ════════════════════════════════════════ */
-    let ws = null;
-    let wsReconnectTimer = null;
-    let pendingNewOrders = []; // store incoming orders before refresh
+    const FIREBASE_CONFIG = {
+        apiKey:            "AIzaSyCzL0UB8Vs0qxENG0-i5S2FufK245RI-Qo",
+        authDomain:        "bloomheaven-68ac5.firebaseapp.com",
+        projectId:         "bloomheaven-68ac5",
+        storageBucket:     "bloomheaven-68ac5.firebasestorage.app",
+        messagingSenderId: "426547143093",
+        appId:             "1:426547143093:web:e15bd460d426f2051439fc",
+    };
+    const VAPID_KEY = "BE2Y7wvtQd54Ze8u3Fuz_LqfhjUHz3UYLU80SA5LHZnMjnY1KDvoV8aYDxlLAvscMaJ0mZNLxS4itLjf4xUdYBY";
 
-    function connectAdminWS() {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-
-        const dot   = document.getElementById('wsDot');
-        const label = document.getElementById('wsLabel');
-
-        // Update UI to connecting
-        dot.className   = 'ws-dot';
-        label.textContent = 'connecting…';
-
-        ws = new WebSocket(`${WS_BASE}/ws/notifications/?token=${token}`);
-
-        ws.onopen = () => {
-            dot.className     = 'ws-dot connected';
-            label.textContent = 'live';
-            clearTimeout(wsReconnectTimer);
-            console.log('[WS] Admin notifications connected');
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                handleAdminNotification(data);
-            } catch (e) {
-                console.error('[WS] Parse error', e);
-            }
-        };
-
-        ws.onclose = () => {
-            dot.className     = 'ws-dot error';
-            label.textContent = 'reconnecting…';
-            // Auto reconnect after 4 seconds
-            wsReconnectTimer = setTimeout(connectAdminWS, 4000);
-        };
-
-        ws.onerror = (err) => {
-            console.error('[WS] Error', err);
-            ws.close();
-        };
+    function setFcmStatus(state) {
+        const dot   = document.getElementById('fcmDot');
+        const label = document.getElementById('fcmLabel');
+        if (state === 'active') {
+            dot.className     = 'fcm-dot active';
+            label.textContent = 'push active';
+        } else if (state === 'error') {
+            dot.className     = 'fcm-dot error';
+            label.textContent = 'push blocked';
+        } else {
+            dot.className     = 'fcm-dot';
+            label.textContent = 'notifications off';
+        }
     }
 
-    function handleAdminNotification(data) {
-        if (data.type === 'new_order') {
-            // Show banner
-            document.getElementById('bannerTitle').textContent =
-                `🌸 New Order #${data.order_id} received!`;
-            document.getElementById('bannerSub').textContent =
-                `${data.customer} · ₹${data.total} · ${data.payment_method?.toUpperCase()}`;
+    async function initFCM() {
+        try {
+            firebase.initializeApp(FIREBASE_CONFIG);
+            const messaging = firebase.messaging();
 
-            const banner = document.getElementById('newOrderBanner');
-            banner.classList.add('show');
+            // Request notification permission
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                setFcmStatus('error');
+                console.warn('[FCM] Notification permission denied');
+                return;
+            }
 
-            // Toast
-            showToast(`🌸 New order from ${data.customer} — ₹${data.total}`, true);
+            // Get FCM token
+            const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+            if (!token) {
+                setFcmStatus('error');
+                console.warn('[FCM] No token received');
+                return;
+            }
 
-            // Play sound (browser beep)
-            playNotificationSound();
+            // Save token to Django backend
+            const accessToken = localStorage.getItem('access_token');
+            await fetch(`${API_BASE}/api/v1/admin/save-fcm-token/`, {
+                method:  'POST',
+                headers: {
+                    'Content-Type':  'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ token })
+            });
 
-            // Store for highlight after refresh
-            pendingNewOrders.push(data.order_id);
+            setFcmStatus('active');
+            console.log('[FCM] Token saved, push notifications active');
+
+            // Handle foreground messages (tab is open)
+            messaging.onMessage((payload) => {
+                console.log('[FCM] Foreground message:', payload);
+                const title = payload.notification?.title || 'New Order';
+                const body  = payload.notification?.body  || '';
+                const data  = payload.data || {};
+
+                // Show banner
+                document.getElementById('bannerTitle').textContent = title;
+                document.getElementById('bannerSub').textContent   = body;
+                document.getElementById('newOrderBanner').classList.add('show');
+
+                // Toast + sound
+                showToast(`🌸 ${body}`, true);
+                playNotificationSound();
+
+                // Highlight row after refresh
+                if (data.order_id) pendingNewOrders.push(parseInt(data.order_id));
+            });
+
+        } catch (err) {
+            setFcmStatus('error');
+            console.error('[FCM] Init error:', err);
         }
     }
 
     function playNotificationSound() {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
+            const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+            const osc  = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -631,7 +648,7 @@
 
     function refreshAndDismiss() {
         dismissBanner();
-        fetchOrders(1); // go to page 1 to see newest order
+        fetchOrders(1);
     }
 
     function dismissBanner() {
@@ -651,7 +668,6 @@
         filterBody.style.maxHeight = isOpen ? filterBody.scrollHeight + 'px' : '0';
     });
 
-    /* ── Navigate to detail page ── */
     function goToDetail(orderId) {
         window.location.href = `${API_BASE}/admin/orders/${orderId}/`;
     }
@@ -717,8 +733,8 @@
         const label    = isCod ? 'COD' : 'Online';
         const ps       = (payStatus || '').toLowerCase();
         let psCls = '';
-        if (ps === 'paid') psCls = 'paid';
-        else if (ps === 'failed') psCls = 'failed';
+        if (ps === 'paid')   psCls = 'paid';
+        if (ps === 'failed') psCls = 'failed';
         return `
             <span class="badge-payment ${badgeCls}">${icon} ${label}</span>
             <div class="pay-status ${psCls}">${ps || '—'}</div>
@@ -727,8 +743,8 @@
 
     function showToast(msg, isNewOrder = false) {
         const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.className   = isNewOrder ? 'new-order' : '';
+        t.textContent   = msg;
+        t.className     = isNewOrder ? 'new-order' : '';
         t.style.display = 'block';
         clearTimeout(t._t);
         t._t = setTimeout(() => { t.style.display = 'none'; }, 4000);
@@ -811,7 +827,6 @@
             const payMethod = order.payment_method   || '';
             const payStatus = order.payment_status   || '';
 
-            // Highlight if it was a new WS-notified order
             const isNew = pendingNewOrders.includes(order.id);
 
             const tr = document.createElement('tr');
@@ -898,8 +913,6 @@
         });
 
         cards.innerHTML = cardsHtml.join('');
-
-        // Clear pending highlights after render
         pendingNewOrders = [];
     }
 
@@ -917,13 +930,12 @@
 
         try {
             const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/`, {
-                method: 'PATCH',
+                method:  'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status: newStatus }),
+                body:    JSON.stringify({ status: newStatus }),
             });
             if (res.ok) {
                 showToast(`Order #${orderId} → ${newStatus}`);
-                // Customer gets notified automatically via Django backend WS
             } else {
                 showToast('Failed to update status');
                 fetchOrders(state.page);
@@ -998,7 +1010,7 @@
     /* ── Init ── */
     const startPage = restoreFromURL();
     fetchOrders(startPage);
-    connectAdminWS(); // 🔌 Start WebSocket connection
+    initFCM(); // 🔔 Start Firebase push notifications
 </script>
 </body>
 </html>
