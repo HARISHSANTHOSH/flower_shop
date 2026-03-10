@@ -630,6 +630,7 @@ class CreatePaymentOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        print("CREATE-PAYMENT CALLED", request.data) 
         user        = request.user
         customer, _ = models.Customer.objects.get_or_create(user=user)
 
@@ -641,6 +642,7 @@ class CreatePaymentOrderAPIView(APIView):
         phone   = request.data.get('phone', '')
         city    = request.data.get('city', '')
         pincode = request.data.get('pincode', '')
+        
 
         if not amount:
             return Response({'error': 'Amount required'}, status=400)
