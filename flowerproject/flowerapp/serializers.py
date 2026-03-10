@@ -2,6 +2,7 @@ from flowerapp import models
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+import os
 
 
 class LoginSerializer(serializers.Serializer):
@@ -23,10 +24,12 @@ class FlowerSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def get_flower_image(self, obj):
-        request = self.context.get('request')
-        if obj.image and request:
-            return request.build_absolute_uri(obj.image.url)
-        return None
+        if not obj.image:
+            return None
+        image_name = str(obj.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -46,11 +49,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
     flower_image = serializers.SerializerMethodField()  
     def get_flower_image(self, obj):
-        request = self.context.get('request')
-        image = obj.flower.image  # try: obj.flower.image  if this fails
-        if image and request:
-            return request.build_absolute_uri(image.url)
-        return None
+        if not obj.flower.image:
+            return None
+        image_name = str(obj.flower.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
     class Meta:
         model = models.OrderItem
@@ -65,14 +69,18 @@ class OrderSerializer(serializers.ModelSerializer):
     customer_phone   = serializers.CharField(source='customer.phone_number', read_only=True)
     customer_address = serializers.CharField(source='customer.address', read_only=True)
     customer_city    = serializers.CharField(source='customer.city', read_only=True)
+    customer_state    = serializers.CharField(source='customer.state', read_only=True)    # 👈
+    customer_pincode  = serializers.CharField(source='customer.pincode', read_only=True)  # 👈
 
     class Meta:
         model  = models.Order
         fields = [
             'id', 'customer', 'customer_username',
             'customer_phone', 'customer_address', 'customer_city', 
+            'customer_state', 'customer_pincode',  
             'order_date', 'status', 'payment_method',
             'payment_status', 'total_amount', 'items','created_at',
+            'razorpay_payment_id',  # 👈 add this
         ]
         read_only_fields = ['total_amount', 'order_date', 'customer']
 
@@ -107,9 +115,17 @@ class SignupSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     flower_name  = serializers.CharField(source='flower.name', read_only=True)
-    flower_image = serializers.ImageField(source='flower.image', read_only=True)
+    flower_image = serializers.SerializerMethodField()  # ← change to this
     unit_price   = serializers.DecimalField(source='flower.price', max_digits=10, decimal_places=2, read_only=True)
     total_price  = serializers.SerializerMethodField()
+
+    def get_flower_image(self, obj):
+        if not obj.flower.image:
+            return None
+        image_name = str(obj.flower.image)
+        if image_name.startswith('http'):
+            return image_name
+        return f"https://res.cloudinary.com/dkofkn26y/image/upload/{image_name}"
 
     class Meta:
         model  = models.CartItem

@@ -1,0 +1,5 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "celery -A flowerproject worker --loglevel=info --concurrency=2"

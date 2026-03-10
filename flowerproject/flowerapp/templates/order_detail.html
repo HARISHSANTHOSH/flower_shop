@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:         #f4f1ec;
+            --surface:    #ffffff;
+            --surface-2:  #faf8f5;
+            --border:     #e8e2d9;
+            --border-hi:  #d4cbbd;
+            --text:       #1a1714;
+            --text-2:     #4a4540;
+            --muted:      #9b9189;
+            --accent:     #c17d3c;
+            --accent-lo:  rgba(193,125,60,.1);
+            --accent-2:   #8b4513;
+            --green:      #2d7a4f;
+            --green-lo:   rgba(45,122,79,.1);
+            --amber:      #b8860b;
+            --amber-lo:   rgba(184,134,11,.1);
+            --red:        #c0392b;
+            --red-lo:     rgba(192,57,43,.1);
+            --blue:       #2563a8;
+            --blue-lo:    rgba(37,99,168,.1);
+            --radius:     12px;
+            --mono:       'JetBrains Mono', monospace;
+            --sans:       'Sora', sans-serif;
+            --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow:     0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+            --shadow-lg:  0 8px 32px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
+        }
+
+        body {
+            background: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(193,125,60,.06) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139,69,19,.04) 0%, transparent 50%);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            padding: 40px 32px;
+        }
+
+        /* ── Header ── */
+        .page-header {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+        }
+        .back-btn {
+            display: flex; align-items: center; gap: 6px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 8px; color: var(--text-2); cursor: pointer;
+            font-family: var(--sans); font-size: 13px; font-weight: 600;
+            padding: 8px 14px; text-decoration: none; transition: all .15s;
+            box-shadow: var(--shadow-sm);
+        }
+        .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .header-icon {
+            width: 44px; height: 44px; background: var(--accent); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            box-shadow: 0 4px 12px rgba(193,125,60,.3); flex-shrink: 0;
+        }
+        .header-text h1 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; }
+        .header-text .subtitle { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+
+        /* ── Loading / Error states ── */
+        .state-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 64px 32px;
+            text-align: center; color: var(--muted); font-size: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+        .spinner {
+            width: 22px; height: 22px;
+            border: 2.5px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; display: inline-block;
+            animation: spin .7s linear infinite; margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Main grid ── */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+        }
+        .detail-left { display: flex; flex-direction: column; gap: 20px; }
+        .detail-right { display: flex; flex-direction: column; gap: 20px; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
+        }
+        .card-head {
+            background: var(--surface-2); border-bottom: 1px solid var(--border);
+            padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+        }
+        .card-head-icon { font-size: 16px; }
+        .card-head-title {
+            font-size: 11px; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .card-body { padding: 20px; }
+
+        /* ── Field rows ── */
+        .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field.span-full { grid-column: 1 / -1; }
+        .field-label {
+            font-size: 10px; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .field-value {
+            font-size: 14px; color: var(--text); font-weight: 500; line-height: 1.5;
+        }
+        .field-value.mono { font-family: var(--mono); font-size: 13px; }
+        .field-value.green { color: var(--green); font-weight: 700; font-family: var(--mono); font-size: 18px; }
+
+        /* ── Status select ── */
+        .status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .status-select {
+            border: 1.5px solid var(--border); cursor: pointer;
+            font-family: var(--mono); font-size: 11px; font-weight: 600;
+            letter-spacing: .06em; padding: 6px 28px 6px 12px;
+            border-radius: 8px; outline: none; text-transform: uppercase; appearance: none;
+            background-color: var(--surface);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9189' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 8px center;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .status-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(193,125,60,.12); }
+        .btn-save {
+            background: var(--accent); color: #fff; border: none; border-radius: 8px;
+            cursor: pointer; font-family: var(--sans); font-size: 13px; font-weight: 600;
+            padding: 8px 20px; transition: all .15s; box-shadow: 0 2px 8px rgba(193,125,60,.25);
+        }
+        .btn-save:hover { background: var(--accent-2); }
+        .btn-save:active { transform: scale(.97); }
+        .btn-save:disabled { opacity: .5; cursor: default; }
+
+        /* ── Badge ── */
+        .badge {
+            border-radius: 5px; display: inline-block;
+            font-family: var(--mono); font-size: 10px; font-weight: 600;
+            letter-spacing: .06em; padding: 3px 10px; text-transform: uppercase;
+        }
+        .badge-payment_pending { background: var(--amber-lo); color: var(--amber); }
+        .badge-payment_failed  { background: var(--red-lo);   color: var(--red);   }
+        .badge-confirmed       { background: var(--blue-lo);  color: var(--blue);  }
+        .badge-processing      { background: var(--accent-lo);color: var(--accent);}
+        .badge-shipped         { background: var(--blue-lo);  color: var(--blue);  }
+        .badge-delivered       { background: var(--green-lo); color: var(--green); }
+        .badge-cancelled       { background: var(--red-lo);   color: var(--red);   }
+        .badge-refunded        { background: rgba(0,0,0,.06); color: var(--muted); }
+        .badge-pending         { background: var(--amber-lo); color: var(--amber); }
+        .badge-cod    { background: var(--amber-lo); color: var(--amber); }
+        .badge-online { background: var(--blue-lo);  color: var(--blue);  }
+        .badge-paid   { background: var(--green-lo); color: var(--green); }
+        .badge-failed { background: var(--red-lo);   color: var(--red);   }
+
+        /* ── Items table ── */
+        .items-table { width: 100%; border-collapse: collapse; }
+        .items-table thead th {
+            background: var(--surface-2); border-bottom: 1.5px solid var(--border);
+            color: var(--muted); font-size: 10px; font-weight: 700;
+            letter-spacing: .08em; padding: 10px 14px; text-align: left;
+            text-transform: uppercase;
+        }
+        .items-table tbody tr { border-bottom: 1px solid var(--border); }
+        .items-table tbody tr:last-child { border-bottom: none; }
+        .items-table tbody td { padding: 12px 14px; font-size: 13px; color: var(--text); }
+        .item-name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .item-qty  { font-family: var(--mono); color: var(--muted); }
+        .item-price{ font-family: var(--mono); color: var(--text-2); }
+        .item-subtotal { font-family: var(--mono); font-weight: 600; color: var(--green); }
+        .items-total-row td {
+            background: var(--surface-2); border-top: 2px solid var(--border);
+            font-weight: 700; font-family: var(--mono); font-size: 14px;
+            padding: 12px 14px; color: var(--green);
+        }
+
+        /* ── Copy btn ── */
+        .copy-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--muted); font-size: 12px; padding: 0 2px;
+            opacity: 0.6; transition: opacity .15s; vertical-align: middle;
+        }
+        .copy-btn:hover { opacity: 1; color: var(--accent); }
+
+        /* ── Timeline ── */
+        .timeline { display: flex; flex-direction: column; gap: 0; }
+        .tl-item { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+        .tl-item:last-child { padding-bottom: 0; }
+        .tl-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--accent); flex-shrink: 0; margin-top: 4px;
+            box-shadow: 0 0 0 3px var(--accent-lo);
+        }
+        .tl-dot.muted { background: var(--border); box-shadow: none; }
+        .tl-line {
+            position: absolute; left: 4px; top: 14px;
+            width: 2px; height: calc(100% - 14px);
+            background: var(--border);
+        }
+        .tl-item:last-child .tl-line { display: none; }
+        .tl-content { flex: 1; }
+        .tl-label { font-size: 12px; font-weight: 600; color: var(--text); }
+        .tl-date  { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+
+        /* ── Toast ── */
+        #toast {
+            background: var(--text); border-radius: 10px;
+            bottom: 28px; color: #fff; display: none;
+            font-size: 13px; font-weight: 500;
+            left: 50%; padding: 11px 22px; position: fixed;
+            transform: translateX(-50%); z-index: 999;
+            box-shadow: var(--shadow-lg); font-family: var(--sans);
+            white-space: nowrap; max-width: calc(100vw - 32px); text-align: center;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 16px 14px 40px; }
+            .page-header { flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+            .header-text h1 { font-size: 18px; }
+            .field-grid { grid-template-columns: 1fr; }
+            .field.span-full { grid-column: 1; }
+            .status-row { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <a class="back-btn" id="backBtn" href="#">← Back to Orders</a>
+    <div class="header-icon">🌸</div>
+    <div class="header-text">
+        <h1 id="pageTitle">Order Detail</h1>
+        <div class="subtitle" id="pageSubtitle">admin · bloom heaven</div>
+    </div>
+</div>
+
+<div id="stateBox" class="state-box">
+    <div class="spinner"></div>
+    <div>Loading order…</div>
+</div>
+
+<div id="detailGrid" class="detail-grid" style="display:none;">
+
+    <!-- LEFT COLUMN -->
+    <div class="detail-left">
+
+        <!-- Customer Info -->
+        <div class="card">
+            <div class="card-head">
+                <span class="card-head-icon">👤</span>
+                <span class="card-head-title">Customer Information</span>
+            </div>
+            <div class="card-body">
+                <div class="field-grid">
+                    <div class="field">
+                        <span class="field-label">Username</span>
+                        <span class="field-value" id="fUsername">—</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Phone</span>
+                        <span class="field-value mono" id="fPhone">—
+                            <button class="copy-btn" id="copyPhone" title="Copy">⧉</button>
+                        </span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">City</span>
+                        <span class="field-value" id="fCity">—</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">State</span>
+                        <span class="field-value" id="fState">—</span>
+                    </div>
+                    <div class="field span-full">
+                        <span class="field-label">Delivery Address</span>
+                        <span class="field-value" id="fAddress">—</span>
+                    </div>
+                    <div class="field span-full">
+                        <span class="field-label">Pincode</span>
+                        <span class="field-value mono" id="fPincode">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="card">
+            <div class="card-head">
+                <span class="card-head-icon">🌿</span>
+                <span class="card-head-title">Order Items</span>
+            </div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Plant</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="detail-right">
+
+        <!-- Order Summary -->
+        <div class="card">
+            <div class="card-head">
+                <span class="card-head-icon">📋</span>
+                <span class="card-head-title">Order Summary</span>
+            </div>
+            <div class="card-body">
+                <div class="field-grid" style="grid-template-columns:1fr;">
+                    <div class="field">
+                        <span class="field-label">Order ID</span>
+                        <span class="field-value mono" id="fOrderId">—</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Placed On</span>
+                        <span class="field-value mono" id="fDate">—</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Total Amount</span>
+                        <span class="field-value green" id="fTotal">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="card">
+            <div class="card-head">
+                <span class="card-head-icon">💳</span>
+                <span class="card-head-title">Payment</span>
+            </div>
+            <div class="card-body">
+                <div class="field-grid" style="grid-template-columns:1fr;">
+                    <div class="field">
+                        <span class="field-label">Method</span>
+                        <span class="field-value" id="fPayMethod">—</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Payment Status</span>
+                        <span class="field-value" id="fPayStatus">—</span>
+                    </div>
+                    <div class="field" id="fRazorpayWrap" style="display:none;">
+                        <span class="field-label">Razorpay Order ID</span>
+                        <span class="field-value mono" id="fRazorpayId">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status -->
+        <div class="card">
+            <div class="card-head">
+                <span class="card-head-icon">🚚</span>
+                <span class="card-head-title">Order Status</span>
+            </div>
+            <div class="card-body">
+                <div class="field" style="margin-bottom:16px;">
+                    <span class="field-label" style="margin-bottom:8px;display:block;">Update Status</span>
+                    <div class="status-row">
+                        <select class="status-select" id="statusSelect">
+                            <option value="payment_pending">Payment Pending</option>
+                            <option value="payment_failed">Payment Failed</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="refunded">Refunded</option>
+                        </select>
+                        <button class="btn-save" id="btnSaveStatus">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes (if any) -->
+        <div class="card" id="notesCard" style="display:none;">
+            <div class="card-head">
+                <span class="card-head-icon">📝</span>
+                <span class="card-head-title">Order Notes</span>
+            </div>
+            <div class="card-body">
+                <span class="field-value" id="fNotes" style="font-size:13px;line-height:1.6;">—</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = isLocal
+        ? 'http://localhost:8000/flowerapp'
+        : 'https://flowershop-production-3889.up.railway.app/flowerapp';
+
+    /* ── Get order ID from URL: /flowerapp/admin/orders/42/ ── */
+    const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
+    const ORDER_ID  = pathParts[pathParts.length - 1];
+
+    /* ── Back button ── */
+    document.getElementById('backBtn').href = `${API_BASE}/admin/orders/`;
+
+    /* ── Helpers ── */
+    function esc(str) {
+        return String(str || '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '—';
+        const d = new Date(raw);
+        if (isNaN(d)) return raw;
+        return d.toLocaleString('en-IN', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata'
+        });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        clearTimeout(t._t);
+        t._t = setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function set(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val || '—';
+    }
+
+    function badgeHtml(cls, label) {
+        return `<span class="badge badge-${esc(cls)}">${esc(label)}</span>`;
+    }
+
+    /* ── Render order ── */
+    function renderOrder(o) {
+        /* Page title */
+        document.title = `Order #${o.id} — Admin`;
+        document.getElementById('pageTitle').textContent = `Order #${o.id}`;
+        document.getElementById('pageSubtitle').textContent = `${o.customer_username || '—'} · bloom heaven`;
+
+        /* Customer */
+        set('fUsername', o.customer_username);
+        const phone = o.customer_phone || '—';
+        document.getElementById('fPhone').innerHTML =
+            `<span class="mono">${esc(phone)}</span> <button class="copy-btn" onclick="copyText('${esc(phone)}')" title="Copy">⧉</button>`;
+        set('fCity',    o.customer_city);
+        set('fState',   o.customer_state);
+        set('fAddress', o.customer_address);
+        set('fPincode', o.customer_pincode);
+
+        /* Order summary */
+        set('fOrderId', `#${o.id}`);
+        set('fDate',    formatDate(o.order_date || o.created_at));
+
+        let total = parseFloat(o.total_amount);
+        if (isNaN(total)) {
+            total = (o.items || []).reduce(
+                (s, i) => s + parseFloat(i.unit_price || 0) * (i.quantity || 1), 0
+            );
+        }
+        set('fTotal', `₹${total.toFixed(2)}`);
+
+        /* Payment */
+        const method = (o.payment_method || '').toLowerCase();
+        const methodLabel = method === 'cod' ? 'Cash on Delivery' : method === 'online' ? 'Online' : (o.payment_method || '—');
+        const methodBadge = method === 'cod' ? 'cod' : 'online';
+        document.getElementById('fPayMethod').innerHTML = badgeHtml(methodBadge, methodLabel);
+
+        const ps = (o.payment_status || '').toLowerCase();
+        const psBadge = ps === 'paid' ? 'paid' : ps === 'failed' ? 'failed' : 'pending';
+        document.getElementById('fPayStatus').innerHTML = badgeHtml(psBadge, o.payment_status || '—');
+
+        if (o.razorpay_order_id) {
+            document.getElementById('fRazorpayWrap').style.display = '';
+            set('fRazorpayId', o.razorpay_order_id);
+        }
+
+        /* Status select */
+        const statusKey = (o.status || '').toLowerCase();
+        document.getElementById('statusSelect').value = statusKey;
+
+        /* Notes */
+        if (o.notes) {
+            document.getElementById('notesCard').style.display = '';
+            set('fNotes', o.notes);
+        }
+
+        /* Items table */
+        const tbody = document.getElementById('itemsBody');
+        const items = o.items || [];
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted);">No items found.</td></tr>`;
+        } else {
+            tbody.innerHTML = items.map(item => {
+                const qty      = item.quantity || 1;
+                const price    = parseFloat(item.unit_price || 0);
+                const subtotal = price * qty;
+                return `<tr>
+                    <td><span class="item-name">🌿 ${esc(item.flower_name)}</span></td>
+                    <td><span class="item-qty">×${qty}</span></td>
+                    <td><span class="item-price">₹${price.toFixed(2)}</span></td>
+                    <td><span class="item-subtotal">₹${subtotal.toFixed(2)}</span></td>
+                </tr>`;
+            }).join('') + `
+            <tr class="items-total-row">
+                <td colspan="3">Total</td>
+                <td>₹${total.toFixed(2)}</td>
+            </tr>`;
+        }
+
+        /* Show grid */
+        document.getElementById('stateBox').style.display = 'none';
+        document.getElementById('detailGrid').style.display = 'grid';
+    }
+
+    /* ── Fetch order ── */
+    async function fetchOrder() {
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/orders/${ORDER_ID}/`, {
+                headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+                window.location.href = `${API_BASE}/signin/`;
+                return;
+            }
+            if (!res.ok) {
+                document.getElementById('stateBox').innerHTML =
+                    `<div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+                     <div>Could not load order (${res.status}).</div>
+                     <a href="${API_BASE}/admin/orders/" style="color:var(--accent);margin-top:8px;display:inline-block;font-weight:600;">← Back to orders</a>`;
+                return;
+            }
+            const data = await res.json();
+            renderOrder(data);
+        } catch (err) {
+            document.getElementById('stateBox').innerHTML =
+                `<div style="font-size:32px;margin-bottom:12px;">📡</div>
+                 <div>Network error — could not reach server.</div>`;
+        }
+    }
+
+    /* ── Save status ── */
+    document.getElementById('btnSaveStatus').addEventListener('click', async () => {
+        const btn       = document.getElementById('btnSaveStatus');
+        const newStatus = document.getElementById('statusSelect').value;
+        const token     = localStorage.getItem('access_token');
+        btn.disabled    = true;
+        btn.textContent = 'Saving…';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/orders/${ORDER_ID}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (res.ok) {
+                showToast(`Status updated → ${newStatus}`);
+            } else {
+                showToast('Failed to update status');
+            }
+        } catch {
+            showToast('Network error');
+        }
+
+        btn.disabled    = false;
+        btn.textContent = 'Save';
+    });
+
+    /* ── Copy helper ── */
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    /* ── Boot ── */
+    if (!ORDER_ID || isNaN(ORDER_ID)) {
+        document.getElementById('stateBox').innerHTML =
+            `<div>Invalid order ID in URL.</div>`;
+    } else {
+        fetchOrder();
+    }
+</script>
+</body>
+</html>

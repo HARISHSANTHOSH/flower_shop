@@ -174,3 +174,15 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.flower.name}"
+
+
+# Add this model to your models.py
+
+class FCMToken(models.Model):
+    """Stores FCM tokens for push notifications"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
+    token = models.TextField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.token[:20]}..."
