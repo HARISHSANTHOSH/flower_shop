@@ -2417,9 +2417,12 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
         '688540','688541','688555','688557','688570','688582',
     ]);
 
+    let coAddress = '', coPhone = '', coCity = '', coPincode = '';
+
+    // Replace coGoStep2()
     function coGoStep2() {
-        if (!document.getElementById('co-name').value.trim())    { showToast('Please enter your name', 'error'); return; }
-        if (!document.getElementById('co-phone').value.trim())   { showToast('Please enter your phone number', 'error'); return; }
+        if (!document.getElementById('co-name').value.trim()) { showToast('Please enter your name', 'error'); return; }
+        if (!document.getElementById('co-phone').value.trim()) { showToast('Please enter your phone number', 'error'); return; }
         if (!document.getElementById('co-address').value.trim()) { showToast('Please enter your delivery address', 'error'); return; }
         const pincode = document.getElementById('co-pincode').value.trim();
         if (!/^\d{6}$/.test(pincode)) {
@@ -2434,8 +2437,17 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
             setTimeout(() => { document.getElementById('co-pincode').style.borderColor = ''; }, 3000);
             return;
         }
+
+        // ← SAVE HERE before panel gets hidden
+        coAddress = document.getElementById('co-address').value.trim();
+        coPhone   = document.getElementById('co-phone').value.trim();
+        coCity    = document.getElementById('co-city').value.trim();
+        coPincode = pincode;
+
         renderSummary(); coGoStep(2);
     }
+
+
 
     function renderSummary() {
         const name    = document.getElementById('co-name').value.trim();
@@ -2470,14 +2482,15 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
     }
 
     async function placeOrder() {
-        const btn        = document.getElementById('placeOrderBtn');
-        const address    = document.getElementById('co-address').value.trim();
-        const phone      = document.getElementById('co-phone').value.trim();
-        const city       = document.getElementById('co-city').value.trim();
-        const pincode    = document.getElementById('co-pincode').value.trim();
+        const btn         = document.getElementById('placeOrderBtn');
+        const address     = coAddress;   // ← globals
+        const phone       = coPhone;
+        const city        = coCity;
+        const pincode     = coPincode;
         const fullAddress = `${address}${city ? ', '+city : ''}${pincode ? ' '+pincode : ''}`;
-        const flowerIds  = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
-        const grandTotal = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
+        const flowerIds   = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
+        const grandTotal  = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
+        console.log('PLACING ORDER:', { address, phone, city, pincode });
 
         btn.disabled = true; btn.textContent = 'Processing…';
         try {
@@ -2485,10 +2498,21 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
                 const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).slice(2)}`;
                 const payRes  = await authFetch(`${API_BASE}/api/v1/create-payment/`, {
                     method: 'POST',
-                    body: JSON.stringify({ amount: grandTotal, flowers: flowerIds, idempotency_key: idempotencyKey })
+                    body: JSON.stringify({ 
+                        amount:          grandTotal, 
+                        flowers:         flowerIds, 
+                        idempotency_key: idempotencyKey,
+                        address:         address,
+                        phone:           phone,
+                        city:            city,
+                        pincode:         pincode,
+                    })
                 });
                 const payData = await payRes.json();
-                if (!payRes.ok) { showToast(payData.error || 'Payment init failed', 'error'); btn.disabled = false; btn.textContent = '🌿 Place Order'; return; }
+                if (!payRes.ok) {
+                    showToast(payData.error || 'Payment init failed', 'error');
+                    btn.disabled = false; btn.textContent = '🌿 Place Order'; return;
+                }
                 const options = {
                     key: payData.key_id, amount: payData.amount, currency: 'INR',
                     order_id: payData.razorpay_order_id, name: 'Bloom Heaven',
@@ -2509,7 +2533,10 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
             } else {
                 await submitOrder(flowerIds, fullAddress, phone, city, pincode);
             }
-        } catch (e) { showToast('Network error', 'error'); btn.disabled = false; btn.textContent = '🌿 Place Order'; }
+        } catch (e) {
+            showToast('Network error', 'error');
+            btn.disabled = false; btn.textContent = '🌿 Place Order';
+        }
     }
 
     async function submitOrder(flowerIds, address, phone, city, pincode) {

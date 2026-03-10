@@ -2498,6 +2498,9 @@
         '688540','688541','688555','688557','688570','688582',
     ]);
 
+    let coAddress = '', coPhone = '', coCity = '', coPincode = '';
+
+    // Replace coGoStep2()
     function coGoStep2() {
         if (!document.getElementById('co-name').value.trim()) { showToast('Please enter your name', 'error'); return; }
         if (!document.getElementById('co-phone').value.trim()) { showToast('Please enter your phone number', 'error'); return; }
@@ -2515,8 +2518,16 @@
             setTimeout(() => { document.getElementById('co-pincode').style.borderColor = ''; }, 3000);
             return;
         }
+
+        // ← SAVE HERE before panel gets hidden
+        coAddress = document.getElementById('co-address').value.trim();
+        coPhone   = document.getElementById('co-phone').value.trim();
+        coCity    = document.getElementById('co-city').value.trim();
+        coPincode = pincode;
+
         renderSummary(); coGoStep(2);
     }
+
 
     function renderSummary() {
         const name    = document.getElementById('co-name').value.trim();
@@ -2552,13 +2563,14 @@
 
     async function placeOrder() {
         const btn         = document.getElementById('placeOrderBtn');
-        const address     = document.getElementById('co-address').value.trim();
-        const phone       = document.getElementById('co-phone').value.trim();
-        const city        = document.getElementById('co-city').value.trim();
-        const pincode     = document.getElementById('co-pincode').value.trim();
+        const address     = coAddress;   // ← globals
+        const phone       = coPhone;
+        const city        = coCity;
+        const pincode     = coPincode;
         const fullAddress = `${address}${city ? ', '+city : ''}${pincode ? ' '+pincode : ''}`;
         const flowerIds   = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
         const grandTotal  = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
+        console.log('PLACING ORDER:', { address, phone, city, pincode });
 
         btn.disabled = true; btn.textContent = 'Processing…';
         try {
