@@ -2473,8 +2473,9 @@
             const data = await res.json();
             document.getElementById('co-name').value    = data.first_name || data.username || '';
             document.getElementById('co-phone').value   = data.phone_number || '';
-            document.getElementById('co-address').value = data.address || '';
+            document.getElementById('co-address').value = data.address || '';  // ← pure address only
             document.getElementById('co-city').value    = data.city || 'Alappuzha';
+            document.getElementById('co-pincode').value = data.pincode || ''; // ← separate field
         } catch (e) {}
     }
 
@@ -2551,8 +2552,8 @@
 
         const grand = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
         document.getElementById('coGrandTotal').textContent = `₹${grand.toFixed(2)}`;
-        document.getElementById('coAddrPreview').innerHTML  =
-            `<strong>📍 Delivering to</strong>${name}${phone ? ' · '+phone : ''}<br>${address}${city ? ', '+city : ''}${pincode ? ' — '+pincode : ''}`;
+        document.getElementById('coAddrPreview').innerHTML =
+    `<strong>📍 Delivering to</strong>${name}${phone ? ' · ' + phone : ''}<br>${address}, ${city} — ${pincode}`;
     }
 
     function selectPayment(method) {
@@ -2567,7 +2568,6 @@
         const phone       = coPhone;
         const city        = coCity;
         const pincode     = coPincode;
-        const fullAddress = `${address}${city ? ', '+city : ''}${pincode ? ' '+pincode : ''}`;
         const flowerIds   = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
         const grandTotal  = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
         console.log('PLACING ORDER:', { address, phone, city, pincode });
@@ -2611,7 +2611,7 @@
                 rzp.open();
                 btn.disabled = false; btn.textContent = '🌿 Place Order';
             } else {
-                await submitOrder(flowerIds, fullAddress, phone, city, pincode);
+                await submitOrder(flowerIds, address, phone, city, pincode);
             }
         } catch (e) {
             showToast('Network error', 'error');

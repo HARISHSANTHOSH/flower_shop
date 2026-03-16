@@ -7,7 +7,8 @@ import os
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .firebase import send_push_notification
-
+from .firebase import send_fcm_to_admin
+from django.db.models import F
 
 # ─────────────────────────────────────────────
 # ADD THESE 2 FUNCTIONS TO YOUR tasks.py file
@@ -237,3 +238,32 @@ def notify_admin_new_order(order):
             }
         }
     )
+
+
+
+@shared_task
+def notify_if_low_stock(order_id):
+    # ✅ renamed
+    # NO stock deduction here!
+    # only check and notify
+    from .models import Order
+
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        return
+
+    for item in order.items.select_related('flower').all():
+        
+        # ✅ just refresh and check
+        item.flower.refresh_from_db()
+
+        if item.flower.stock == 0:
+            send_fcm_to_admin(
+                f'{item.flower.name} out of stock!'
+            )
+        elif item.flower.stock <= 5:
+            send_fcm_to_admin(
+                f'{item.flower.name} low stock! '
+                f'Only {item.flower.stock} left!'
+            )

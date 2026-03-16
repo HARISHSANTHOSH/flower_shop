@@ -1,5 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
+from django.contrib.auth import get_user_model
 import os
 import json
 
@@ -53,7 +54,28 @@ def send_order_notification_to_all(order):
         result = send_push_notification(
             fcm_token=token,
             title="🌸 New Order Received!",
-            body=f"Order #{order.id} - ₹{order.total_amount}",  # 👈 removed full_name
+            body=f"Order #{order.id} - ₹{order.total_amount}",  
             data={"order_id": str(order.id), "type": "new_order"}
         )
         print(f"[FCM] Result: {result}")
+
+def send_fcm_to_admin(flower_name):
+    from .models import FCMToken
+
+    User = get_user_model()
+    admins = User.objects.filter(is_staff=True)
+
+    for admin in admins:
+        tokens = FCMToken.objects.filter(user=admin).values_list('token', flat=True)
+        for token in tokens:
+            try:
+                message = messaging.Message(
+                    notification=messaging.Notification(
+                        title="⚠️ Out of Stock Alert",
+                        body=f"'{flower_name}' is now out of stock. Please restock!",
+                    ),
+                    token=token,
+                )
+                messaging.send(message)
+            except Exception as e:
+                print(f"FCM error: {e}")

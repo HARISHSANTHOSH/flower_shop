@@ -2017,9 +2017,15 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
     }
 
     function updateQtyDisplay() {
-        document.getElementById('qtyDisplay').textContent = selectedQty;
-        document.getElementById('qtyMinus').disabled = selectedQty <= 1;
-        document.getElementById('qtyPlus').disabled  = currentFlower && selectedQty >= (currentFlower.stock ?? 99);
+        const display = document.getElementById('qtyDisplay');
+        const minus   = document.getElementById('qtyMinus');
+        const plus    = document.getElementById('qtyPlus');
+        
+        if (!display || !minus || !plus) return;  // ✅ stock=0, elements don't exist, skip
+        
+        display.textContent = selectedQty;
+        minus.disabled = selectedQty <= 1;
+        plus.disabled  = currentFlower && selectedQty >= (currentFlower.stock ?? 99);
     }
 
     function changeQty(delta) {
@@ -2038,10 +2044,10 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
 
     async function loadFlower() {
         const id = getFlowerId();
-        if (!id || isNaN(id)) { window.location.href = '/flowerapp/'; return; }
+        if (!id || isNaN(id)) { window.location.href = '/flowerapp/flowers/'; return; }
         try {
-            // publicFetch — guests can view detail page freely
             const res = await publicFetch(`${API_BASE}/api/v1/flowers/${id}/`);
+            console.log('flower fetch status:', res.status);  // ← add this
             if (!res.ok) throw new Error();
             const flower = await res.json();
             currentFlower = flower;
@@ -2050,8 +2056,9 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
             loadRelated(flower.category, flower.id);
             loadRecentlyViewed(flower.id);
         } catch (e) {
+            console.log('loadFlower error:', e);  // ← add this
             showToast('Failed to load plant details', 'error');
-            setTimeout(() => window.location.href = `${API_BASE}/`, 2000);
+            setTimeout(() => window.location.href = '/flowerapp/flowers/', 2000);
         }
     }
 
@@ -2483,11 +2490,10 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
 
     async function placeOrder() {
         const btn         = document.getElementById('placeOrderBtn');
-        const address     = coAddress;   // ← globals
+        const address     = coAddress;
         const phone       = coPhone;
         const city        = coCity;
         const pincode     = coPincode;
-        const fullAddress = `${address}${city ? ', '+city : ''}${pincode ? ' '+pincode : ''}`;
         const flowerIds   = coFlowers.flatMap(f => Array(f.quantity||1).fill(f.id));
         const grandTotal  = coFlowers.reduce((s,f) => s + parseFloat(f.price)*(f.quantity||1), 0);
         console.log('PLACING ORDER:', { address, phone, city, pincode });
@@ -2522,6 +2528,8 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
                         document.getElementById('coSuccess').classList.remove('hidden');
                         document.getElementById('coSuccessId').textContent = `Order #${payData.django_order_id}`;
                         if (coMode === 'cart') await fetchCart();
+                        // ✅ re-fetch flower to update stock display
+                        await loadFlower();
                     },
                     prefill: { name: document.getElementById('co-name').value.trim(), contact: phone },
                     theme: { color: '#1e5c38' }
@@ -2531,7 +2539,7 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
                 rzp.open();
                 btn.disabled = false; btn.textContent = '🌿 Place Order';
             } else {
-                await submitOrder(flowerIds, fullAddress, phone, city, pincode);
+                await submitOrder(flowerIds, address, phone, city, pincode);
             }
         } catch (e) {
             showToast('Network error', 'error');
@@ -2554,7 +2562,11 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
                 document.getElementById('coSuccess').classList.remove('hidden');
                 document.getElementById('coSuccessId').textContent = `Order #${data.order_id}`;
                 if (coMode === 'cart') await fetchCart();
-            } else { showToast(data.error || 'Order failed', 'error'); }
+                // ✅ re-fetch flower to update stock display
+                await loadFlower();
+            } else { 
+                showToast(data.message || data.error || 'Order failed', 'error'); 
+            }
         } catch(e) { showToast('Network error', 'error'); }
         finally { btn.disabled = false; btn.textContent = '🌿 Place Order'; }
     }

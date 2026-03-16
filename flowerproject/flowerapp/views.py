@@ -6,16 +6,20 @@ from django.db.models import Q, Sum, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
+from collections import Counter
+
 # DRF
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from .firebase import send_order_notification_to_all
-
+from .tasks import notify_if_low_stock
+from django.db.models import F
 # Third party
 import json
 import razorpay
@@ -26,7 +30,7 @@ import requests as python_requests
 from flowerapp import models, serializers
 from .serializers import SignupSerializer, LoginSerializer,OrderSerializer
 from .permissions import IsSuperAdmin
-from .pagination import FlowerPagination
+from .pagination import FlowerPagination, OrderPagination
 from .paginator import AdminOrderPagination
 from .tasks import send_order_confirmation_email,send_order_cancellation_email,send_status_update_email
 
@@ -66,6 +70,7 @@ class FlowerListCreateAPIView(APIView):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class FlowerDetailAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -291,6 +296,7 @@ def signup_page(request):
         'google_client_id': settings.GOOGLE_CLIENT_ID  # ✅ add this
     })
 
+
 class BuyNowAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -301,17 +307,15 @@ class BuyNowAPIView(APIView):
         address         = request.data.get('address')
         phone           = request.data.get('phone')
         city            = request.data.get('city', '')
-        pincode         = request.data.get('pincode', '')          # ← NEW
+        pincode         = request.data.get('pincode', '')
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
-        # ── delivery zone check (pincode-based) ─────────────────────
         from .delivery_zones import is_delivery_allowed
         if not is_delivery_allowed(pincode):
             return Response({
-                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area. '
-                         'Please check your pincode.'
+                'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area.'
             }, status=400)
 
         if not flower_ids:
@@ -321,26 +325,22 @@ class BuyNowAPIView(APIView):
         if payment_method == 'online':
             return Response({'error': 'Use create-payment API for online orders'}, status=400)
 
-        # ── save customer details ────────────────────────────────────
-        if address:
-            customer.address = address
-        if phone:
-            customer.phone_number = phone
-        if city:
-            customer.city = city
+        if address: customer.address      = address
+        if phone:   customer.phone_number = phone
+        if city:    customer.city         = city
         if pincode:
-            customer.pincode  = pincode               # ← NEW
+            customer.pincode  = pincode
             customer.district = 'Alappuzha'
             customer.state    = 'Kerala'
         customer.save(update_fields=[
-            'address', 'phone_number', 'city', 'pincode', 'district', 'state'
+            'address', 'phone_number', 'city',
+            'pincode', 'district', 'state'
         ])
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
             customer=customer
         ).first()
-
         if existing_order:
             return Response({
                 'order_id':       existing_order.id,
@@ -350,10 +350,26 @@ class BuyNowAPIView(APIView):
                 'payment_method': existing_order.payment_method,
             })
 
-        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_counts = Counter(flower_ids)
+
+        # ✅ validate flowers exist BEFORE transaction
+        flowers    = models.Flower.objects.filter(
+            id__in=flower_counts.keys()
+        )
         flower_map = {f.id: f for f in flowers}
 
-        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+        # ✅ check all flowers exist before transaction
+        for fl_id in flower_counts.keys():
+            if fl_id not in flower_map:
+                return Response(
+                    {'error': 'Flower not found'},
+                    status=400
+                )
+
+        total = sum(
+            flower_map[fl_id].price * qty
+            for fl_id, qty in flower_counts.items()
+        )
 
         with transaction.atomic():
             order = models.Order.objects.create(
@@ -366,23 +382,49 @@ class BuyNowAPIView(APIView):
             )
 
             items = []
-            for fl_id in flower_ids:
-                if fl_id in flower_map:
-                    flower = flower_map[fl_id]
-                    items.append(models.OrderItem(
-                        order=order,
-                        flower=flower,
-                        quantity=1,
-                        unit_price=flower.price
-                    ))
+            for fl_id, qty in flower_counts.items():
+                flower = models.Flower.objects.select_for_update().get(id=fl_id)
+
+                if flower.stock < qty:
+                    raise ValidationError(f'{flower.name} is out of stock!')
+                items.append(models.OrderItem(
+                    order=order,
+                    flower=flower,
+                    quantity=qty,
+                    unit_price=flower.price
+                ))
+
+                # ✅ F expression — atomic stock deduct
+                # stock__gte=qty → only if enough stock
+                updated = models.Flower.objects.filter(
+                    id=fl_id,
+                    stock__gte=qty
+                ).update(
+                    stock=F('stock') - qty
+                )
+
+                # ✅ raise inside transaction → rollback!
+                if updated == 0:
+                    raise ValidationError(
+                        f'{flower.name} is out of stock!'
+                    )
+
             models.OrderItem.objects.bulk_create(items)
-            models.CartItem.objects.filter(cart__customer=customer).delete()
+            models.CartItem.objects.filter(
+                cart__customer=customer
+            ).delete()
 
             transaction.on_commit(
                 lambda: send_order_confirmation_email.delay(order.id)
             )
             transaction.on_commit(
                 lambda: send_order_notification_to_all(order)
+            )
+            # ✅ removed deduct_stock_and_notify
+            # stock already deducted with F above!
+            # only notify now:
+            transaction.on_commit(
+                lambda: notify_if_low_stock.delay(order.id)
             )
 
         return Response({
@@ -530,12 +572,22 @@ class CartAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_cart(self, request):
-        customer = get_object_or_404(models.Customer, user=request.user)
-        cart, _  = models.Cart.objects.get_or_create(customer=customer)
+        customer = get_object_or_404(
+            models.Customer,
+            user=request.user
+        )
+        cart, _ = models.Cart.objects.get_or_create(
+            customer=customer
+        )
         return cart
 
     def get(self, request):
-        cart       = self.get_cart(request)
+        customer = get_object_or_404(models.Customer, user=request.user)
+        
+        cart, _ = models.Cart.objects.prefetch_related(
+            Prefetch('items', queryset=models.CartItem.objects.select_related('flower'))
+        ).get_or_create(customer=customer)
+        
         serializer = serializers.CartSerializer(cart)
         return Response(serializer.data)
 
@@ -545,25 +597,49 @@ class CartAPIView(APIView):
         quantity  = int(request.data.get('quantity', 1))
 
         if not flower_id:
-            return Response({'error': 'flower_id is required'}, status=400)
+            return Response(
+                {'error': 'flower_id is required'},
+                status=400
+            )
 
-        flower = get_object_or_404(models.Flower, pk=flower_id)
+        if quantity <= 0:
+            return Response(
+                {'error': 'quantity must be greater than 0'},
+                status=400
+            )
 
-        existing_qty = 0
+        # ✅ fresh stock fetch — not stale
+        flower = get_object_or_404(
+            models.Flower,
+            pk=flower_id
+        )
+
+        existing_qty  = 0
         existing_item = None
+
         try:
-            existing_item = models.CartItem.objects.get(cart=cart, flower=flower)
-            existing_qty  = existing_item.quantity
+            existing_item = models.CartItem.objects.get(
+                cart=cart,
+                flower=flower
+            )
+            existing_qty = existing_item.quantity
         except models.CartItem.DoesNotExist:
             pass
 
-        # stock check against total (existing + new)
         total_qty = existing_qty + quantity
-        if flower.stock < total_qty:
-            return Response(
-                {'error': f'Only {flower.stock} units available. You already have {existing_qty} in cart.'},
-                status=400
-            )
+
+        # ✅ fresh stock check
+        # re-fetch stock directly from DB
+        # not from cached Python object
+        current_stock = models.Flower.objects.filter(
+            id=flower_id
+        ).values_list('stock', flat=True).first()
+
+        if current_stock < total_qty:
+            return Response({
+                'error': f'Only {current_stock} units available. '
+                         f'You already have {existing_qty} in cart.'
+            }, status=400)
 
         # add or increment
         if existing_item:
@@ -571,11 +647,18 @@ class CartAPIView(APIView):
             existing_item.save(update_fields=['quantity'])
             created = False
         else:
-            models.CartItem.objects.create(cart=cart, flower=flower, quantity=quantity)
+            models.CartItem.objects.create(
+                cart=cart,
+                flower=flower,
+                quantity=quantity
+            )
             created = True
 
         serializer = serializers.CartSerializer(cart)
-        return Response(serializer.data, status=201 if created else 200)
+        return Response(
+            serializer.data,
+            status=201 if created else 200
+        )
 
 
 class CartItemAPIView(APIView):
@@ -617,6 +700,7 @@ class CartItemAPIView(APIView):
 
 class CustomerOrderListAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = OrderPagination 
 
     def get(self, request):
         customer = get_object_or_404(models.Customer, user=request.user)
@@ -634,19 +718,16 @@ class CreatePaymentOrderAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        print("CREATE-PAYMENT CALLED", request.data) 
         user        = request.user
         customer, _ = models.Customer.objects.get_or_create(user=user)
 
         amount          = request.data.get('amount')
         flower_ids      = request.data.get('flowers', [])
         idempotency_key = request.data.get('idempotency_key')
-
-        address = request.data.get('address', '')
-        phone   = request.data.get('phone', '')
-        city    = request.data.get('city', '')
-        pincode = request.data.get('pincode', '')
-        
+        address         = request.data.get('address', '')
+        phone           = request.data.get('phone', '')
+        city            = request.data.get('city', '')
+        pincode         = request.data.get('pincode', '')
 
         if not amount:
             return Response({'error': 'Amount required'}, status=400)
@@ -662,8 +743,7 @@ class CreatePaymentOrderAPIView(APIView):
             customer.pincode  = pincode
             customer.district = 'Alappuzha'
             customer.state    = 'Kerala'
-
-        customer.save()  # ← only ONE save, no update_fields
+        customer.save()
 
         existing_order = models.Order.objects.filter(
             idempotency_key=idempotency_key,
@@ -680,10 +760,29 @@ class CreatePaymentOrderAPIView(APIView):
                 'status':            existing_order.status,
             })
 
-        flowers    = models.Flower.objects.filter(id__in=flower_ids)
+        flower_counts = Counter(flower_ids)
+        flowers       = models.Flower.objects.filter(
+            id__in=flower_counts.keys()
+        )
         flower_map = {f.id: f for f in flowers}
 
-        total = sum(flower_map[fl_id].price for fl_id in flower_ids if fl_id in flower_map)
+        # ✅ validate BEFORE transaction
+        for fl_id, qty in flower_counts.items():
+            if fl_id not in flower_map:
+                return Response(
+                    {'error': 'Flower not found'},
+                    status=400
+                )
+            if flower_map[fl_id].stock < qty:
+                return Response({
+                    'error': f'{flower_map[fl_id].name} '
+                             f'only {flower_map[fl_id].stock} left'
+                }, status=400)
+
+        total = sum(
+            flower_map[fl_id].price * qty
+            for fl_id, qty in flower_counts.items()
+        )
 
         client = razorpay.Client(
             auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
@@ -706,15 +805,18 @@ class CreatePaymentOrderAPIView(APIView):
             )
 
             items = []
-            for fl_id in flower_ids:
-                if fl_id in flower_map:
-                    flower = flower_map[fl_id]
-                    items.append(models.OrderItem(
-                        order=order,
-                        flower=flower,
-                        quantity=1,
-                        unit_price=flower.price
-                    ))
+            for fl_id, qty in flower_counts.items():
+                flower = models.Flower.objects.select_for_update().get(id=fl_id)
+
+                if flower.stock < qty:
+                    raise ValidationError(f'{flower.name} is out of stock!')
+                items.append(models.OrderItem(
+                    order=order,
+                    flower=flower,
+                    quantity=qty,
+                    unit_price=flower.price
+                ))
+
             models.OrderItem.objects.bulk_create(items)
 
         return Response({
@@ -733,7 +835,7 @@ class RazorpayWebhookAPIView(APIView):
         payload = request.body
         data    = json.loads(payload)
         event   = data.get('event')
-        
+
         print("WEBHOOK EVENT:", event)
 
         if event == 'payment.captured':
@@ -742,19 +844,62 @@ class RazorpayWebhookAPIView(APIView):
 
             try:
                 with transaction.atomic():
-                    order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                    # ✅ lock order row — prevent duplicate webhook processing
+                    order = models.Order.objects.select_for_update().select_related(
+                        'customer'
+                    ).get(razorpay_order_id=rp_order_id)
+
+                    # ✅ idempotency check — already processed? skip!
+                    if order.payment_status == 'paid':
+                        print("WEBHOOK ALREADY PROCESSED:", order.id)
+                        return Response({'status': 'ok'})
+
                     order.status              = 'confirmed'
                     order.payment_status      = 'paid'
                     order.razorpay_payment_id = payment['id']
-                    order.save()
-                    models.CartItem.objects.filter(cart__customer=order.customer).delete()
+
+                    order.save(update_fields=[
+                        'status',
+                        'payment_status',
+                        'razorpay_payment_id'
+                    ])
+
+                    # ✅ lock flower row + deduct stock atomically
+                    for item in order.items.select_related('flower').all():
+                        flower = models.Flower.objects.select_for_update().get(
+                            id=item.flower.id
+                        )
+
+                        if flower.stock >= item.quantity:
+                            flower.stock = F('stock') - item.quantity
+                            flower.save()
+                        else:
+                            # stock ran out between order creation + payment
+                            # still confirm order, just set stock to 0
+                            flower.stock = 0
+                            flower.save()
+
+                    models.CartItem.objects.filter(
+                        cart__customer=order.customer
+                    ).delete()
+
                     print("ORDER CONFIRMED:", order.id)
 
                     transaction.on_commit(
                         lambda: send_order_confirmation_email.delay(order.id)
                     )
+                    transaction.on_commit(
+                        lambda: send_order_notification_to_all(order)
+                    )
+                    transaction.on_commit(
+                        lambda: notify_if_low_stock.delay(order.id)
+                    )
+
             except models.Order.DoesNotExist:
-                return Response({'error': 'Order not found'}, status=404)
+                return Response(
+                    {'error': 'Order not found'},
+                    status=404
+                )
 
         elif event == 'payment.failed':
             payment     = data['payload']['payment']['entity']
@@ -762,16 +907,31 @@ class RazorpayWebhookAPIView(APIView):
 
             try:
                 with transaction.atomic():
-                    order = models.Order.objects.get(razorpay_order_id=rp_order_id)
+                    # ✅ lock order row here too
+                    order = models.Order.objects.select_for_update().get(
+                        razorpay_order_id=rp_order_id
+                    )
+
+                    # ✅ idempotency — already marked failed? skip!
+                    if order.payment_status == 'failed':
+                        print("WEBHOOK ALREADY PROCESSED:", order.id)
+                        return Response({'status': 'ok'})
+
                     order.status         = 'payment_failed'
                     order.payment_status = 'failed'
-                    order.save()
+                    order.save(update_fields=[
+                        'status',
+                        'payment_status'
+                    ])
                     print("ORDER FAILED:", order.id)
+
             except models.Order.DoesNotExist:
-                return Response({'error': 'Order not found'}, status=404)
+                return Response(
+                    {'error': 'Order not found'},
+                    status=404
+                )
 
         return Response({'status': 'ok'})
-
 
 class OrderCancelAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -780,54 +940,56 @@ class OrderCancelAPIView(APIView):
         user     = request.user
         customer = get_object_or_404(models.Customer, user=user)
 
-        order = get_object_or_404(
-            models.Order,
-            id=order_id,
-            customer=customer
-        )
-
-        # ✅ only confirmed orders can be cancelled
-        if order.status != 'confirmed':
-            return Response({
-                'error': f'Order cannot be cancelled. Current status: {order.status}'
-            }, status=400)
+        # ✅ validate payment_id BEFORE transaction — no DB changes yet
+        order = get_object_or_404(models.Order, id=order_id, customer=customer)
+        if order.payment_method == 'online' and not order.razorpay_payment_id:
+            return Response({'error': 'Payment ID not found, contact support'}, status=400)
 
         with transaction.atomic():
-            # COD — just cancel
+            # ✅ lock + fresh read inside transaction
+            order = models.Order.objects.select_for_update().get(
+                id=order_id,
+                customer=customer
+            )
+
+            # ✅ status check INSIDE transaction after lock
+            if order.status != 'confirmed':
+                return Response({
+                    'error': f'Order cannot be cancelled. Current status: {order.status}'
+                }, status=400)
+
+            # ✅ restore stock atomically
+            for item in order.items.select_related('flower').all():
+                models.Flower.objects.filter(
+                    id=item.flower.id
+                ).update(
+                    stock=F('stock') + item.quantity
+                )
+
             if order.payment_method == 'cod':
                 order.status = 'cancelled'
                 order.save(update_fields=['status'])
 
-            # Online — trigger Razorpay refund
             elif order.payment_method == 'online':
-                if not order.razorpay_payment_id:
-                    return Response({
-                        'error': 'Payment ID not found, contact support'
-                    }, status=400)
-
                 try:
                     client = razorpay.Client(
                         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
                     )
-                    # amount in paise
-                    refund = client.payment.refund(
+                    client.payment.refund(
                         order.razorpay_payment_id,
                         {'amount': int(float(order.total_amount) * 100)}
                     )
-
                     order.status         = 'cancelled'
                     order.payment_status = 'refunded'
                     order.save(update_fields=['status', 'payment_status'])
 
-                except Exception as e:
-                    return Response({
-                        'error': 'Refund failed, please contact support'
-                    }, status=400)
+                except Exception:
+                    raise ValidationError('Refund failed, please contact support')
 
-        # ✅ send cancellation email
-        transaction.on_commit(
-            lambda: send_order_cancellation_email.delay(order.id)
-        )
+            # ✅ on_commit INSIDE atomic block
+            transaction.on_commit(
+                lambda: send_order_cancellation_email.delay(order.id)
+            )
 
         return Response({
             'message':        'Order cancelled successfully',
@@ -836,7 +998,6 @@ class OrderCancelAPIView(APIView):
             'payment_status': order.payment_status,
             'payment_method': order.payment_method,
         })
-
 
 class SaveFCMTokenView(APIView):
     permission_classes = [IsAuthenticated]
