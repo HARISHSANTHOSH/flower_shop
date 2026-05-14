@@ -1,0 +1,847 @@
+[
+{
+  "model": "flowerapp.flower",
+  "pk": 50001,
+  "fields": {
+    "name": "Mauritius Hemp",
+    "description": "This is a perennial succulent that forms a large rosette of sword-like, creamy-white and green striped leaves.",
+    "price": "345.00",
+    "stock": 5,
+    "image": "flowers/Mauritius_Hemp.jpeg",
+    "category": 51,
+    "light_requirement": "direct light which helps maintain the vibrant vari",
+    "water_frequency": "This plant is highly drought-tolerant. Water only",
+    "temperature": "15°C to 30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50002,
+  "fields": {
+    "name": "Variegated Ming Aralia",
+    "description": "An evergreen tropical shrub with fine, fern-like leaves featuring creamy-white edges.",
+    "price": "150.00",
+    "stock": 5,
+    "image": "flowers/Variegated_Ming_Aralia.jpeg",
+    "category": 52,
+    "light_requirement": "Bright, indirect light.",
+    "water_frequency": "Water when the top inch of soil feels dry (typical",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50003,
+  "fields": {
+    "name": "Cannabis sativa",
+    "description": "The primary psychoactive compound. This is what creates the \"high\" by binding to receptors in the brain that affect pleasure, memory, thinking, and time perception.",
+    "price": "220.00",
+    "stock": 2,
+    "image": "flowers/Cannabis_sativa_fmDyBol.jpeg",
+    "category": 53,
+    "light_requirement": "Avoid direct afternoon sun as it will scorch the",
+    "water_frequency": "Keep the soil consistently moist but never soggy.",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50004,
+  "fields": {
+    "name": "Caladium White Christmas",
+    "description": "A stunning tropical foliage plant with large, heart-shaped, paper-thin leaves.",
+    "price": "150.00",
+    "stock": 5,
+    "image": "flowers/Caladium_White_Christmas.jpeg",
+    "category": 54,
+    "light_requirement": "Direct sunlight is its enemy and will quickly blea",
+    "water_frequency": "Keep the soil evenly moist but not waterlogged. Wa",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50005,
+  "fields": {
+    "name": "Coreopsis lanceolata",
+    "description": "An easy-to-grow, clump-forming perennial herb that features bright golden-yellow flowers with toothed petals.",
+    "price": "200.00",
+    "stock": 2,
+    "image": "flowers/Coreopsis_lanceolata.jpg.jpeg",
+    "category": 52,
+    "light_requirement": "It performs best with at least 6 to 8 hours of dir",
+    "water_frequency": "nce established, it is very drought-tolerant. Wate",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50006,
+  "fields": {
+    "name": "Mauritius Hemp",
+    "description": "word-shaped succulent leaves that grow in a large rosette. This is a classic Mauritius Hemp",
+    "price": "200.00",
+    "stock": 2,
+    "image": "flowers/Mauritius_Hemp_ivJd3WZ.jpeg",
+    "category": 55,
+    "light_requirement": "For the best flower production, it needs at least",
+    "water_frequency": "Once established, it is extremely drought-resistan",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50007,
+  "fields": {
+    "name": "Dracaena reflexa",
+    "description": "Striking variegated shrub with lance-shaped leaves edged in bright yellow-green and cream stripes with mottled patterns.",
+    "price": "200.00",
+    "stock": 5,
+    "image": "flowers/Dracaena_reflexa.jpeg",
+    "category": 56,
+    "light_requirement": "Bright indirect light to partial shade. Avoid har",
+    "water_frequency": "Moderate — water when the top 1–2 inches of soil",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50008,
+  "fields": {
+    "name": "Euphorbia milii",
+    "description": "A hardy succulent shrub with thorny stems and bright pink-red bracts (the \"flower-like\" parts) surrounding tiny yellow true flowers.",
+    "price": "112.00",
+    "stock": 6,
+    "image": "flowers/Euphorbia_milii.jpeg",
+    "category": 57,
+    "light_requirement": "Full sun to bright light — needs at least 4–6 hour",
+    "water_frequency": "Low — water only when soil is completely dry. Eve",
+    "temperature": "18–35°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50009,
+  "fields": {
+    "name": "Ipomoea batatas 'Marguerite",
+    "description": "A fast-growing trailing/spreading ornamental vine with large heart-shaped leaves.",
+    "price": "150.00",
+    "stock": 3,
+    "image": "flowers/Ipomoea_batatas_Marguerite.jpeg",
+    "category": 58,
+    "light_requirement": "Full sun to partial shade. Best color intensity i",
+    "water_frequency": "Moderate — water 2–3 times a week. Prefers consis",
+    "temperature": "18–35°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50010,
+  "fields": {
+    "name": "Alpinia zerumbet",
+    "description": "A lush, low-growing foliage plant with broad, glossy lance-shaped leaves in shades of green with subtle variegation. Grows in a compact rosette form.",
+    "price": "800.00",
+    "stock": 2,
+    "image": "flowers/Alpinia_zerumbet.jpeg",
+    "category": 53,
+    "light_requirement": "Low to bright indirect light. Keep away from direct sunlight",
+    "water_frequency": "Moderate — water every 5–7 days. Allow top soil to",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50011,
+  "fields": {
+    "name": "Crown of Thorns,",
+    "description": "This compact variety has noticeably broader, more rounded glossy dark green leaves compared to the taller variety in your earlier photo.",
+    "price": "257.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 53,
+    "light_requirement": "Full sun to bright light — minimum 4–6 hours of di",
+    "water_frequency": "water only when soil is fully dry. Every 7–10 days",
+    "temperature": "18–35°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50012,
+  "fields": {
+    "name": "Aglaonema commutatum",
+    "description": "Dark green glossy leaves with striking cream/yellow streaks along the midrib and veins.",
+    "price": "489.00",
+    "stock": 0,
+    "image": "flowers/Aglaonema_commutatum.jpeg",
+    "category": 53,
+    "light_requirement": "Low to bright indirect light. No direct sun",
+    "water_frequency": "Every 5–7 days, keep slightly moist",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50013,
+  "fields": {
+    "name": "Calathea ornata",
+    "description": "Stunning large dark green leaves with fine white/cream pinstripe lines running parallel from midrib to leaf edges — almost painted looking.",
+    "price": "300.00",
+    "stock": 5,
+    "image": "flowers/Calathea_ornata.jpeg",
+    "category": 53,
+    "light_requirement": "Bright indirect light — no direct sun",
+    "water_frequency": "Every 4–5 days, keep consistently moist. Loves hum",
+    "temperature": "18–28°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50014,
+  "fields": {
+    "name": "Cannabis sativa",
+    "description": "It has distinctive palmate leaves with serrated leaflets. It has historical uses in fiber production (hemp), and has medical research applications in some countries where it is legally regulated.",
+    "price": "500.00",
+    "stock": 6,
+    "image": "flowers/Cannabis_sativa.jpeg",
+    "category": 53,
+    "light_requirement": "For the best flower production, it needs at least",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50015,
+  "fields": {
+    "name": "Flower 14",
+    "description": "Beautiful flower number 14",
+    "price": "419.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50016,
+  "fields": {
+    "name": "Flower 15",
+    "description": "Beautiful flower number 15",
+    "price": "961.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 51,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50017,
+  "fields": {
+    "name": "Flower 16",
+    "description": "Beautiful flower number 16",
+    "price": "572.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 53,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50018,
+  "fields": {
+    "name": "Flower 17",
+    "description": "Beautiful flower number 17",
+    "price": "855.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 56,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50019,
+  "fields": {
+    "name": "Flower 18",
+    "description": "Beautiful flower number 18",
+    "price": "783.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 59,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50020,
+  "fields": {
+    "name": "Flower 19",
+    "description": "Beautiful flower number 19",
+    "price": "527.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 51,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50021,
+  "fields": {
+    "name": "Flower 20",
+    "description": "Beautiful flower number 20",
+    "price": "945.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 58,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50022,
+  "fields": {
+    "name": "Flower 21",
+    "description": "Beautiful flower number 21",
+    "price": "895.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 51,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50023,
+  "fields": {
+    "name": "Flower 22",
+    "description": "Beautiful flower number 22",
+    "price": "162.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 53,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50024,
+  "fields": {
+    "name": "Flower 23",
+    "description": "Beautiful flower number 23",
+    "price": "640.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 57,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50025,
+  "fields": {
+    "name": "Flower 24",
+    "description": "Beautiful flower number 24",
+    "price": "376.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 53,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50026,
+  "fields": {
+    "name": "Flower 25",
+    "description": "Beautiful flower number 25",
+    "price": "461.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 52,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50027,
+  "fields": {
+    "name": "Flower 26",
+    "description": "Beautiful flower number 26",
+    "price": "475.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 55,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50028,
+  "fields": {
+    "name": "Flower 27",
+    "description": "Beautiful flower number 27",
+    "price": "340.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50029,
+  "fields": {
+    "name": "Flower 28",
+    "description": "Beautiful flower number 28",
+    "price": "504.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 58,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50030,
+  "fields": {
+    "name": "Flower 29",
+    "description": "Beautiful flower number 29",
+    "price": "519.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 54,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50031,
+  "fields": {
+    "name": "Flower 30",
+    "description": "Beautiful flower number 30",
+    "price": "194.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50032,
+  "fields": {
+    "name": "Flower 31",
+    "description": "Beautiful flower number 31",
+    "price": "204.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50033,
+  "fields": {
+    "name": "Flower 32",
+    "description": "Beautiful flower number 32",
+    "price": "178.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 57,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50034,
+  "fields": {
+    "name": "Flower 33",
+    "description": "Beautiful flower number 33",
+    "price": "425.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 53,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50035,
+  "fields": {
+    "name": "Flower 34",
+    "description": "Beautiful flower number 34",
+    "price": "228.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 51,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50036,
+  "fields": {
+    "name": "Flower 35",
+    "description": "Beautiful flower number 35",
+    "price": "721.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50037,
+  "fields": {
+    "name": "Flower 36",
+    "description": "Beautiful flower number 36",
+    "price": "195.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 53,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50038,
+  "fields": {
+    "name": "Flower 37",
+    "description": "Beautiful flower number 37",
+    "price": "621.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 51,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50039,
+  "fields": {
+    "name": "Flower 38",
+    "description": "Beautiful flower number 38",
+    "price": "572.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 52,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50040,
+  "fields": {
+    "name": "Flower 39",
+    "description": "Beautiful flower number 39",
+    "price": "184.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 52,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50041,
+  "fields": {
+    "name": "Flower 40",
+    "description": "Beautiful flower number 40",
+    "price": "633.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 57,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50042,
+  "fields": {
+    "name": "Flower 41",
+    "description": "Beautiful flower number 41",
+    "price": "680.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 55,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50043,
+  "fields": {
+    "name": "Flower 42",
+    "description": "Beautiful flower number 42",
+    "price": "711.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 54,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50044,
+  "fields": {
+    "name": "Flower 43",
+    "description": "Beautiful flower number 43",
+    "price": "827.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 58,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50045,
+  "fields": {
+    "name": "Flower 44",
+    "description": "Beautiful flower number 44",
+    "price": "347.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 52,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50046,
+  "fields": {
+    "name": "Flower 45",
+    "description": "Beautiful flower number 45",
+    "price": "996.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162642.jpg",
+    "category": 58,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50047,
+  "fields": {
+    "name": "Flower 46",
+    "description": "Beautiful flower number 46",
+    "price": "547.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162648.jpg",
+    "category": 54,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50048,
+  "fields": {
+    "name": "Flower 47",
+    "description": "Beautiful flower number 47",
+    "price": "314.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162658.jpg",
+    "category": 54,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50049,
+  "fields": {
+    "name": "Flower 48",
+    "description": "Beautiful flower number 48",
+    "price": "797.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162704.jpg",
+    "category": 60,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50050,
+  "fields": {
+    "name": "Flower 49",
+    "description": "Beautiful flower number 49",
+    "price": "922.00",
+    "stock": 0,
+    "image": "flowers/IMG20251120162950.jpg",
+    "category": 56,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.flower",
+  "pk": 50051,
+  "fields": {
+    "name": "Flower 50",
+    "description": "Beautiful flower number 50",
+    "price": "156.00",
+    "stock": 0,
+    "image": "flowers/IMG20250917130730.jpg",
+    "category": 57,
+    "light_requirement": "Bright Indirect",
+    "water_frequency": "Weekly",
+    "temperature": "18–30°C"
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 51,
+  "fields": {
+    "name": "Botanical",
+    "descrition": "It is officially a succulent perennial subshrub."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 52,
+  "fields": {
+    "name": "Ornamental Houseplant",
+    "descrition": "often used in Bonsai cultivation"
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 53,
+  "fields": {
+    "name": "Indoor Houseplants",
+    "descrition": "This is the most common place to find it. Because it is sensitive to direct sunlight and cold drafts, it is almost always sold as a decorative indoor plant."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 54,
+  "fields": {
+    "name": "Ornamental Houseplant",
+    "descrition": "Shade-Loving Perennial. It grows from underground tubers (bulbs)."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 55,
+  "fields": {
+    "name": "Succulent Perennial",
+    "descrition": "used for Xeriscaping (drought-tolerant gardens) and as an Architectural Accent plant."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 56,
+  "fields": {
+    "name": "Tropical Plant",
+    "descrition": "Ornamental Foliage Shrub"
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 57,
+  "fields": {
+    "name": "Ornamental Shrub",
+    "descrition": "A hardy succulent shrub with thorny stems and bright pink-red bracts"
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 58,
+  "fields": {
+    "name": "Ground Cover",
+    "descrition": "A fast-growing trailing/spreading ornamental vine with large heart-shaped leaves."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 59,
+  "fields": {
+    "name": "Ornamental Pot Plant",
+    "descrition": "This compact variety has noticeably broader, more rounded glossy dark green leaves compared to the taller variety in your earlier photo."
+  }
+},
+{
+  "model": "flowerapp.category",
+  "pk": 60,
+  "fields": {
+    "name": "Category 10",
+    "descrition": "Description for category 10"
+  }
+}
+]

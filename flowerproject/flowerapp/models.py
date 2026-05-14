@@ -14,6 +14,14 @@ class Profile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
+    class Meta:
+        indexes = [
+            # if you filter by role frequently
+            models.Index(
+                fields=['role'],
+                name='profile_role_idx'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"
@@ -60,6 +68,30 @@ class Flower(models.Model):
     light_requirement = models.CharField(max_length=150, default='Bright Indirect')
     water_frequency = models.CharField(max_length=80, default='Weekly')
     temperature = models.CharField(max_length=70, default='18–30°C')
+    class Meta:
+        indexes = [
+            # filter by category frequently
+            # ✅ already auto (FK)
+
+            # sort/filter by price
+            models.Index(
+                fields=['price'],
+                name='flower_price_idx'
+            ),
+
+            # filter in_stock
+            # you probably filter stock > 0
+            models.Index(
+                fields=['stock'],
+                name='flower_stock_idx'
+            ),
+
+            # search by name (exact)
+            models.Index(
+                fields=['name'],
+                name='flower_name_idx'
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -72,6 +104,20 @@ class Customer(models.Model):
     pincode      = models.CharField(max_length=10, blank=True, null=True) 
     district = models.CharField(max_length=100, default='Alappuzha')
     state = models.CharField(max_length=100, default='Kerala')
+    class Meta:
+        indexes = [
+            # pincode filter for delivery zones
+            models.Index(
+                fields=['pincode'],
+                name='customer_pincode_idx'
+            ),
+
+            # phone lookup
+            models.Index(
+                fields=['phone_number'],
+                name='customer_phone_idx'
+            ),
+        ]
 
     def __str__(self):
         return self.user.username
@@ -105,8 +151,8 @@ class Order(models.Model):
 
     payment_method      = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default='cod')
     payment_status      = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')
-    razorpay_order_id   = models.CharField(max_length=100, blank=True, null=True)
-    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_order_id   = models.CharField(max_length=100, blank=True,unique=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True,unique=True, null=True)
     
     # Referencing the choices using the class variable
     status = models.CharField(
@@ -119,6 +165,60 @@ class Order(models.Model):
     # ... other fields
     class Meta:
         ordering = ['-created_at'] 
+        indexes = [
+            # admin filters by status
+            models.Index(
+                fields=['status'],
+                name='order_status_idx'
+            ),
+
+            # webhook updates payment_status
+            models.Index(
+                fields=['payment_status'],
+                name='order_payment_status_idx'
+            ),
+
+            # order by date always
+            models.Index(
+                fields=['-created_at'],
+                name='order_created_idx'
+            ),
+
+            # filter by amount range
+            models.Index(
+                fields=['total_amount'],
+                name='order_amount_idx'
+            ),
+
+            # razorpay webhook lookup
+            # make unique too!
+            models.Index(
+                fields=['razorpay_order_id'],
+                name='order_razorpay_idx'
+            ),
+
+            # idempotency check
+            # make unique too!
+            models.Index(
+                fields=['idempotency_key'],
+                name='order_idempotency_idx'
+            ),
+
+            # composite — admin filters
+            # status + date together
+            models.Index(
+                fields=['status', '-created_at'],
+                name='order_status_date_idx'
+            ),
+
+            # customer orders by date
+            # customer FK + date
+            models.Index(
+                fields=['customer', '-created_at'],
+                name='order_customer_date_idx'
+            ),
+        ]
+        
     
     def __str__(self):
         return f"Order #{self.id} - {self.status}"
@@ -174,3 +274,15 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.flower.name}"
+
+
+# Add this model to your models.py
+
+class FCMToken(models.Model):
+    """Stores FCM tokens for push notifications"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
+    token = models.TextField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.token[:20]}..."
