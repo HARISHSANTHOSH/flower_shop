@@ -583,10 +583,11 @@ class CartAPIView(APIView):
 
     def get(self, request):
         customer = get_object_or_404(models.Customer, user=request.user)
+        cart, _ = models.Cart.objects.get_or_create(customer=customer)
         
-        cart, _ = models.Cart.objects.prefetch_related(
+        cart = models.Cart.objects.prefetch_related(
             Prefetch('items', queryset=models.CartItem.objects.select_related('flower'))
-        ).get_or_create(customer=customer)
+        ).get(pk=cart.pk)
         
         serializer = serializers.CartSerializer(cart)
         return Response(serializer.data)
