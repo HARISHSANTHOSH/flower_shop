@@ -2547,31 +2547,81 @@ document.getElementById('returnsOverlay').addEventListener('click', e => { if (e
         }
     }
 
-    async function submitOrder(flowerIds, address, phone, city, pincode) {
-        const idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        const btn = document.getElementById('placeOrderBtn');
-        btn.disabled = true; btn.textContent = 'Placing Order…';
-        try {
-            const res  = await authFetch(`${API_BASE}/api/v1/buy-now/`, {
-                method: 'POST',
-                body: JSON.stringify({ flowers: flowerIds, address, phone, city, pincode, payment_method: 'cod', idempotency_key: idempotencyKey })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                [1,2,3].forEach(i => document.getElementById(`coPanel${i}`).classList.add('hidden'));
-                document.getElementById('coSuccess').classList.remove('hidden');
-                document.getElementById('coSuccessId').textContent = `Order #${data.order_id}`;
-                if (coMode === 'cart') await fetchCart();
-                // ✅ re-fetch flower to update stock display
-                await loadFlower();
-            } else { 
-                showToast(data.message || data.error || 'Order failed', 'error'); 
-            }
-        } catch(e) { showToast('Network error', 'error'); }
-        finally { btn.disabled = false; btn.textContent = '🌿 Place Order'; }
+    let idempotencyKey = null;
+    let idempotencyFingerprint = null;
+    let isSubmitting = false;
+
+    // Same order contents = same key (safe retry). Changed contents = new key.
+    function getIdempotencyKey(payload) {
+        const fingerprint = JSON.stringify(payload);
+        if (!idempotencyKey || fingerprint !== idempotencyFingerprint) {
+            idempotencyKey = `cod_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            idempotencyFingerprint = fingerprint;
+        }
+        return idempotencyKey;
     }
 
-    document.getElementById('checkoutOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeCheckout(); });
+    function resetIdempotencyKey() {
+        idempotencyKey = null;
+        idempotencyFingerprint = null;
+    }
+
+    // DRF errors can be an object, a list, or a string
+    function extractError(data) {
+        if (!data) return 'Order failed';
+        if (Array.isArray(data)) return data.join(', ');
+        if (typeof data === 'string') return data;
+        return data.message || data.error || data.detail || 'Order failed';
+    }
+
+    async function submitOrder(flowerIds, address, phone, city, pincode) {
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        const payload = { flowers: flowerIds, address, phone, city, pincode, payment_method: 'cod' };
+        const key = getIdempotencyKey({ ...payload, flowers: [...flowerIds].sort() });
+
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled = true;
+        btn.textContent = 'Placing Order…';
+
+        try {
+            const res = await authFetch(`${API_BASE}/api/v1/buy-now/`, {
+                method: 'POST',
+                body: JSON.stringify({ ...payload, idempotency_key: key })
+            });
+
+            let data = null;
+            try { data = await res.json(); } catch (_) {}
+
+            if (res.ok) {
+                resetIdempotencyKey();   // order done, next order gets a fresh key
+                [1, 2, 3].forEach(i => document.getElementById(`coPanel${i}`).classList.add('hidden'));
+                document.getElementById('coSuccess').classList.remove('hidden');
+                document.getElementById('coSuccessId').textContent = `Order #${data?.order_id ?? ''}`;
+                if (coMode === 'cart') await fetchCart();
+                await loadFlower();      // refresh displayed stock
+            } else if (res.status >= 500) {
+                // Unknown outcome: the order may have been saved. Keep the key.
+                showToast('Something went wrong. Tap Place Order again, it will not create a duplicate.', 'error');
+            } else {
+                // 4xx: definitely rejected, no order was created
+                resetIdempotencyKey();
+                showToast(extractError(data), 'error');
+            }
+        } catch (e) {
+            // Response lost: the order may have been saved. Keep the key.
+            showToast('Network error. Tap Place Order again, it will not create a duplicate.', 'error');
+        } finally {
+            isSubmitting = false;
+            btn.disabled = false;
+            btn.textContent = '🌿 Place Order';
+        }
+    }
+
+    document.getElementById('checkoutOverlay').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeCheckout();
+    });
 
     // ── Related plants (public) ──
     async function loadRelated(categoryId, excludeId) {

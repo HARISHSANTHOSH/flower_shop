@@ -1,4 +1,5 @@
 # Django
+from sqlite3 import IntegrityError
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.db import transaction
@@ -297,144 +298,140 @@ def signup_page(request):
     })
 
 
+def _find_existing(customer, key):
+    return models.Order.objects.filter(
+        idempotency_key=key, customer=customer
+    ).first()
+
+
+def _order_response(order):
+    return Response({
+        'order_id':       order.id,
+        'total':          order.total_amount,
+        'status':         order.status,
+        'payment_status': order.payment_status,
+        'payment_method': order.payment_method,
+    })
+
+
 class BuyNowAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user        = request.user
-        customer, _ = models.Customer.objects.get_or_create(user=user)
+        customer, _ = models.Customer.objects.get_or_create(user=request.user)
 
-        address         = request.data.get('address')
-        phone           = request.data.get('phone')
+        address         = (request.data.get('address') or '').strip()
+        phone           = (request.data.get('phone') or '').strip()
         city            = request.data.get('city', '')
         pincode         = request.data.get('pincode', '')
         flower_ids      = request.data.get('flowers', [])
         payment_method  = request.data.get('payment_method', 'cod')
         idempotency_key = request.data.get('idempotency_key')
 
+        if not idempotency_key:
+            return Response({'error': 'Idempotency key required'}, status=400)
+
+        # A retry of an existing order returns it before any other check
+        existing = _find_existing(customer, idempotency_key)
+        if existing:
+            return _order_response(existing)
+
+        if payment_method != 'cod':
+            return Response({'error': 'Use create-payment API for online orders'}, status=400)
+
+        if (not isinstance(flower_ids, list) or not flower_ids
+                or not all(isinstance(i, int) for i in flower_ids)):
+            return Response({'error': 'No flowers found'}, status=400)
+
         from .delivery_zones import is_delivery_allowed
-        if not is_delivery_allowed(pincode):
+        if not is_delivery_allowed(pincode or customer.pincode):
             return Response({
                 'error': 'Sorry! We deliver only to Cherthala Taluk, Alappuzha area.'
             }, status=400)
 
-        if not flower_ids:
-            return Response({'error': 'No flowers found'}, status=400)
-        if not idempotency_key:
-            return Response({'error': 'Idempotency key required'}, status=400)
-        if payment_method == 'online':
-            return Response({'error': 'Use create-payment API for online orders'}, status=400)
-
-        if address: customer.address      = address
-        if phone:   customer.phone_number = phone
-        if city:    customer.city         = city
-        if pincode:
-            customer.pincode  = pincode
-            customer.district = 'Alappuzha'
-            customer.state    = 'Kerala'
-        customer.save(update_fields=[
-            'address', 'phone_number', 'city',
-            'pincode', 'district', 'state'
-        ])
-
-        existing_order = models.Order.objects.filter(
-            idempotency_key=idempotency_key,
-            customer=customer
-        ).first()
-        if existing_order:
-            return Response({
-                'order_id':       existing_order.id,
-                'total':          existing_order.total_amount,
-                'status':         existing_order.status,
-                'payment_status': existing_order.payment_status,
-                'payment_method': existing_order.payment_method,
-            })
+        if not (address or customer.address) or not (phone or customer.phone_number):
+            return Response({'error': 'Address and phone are required'}, status=400)
 
         flower_counts = Counter(flower_ids)
 
-        # ✅ validate flowers exist BEFORE transaction
-        flowers    = models.Flower.objects.filter(
-            id__in=flower_counts.keys()
-        )
-        flower_map = {f.id: f for f in flowers}
-
-        # ✅ check all flowers exist before transaction
-        for fl_id in flower_counts.keys():
-            if fl_id not in flower_map:
-                return Response(
-                    {'error': 'Flower not found'},
-                    status=400
+        try:
+            with transaction.atomic():
+                # 1. Lock every flower row in id order
+                flowers = list(
+                    models.Flower.objects.select_for_update()
+                    .filter(id__in=flower_counts.keys())
+                    .order_by('id')
                 )
 
-        total = sum(
-            flower_map[fl_id].price * qty
-            for fl_id, qty in flower_counts.items()
-        )
+                # 2. Re-check for a duplicate now that we hold the locks
+                existing = _find_existing(customer, idempotency_key)
+                if existing:
+                    return _order_response(existing)
 
-        with transaction.atomic():
-            order = models.Order.objects.create(
-                customer=customer,
-                payment_method='cod',
-                status='confirmed',
-                payment_status='pending',
-                total_amount=total,
-                idempotency_key=idempotency_key,
-            )
+                if len(flowers) != len(flower_counts):
+                    raise ValidationError('Flower not found')
 
-            items = []
-            for fl_id, qty in flower_counts.items():
-                flower = models.Flower.objects.select_for_update().get(id=fl_id)
+                # 3. Stock check and total, from the locked rows
+                total = 0
+                for f in flowers:
+                    qty = flower_counts[f.id]
+                    if f.stock < qty:
+                        raise ValidationError(f'{f.name} is out of stock!')
+                    total += f.price * qty
 
-                if flower.stock < qty:
-                    raise ValidationError(f'{flower.name} is out of stock!')
-                items.append(models.OrderItem(
-                    order=order,
-                    flower=flower,
-                    quantity=qty,
-                    unit_price=flower.price
-                ))
+                # 4. Profile save, inside the transaction
+                if address: customer.address      = address
+                if phone:   customer.phone_number = phone
+                if city:    customer.city         = city
+                if pincode:
+                    customer.pincode  = pincode
+                    customer.district = 'Alappuzha'
+                    customer.state    = 'Kerala'
+                customer.save(update_fields=[
+                    'address', 'phone_number', 'city',
+                    'pincode', 'district', 'state'
+                ])
 
-                # ✅ F expression — atomic stock deduct
-                # stock__gte=qty → only if enough stock
-                updated = models.Flower.objects.filter(
-                    id=fl_id,
-                    stock__gte=qty
-                ).update(
-                    stock=F('stock') - qty
+                # 5. Order and items
+                order = models.Order.objects.create(
+                    customer=customer,
+                    payment_method='cod',
+                    status='confirmed',
+                    payment_status='pending',
+                    total_amount=total,
+                    idempotency_key=idempotency_key,
                 )
+                models.OrderItem.objects.bulk_create([
+                    models.OrderItem(
+                        order=order, flower=f,
+                        quantity=flower_counts[f.id], unit_price=f.price
+                    ) for f in flowers
+                ])
 
-                # ✅ raise inside transaction → rollback!
-                if updated == 0:
-                    raise ValidationError(
-                        f'{flower.name} is out of stock!'
+                # 6. Deduct stock
+                for f in flowers:
+                    models.Flower.objects.filter(id=f.id).update(
+                        stock=F('stock') - flower_counts[f.id]
                     )
 
-            models.OrderItem.objects.bulk_create(items)
-            models.CartItem.objects.filter(
-                cart__customer=customer
-            ).delete()
+                # 7. Remove only the ordered flowers from the cart
+                models.CartItem.objects.filter(
+                    cart__customer=customer,
+                    flower_id__in=flower_counts.keys()
+                ).delete()
 
-            transaction.on_commit(
-                lambda: send_order_confirmation_email.delay(order.id)
-            )
-            transaction.on_commit(
-                lambda: send_order_notification_to_all(order)
-            )
-            # ✅ removed deduct_stock_and_notify
-            # stock already deducted with F above!
-            # only notify now:
-            transaction.on_commit(
-                lambda: notify_if_low_stock.delay(order.id)
-            )
+                # Runs only after a successful commit
+                transaction.on_commit(lambda: send_order_confirmation_email.delay(order.id))
+                transaction.on_commit(lambda: notify_if_low_stock.delay(order.id))
 
-        return Response({
-            'order_id':       order.id,
-            'total':          total,
-            'status':         order.status,
-            'payment_status': order.payment_status,
-            'payment_method': order.payment_method,
-        })
+        except IntegrityError:
+            # Safety net: the unique constraint stopped a duplicate
+            existing = _find_existing(customer, idempotency_key)
+            if existing:
+                return _order_response(existing)
+            raise
 
+        return _order_response(order)
 class SignupAPIView(APIView):
     serializer_class = SignupSerializer
 
@@ -583,10 +580,11 @@ class CartAPIView(APIView):
 
     def get(self, request):
         customer = get_object_or_404(models.Customer, user=request.user)
+        cart, _ = models.Cart.objects.get_or_create(customer=customer)
         
-        cart, _ = models.Cart.objects.prefetch_related(
+        cart = models.Cart.objects.prefetch_related(
             Prefetch('items', queryset=models.CartItem.objects.select_related('flower'))
-        ).get_or_create(customer=customer)
+        ).get(pk=cart.pk)
         
         serializer = serializers.CartSerializer(cart)
         return Response(serializer.data)
