@@ -178,24 +178,6 @@ def send_email(to_email, subject, message):
     )
 
 
-def notify_admin_new_order(order):
-    """Send real-time WebSocket notification to superadmin"""
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "admin_notifications",
-        {
-            "type": "order_notification",
-            "data": {
-                "type": "new_order",
-                "order_id": order.id,
-                "customer": order.customer.user.username,
-                "total": str(order.total_amount),
-                "status": order.status,
-                "payment_method": order.payment_method,
-                "message": f"New order #{order.id} from {order.customer.user.username} - ₹{order.total_amount}",
-            }
-        }
-    )
 
 
 

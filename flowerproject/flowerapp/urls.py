@@ -38,5 +38,5 @@ urlpatterns = [
     path('signin/',     login_page,     name='signin'),
     path('orders/',     TemplateView.as_view(template_name='orders.html')),
     path('admin/orders/', admin_orders_page, name='admin-orders-page'),
-    path('api/v1/admin/save-fcm-token/', SaveFCMTokenView.as_view()),
+
 ]
