@@ -58,6 +58,3 @@ class CartAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['cart', 'flower', 'quantity']
 
-@admin.register(models.FCMToken)
-class FCMTokenAdmin(admin.ModelAdmin):
-    list_display = ['user', 'token', 'created_at']
