@@ -32,6 +32,7 @@ from .permissions import IsSuperAdmin
 from .pagination import FlowerPagination, OrderPagination
 from .paginator import AdminOrderPagination
 from .tasks import send_order_confirmation_email,send_order_cancellation_email,send_status_update_email
+from .tasks import send_whatsapp_order_notification
 
 
 class FlowerListCreateAPIView(APIView):
@@ -420,6 +421,9 @@ class BuyNowAPIView(APIView):
 
                 # Runs only after a successful commit
                 transaction.on_commit(lambda: send_order_confirmation_email.delay(order.id))
+                transaction.on_commit(
+                    lambda: send_whatsapp_order_notification.delay(order.id)
+                )
 
         except IntegrityError:
             # Safety net: the unique constraint stopped a duplicate
