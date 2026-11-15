@@ -18,8 +18,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from .firebase import send_order_notification_to_all
-from .tasks import notify_if_low_stock
 from django.db.models import F
 # Third party
 import json
@@ -422,7 +420,6 @@ class BuyNowAPIView(APIView):
 
                 # Runs only after a successful commit
                 transaction.on_commit(lambda: send_order_confirmation_email.delay(order.id))
-                transaction.on_commit(lambda: notify_if_low_stock.delay(order.id))
 
         except IntegrityError:
             # Safety net: the unique constraint stopped a duplicate
@@ -885,12 +882,6 @@ class RazorpayWebhookAPIView(APIView):
 
                     transaction.on_commit(
                         lambda: send_order_confirmation_email.delay(order.id)
-                    )
-                    transaction.on_commit(
-                        lambda: send_order_notification_to_all(order)
-                    )
-                    transaction.on_commit(
-                        lambda: notify_if_low_stock.delay(order.id)
                     )
 
             except models.Order.DoesNotExist:
