@@ -5,53 +5,13 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.db.models import F
 
 # ─────────────────────────────────────────────
 # ADD THESE 2 FUNCTIONS TO YOUR tasks.py file
 # ─────────────────────────────────────────────
 
-def notify_customer_order_status(order):
-    """
-    Send real-time WebSocket notification to CUSTOMER when their order status changes.
-    Call this whenever you update order.status
-    """
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        f"order_{order.id}",
-        {
-            "type": "order_status_update",
-            "data": {
-                "type": "status_update",
-                "order_id": order.id,
-                "status": order.status,
-                "message": get_status_message(order.status),
-            }
-        }
-    )
 
-
-def notify_stock_update(flower):
-    """
-    Broadcast live stock update to ALL customers.
-    Call this whenever Flower.stock changes (after save).
-    """
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "stock_updates",
-        {
-            "type": "stock_update",
-            "data": {
-                "type": "stock_update",
-                "flower_id": flower.id,
-                "flower_name": flower.name,
-                "stock": flower.stock,
-                # Frontend shows "Only X left!" when stock <= 5
-                "low_stock": flower.stock <= 5,
-            }
-        }
-    )
 
 
 def get_status_message(status):
@@ -239,29 +199,3 @@ def notify_admin_new_order(order):
 
 
 
-@shared_task
-def notify_if_low_stock(order_id):
-    # ✅ renamed
-    # NO stock deduction here!
-    # only check and notify
-    from .models import Order
-
-    try:
-        order = Order.objects.get(id=order_id)
-    except Order.DoesNotExist:
-        return
-
-    for item in order.items.select_related('flower').all():
-        
-        # ✅ just refresh and check
-        item.flower.refresh_from_db()
-
-        if item.flower.stock == 0:
-            send_fcm_to_admin(
-                f'{item.flower.name} out of stock!'
-            )
-        elif item.flower.stock <= 5:
-            send_fcm_to_admin(
-                f'{item.flower.name} low stock! '
-                f'Only {item.flower.stock} left!'
-            )
