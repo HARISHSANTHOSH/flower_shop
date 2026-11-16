@@ -202,24 +202,16 @@ def send_whatsapp_order_notification(self, order_id):
             {
                 "type": "body",
                 "parameters": [
-                    {
-                        "type": "text",
-                        "text": str(order.id),
-                    },
-                    {
-                        "type": "text",
-                        "text": str(order.customer),
-                    },
-                    {
-                        "type": "text",
-                        "text": str(order.total_amount),
-                    },
+                    {"type": "text", "text": str(order.id)},
+                    {"type": "text", "text": str(order.customer)},
+                    {"type": "text", "text": str(order.total_amount)},
                 ],
             }
         ]
 
-        # Send WhatsApp template notification
-        response = whatsapp.send_template_message()
+        response = whatsapp.send_template_message(
+            components=message_components
+        )
 
         logger.info(
             "WhatsApp order notification accepted. Order ID: %s",
