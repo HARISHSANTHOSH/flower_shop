@@ -2,10 +2,14 @@ from celery import shared_task
 from django.conf import settings
 from .models import Order
 import boto3
+import logging
+import requests
 from botocore.exceptions import ClientError
+from .whatsapp import WhatsAppService, WhatsAppAPIError
 import os
 from asgiref.sync import async_to_sync
 from django.db.models import F
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────
 # ADD THESE 2 FUNCTIONS TO YOUR tasks.py file
@@ -179,5 +183,71 @@ def send_email(to_email, subject, message):
 
 
 
+@shared_task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=30,
+)
+def send_whatsapp_order_notification(self, order_id):
 
+    try:
+        # Fetch the order from the database
+        order = Order.objects.get(id=order_id)
 
+        # Initialize WhatsApp service
+        whatsapp = WhatsAppService()
+
+        # Build order details
+        message_components = [
+            {
+                "type": "body",
+                "parameters": [
+                    {"type": "text", "text": str(order.id)},
+                    {"type": "text", "text": str(order.customer)},
+                    {"type": "text", "text": str(order.total_amount)},
+                ],
+            }
+        ]
+
+        response = whatsapp.send_template_message(
+            components=message_components
+        )
+
+        logger.info(
+            "WhatsApp order notification accepted. Order ID: %s",
+            order_id,
+        )
+
+        return response
+
+    except Order.DoesNotExist:
+        logger.error(
+            "Order %s does not exist. WhatsApp notification cancelled.",
+            order_id,
+        )
+        return None
+
+    except WhatsAppAPIError as exc:
+
+        if exc.retryable:
+            raise self.retry(exc=exc)
+
+        logger.exception(
+            "Permanent WhatsApp API failure for order %s",
+            order_id,
+        )
+        raise
+
+    except (
+        requests.exceptions.Timeout,
+        requests.exceptions.ConnectionError,
+    ) as exc:
+
+        raise self.retry(exc=exc)
+
+    except Exception:
+        logger.exception(
+            "Unexpected WhatsApp notification failure for order %s",
+            order_id,
+        )
+        raise
