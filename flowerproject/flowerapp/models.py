@@ -276,13 +276,60 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.flower.name}"
 
 
-# Add this model to your models.py
 
-class FCMToken(models.Model):
-    """Stores FCM tokens for push notifications"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_tokens')
-    token = models.TextField(unique=True)
+
+class WhatsAppNotification(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        SENT = "sent", "Sent"
+        DELIVERED = "delivered", "Delivered"
+        READ = "read", "Read"
+        FAILED = "failed", "Failed"
+
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="whatsapp_notification"
+    )
+
+    message_id = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+
+    error_code = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
+
+    error_message = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    delivered_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    read_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.token[:20]}..."
+        return f"WhatsApp notification for Order {self.order_id} - {self.status}"

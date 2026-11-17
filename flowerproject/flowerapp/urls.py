@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView,FlowerDetailAPIView,flower_detail_page,admin_order_detail_page
+from .views import FlowerListCreateAPIView, flower_page,LoginAPIView,BuyNowAPIView,SignupAPIView,signup_page,login_page,OrderListAPIView,admin_orders_page,MeView,OrderDetailAPIView,CartAPIView,CartItemAPIView,CustomerOrderListAPIView,CreatePaymentOrderAPIView,RazorpayWebhookAPIView,GoogleLoginAPIView,OrderCancelAPIView,LogoutAPIView,FlowerDetailAPIView,flower_detail_page,admin_order_detail_page,WhatsAppWebhookAPIView
 
 
 urlpatterns = [
@@ -38,5 +38,12 @@ urlpatterns = [
     path('signin/',     login_page,     name='signin'),
     path('orders/',     TemplateView.as_view(template_name='orders.html')),
     path('admin/orders/', admin_orders_page, name='admin-orders-page'),
+
+    ###whatsapp
+    path(
+        "webhook/whatsapp/",
+          WhatsAppWebhookAPIView.as_view(),
+        name="whatsapp_webhook",
+    ),
 
 ]
