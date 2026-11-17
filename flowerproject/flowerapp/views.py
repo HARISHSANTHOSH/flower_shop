@@ -7,7 +7,18 @@ from django.db.models import Q, Sum, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
+
 from collections import Counter
+from datetime import datetime, timezone
+
+from django.http import HttpResponse, HttpResponseForbidden
+
+
+
+
+from .models import WhatsAppNotification
+
+
 
 # DRF
 from rest_framework import status
@@ -23,6 +34,11 @@ from django.db.models import F
 import json
 import razorpay
 import requests as python_requests
+import os
+
+import hmac
+import hashlib
+
 
 
 # Local
@@ -992,3 +1008,261 @@ class OrderCancelAPIView(APIView):
             'payment_method': order.payment_method,
         })
 
+
+
+
+class WhatsAppWebhookAPIView(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    # -----------------------------------------
+    # GET: Meta webhook verification
+    # -----------------------------------------
+
+    def get(self, request):
+
+        mode = request.query_params.get("hub.mode")
+        token = request.query_params.get("hub.verify_token")
+        challenge = request.query_params.get("hub.challenge")
+
+        verify_token = os.getenv("WHATSAPP_VERIFY_TOKEN")
+
+        if (
+            mode == "subscribe"
+            and verify_token
+            and token
+            and hmac.compare_digest(token, verify_token)
+            and challenge
+        ):
+            logger.info("WhatsApp webhook verified successfully")
+
+            return HttpResponse(
+                challenge,
+                content_type="text/plain",
+                status=200
+            )
+
+        logger.warning("WhatsApp webhook verification failed")
+
+        return HttpResponseForbidden("Verification failed")
+
+    # -----------------------------------------
+    # POST: Receive WhatsApp status callbacks
+    # -----------------------------------------
+
+    def post(self, request):
+
+        # 1. Get Meta App Secret
+        app_secret = os.getenv("WHATSAPP_APP_SECRET")
+
+        if not app_secret:
+            logger.error("WhatsApp App Secret is not configured")
+
+            return Response(
+                {"error": "Webhook configuration error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # 2. Get raw request body
+        raw_body = request._request.body
+
+        # 3. Get Meta signature
+        signature = request.headers.get("X-Hub-Signature-256", "")
+
+        # 4. Generate expected HMAC signature
+        expected_signature = (
+            "sha256=" +
+            hmac.new(
+                app_secret.encode("utf-8"),
+                raw_body,
+                hashlib.sha256
+            ).hexdigest()
+        )
+
+        # 5. Verify signature
+        if not signature or not hmac.compare_digest(
+            signature,
+            expected_signature
+        ):
+            logger.warning("Invalid WhatsApp webhook signature")
+
+            return Response(
+                {"error": "Invalid signature"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 6. Parse webhook JSON
+        try:
+            payload = json.loads(raw_body)
+
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return Response(
+                {"error": "Invalid JSON payload"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 7. Extract entries
+        entries = payload.get("entry", [])
+
+        for entry in entries:
+
+            changes = entry.get("changes", [])
+
+            for change in changes:
+
+                value = change.get("value", {})
+
+                # Meta can send other webhook events too.
+                # We only process message statuses here.
+                statuses = value.get("statuses", [])
+
+                for event in statuses:
+
+                    message_id = event.get("id")
+                    message_status = event.get("status")
+                    timestamp = event.get("timestamp")
+
+                    if not message_id or not message_status:
+                        continue
+
+                    # 8. Find and lock the notification
+                    with transaction.atomic():
+
+                        notification = (
+                            WhatsAppNotification.objects
+                            .select_for_update()
+                            .filter(message_id=message_id)
+                            .first()
+                        )
+
+                        if notification is None:
+                            logger.warning(
+                                "WhatsApp notification not found. "
+                                "Message ID: %s",
+                                message_id
+                            )
+                            continue
+
+                        current_status = notification.status
+
+                        # 9. Protect against duplicate and
+                        # out-of-order webhook events
+
+                        if current_status in (
+                            WhatsAppNotification.Status.READ,
+                            WhatsAppNotification.Status.FAILED
+                        ):
+                            continue
+
+                        status_order = {
+                            WhatsAppNotification.Status.PENDING: 0,
+                            WhatsAppNotification.Status.ACCEPTED: 1,
+                            WhatsAppNotification.Status.SENT: 2,
+                            WhatsAppNotification.Status.DELIVERED: 3,
+                            WhatsAppNotification.Status.READ: 4,
+                        }
+
+                        update_fields = []
+
+                        # 10. Update status
+                        if message_status == "failed":
+
+                            # Do not downgrade an already delivered message
+                            if current_status not in (
+                                WhatsAppNotification.Status.DELIVERED,
+                            ):
+                                notification.status = (
+                                    WhatsAppNotification.Status.FAILED
+                                )
+                                update_fields.append("status")
+
+                                errors = event.get("errors", [])
+
+                                if errors:
+                                    error = errors[0]
+
+                                    error_code = error.get("code")
+                                    error_message = (
+                                        error.get("error_data", {}).get("details")
+                                        or error.get("message")
+                                        or error.get("title")
+                                    )
+
+                                    notification.error_code = (
+                                        str(error_code)
+                                        if error_code is not None
+                                        else None
+                                    )
+
+                                    notification.error_message = error_message
+
+                                    update_fields.extend([
+                                        "error_code",
+                                        "error_message",
+                                    ])
+
+                        elif message_status in status_order:
+
+                            incoming_order = status_order[message_status]
+                            current_order = status_order.get(
+                                current_status,
+                                -1
+                            )
+
+                            if incoming_order > current_order:
+
+                                notification.status = message_status
+                                update_fields.append("status")
+
+                        else:
+                            continue
+
+                        # 11. Save delivery/read timestamps
+                        if timestamp:
+                            try:
+                                event_time = datetime.fromtimestamp(
+                                    int(timestamp),
+                                    tz=timezone.utc
+                                )
+
+                                if message_status == "delivered":
+                                    notification.delivered_at = event_time
+                                    update_fields.append("delivered_at")
+
+                                elif message_status == "read":
+                                    notification.read_at = event_time
+                                    update_fields.append("read_at")
+
+                                    # A read message was necessarily delivered
+                                    if not notification.delivered_at:
+                                        notification.delivered_at = event_time
+                                        update_fields.append("delivered_at")
+
+                            except (ValueError, TypeError, OverflowError):
+                                logger.warning(
+                                    "Invalid WhatsApp event timestamp: %s",
+                                    timestamp
+                                )
+
+                        # 12. Update PostgreSQL
+                        if update_fields:
+
+                            update_fields.append("updated_at")
+
+                            notification.save(
+                                update_fields=update_fields
+                            )
+
+                            logger.info(
+                                "WhatsApp notification updated. "
+                                "Message ID: %s, Status: %s",
+                                message_id,
+                                notification.status
+                            )
+
+        # 13. Acknowledge successful webhook processing
+        return Response(
+            {"status": "received"},
+            status=status.HTTP_200_OK
+        )

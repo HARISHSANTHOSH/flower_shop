@@ -188,16 +188,35 @@ def send_email(to_email, subject, message):
     max_retries=5,
     default_retry_delay=30,
 )
+
+@shared_task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=30,
+)
 def send_whatsapp_order_notification(self, order_id):
 
     try:
-        # Fetch the order from the database
+        # 1. Fetch the order
         order = Order.objects.get(id=order_id)
 
-        # Initialize WhatsApp service
+        # 2. Create or retrieve its notification record
+        notification, created = WhatsAppNotification.objects.get_or_create(
+            order=order
+        )
+
+        # 3. Prevent resending if Meta already accepted this message
+        if notification.message_id:
+            logger.info(
+                "WhatsApp notification already submitted. Order ID: %s",
+                order_id,
+            )
+            return notification.message_id
+
+        # 4. Initialize WhatsApp service
         whatsapp = WhatsAppService()
 
-        # Build order details
+        # 5. Build template parameters
         message_components = [
             {
                 "type": "body",
@@ -209,13 +228,30 @@ def send_whatsapp_order_notification(self, order_id):
             }
         ]
 
+        # 6. Send WhatsApp message
         response = whatsapp.send_template_message(
             components=message_components
         )
 
+        # 7. Extract Meta's WhatsApp message ID
+        message_id = response.get("messages", [{}])[0].get("id")
+
+        if not message_id:
+            raise ValueError(
+                "WhatsApp API response did not contain a message ID."
+            )
+
+        # 8. Save message ID and initial status
+        notification.message_id = message_id
+        notification.status = WhatsAppNotification.Status.ACCEPTED
+        notification.save(
+            update_fields=["message_id", "status", "updated_at"]
+        )
+
         logger.info(
-            "WhatsApp order notification accepted. Order ID: %s",
+            "WhatsApp notification accepted. Order ID: %s, Message ID: %s",
             order_id,
+            message_id,
         )
 
         return response
@@ -232,6 +268,22 @@ def send_whatsapp_order_notification(self, order_id):
         if exc.retryable:
             raise self.retry(exc=exc)
 
+        # Permanent API failure
+        if "notification" in locals():
+            notification.status = WhatsAppNotification.Status.FAILED
+            notification.error_code = (
+                str(exc.error_code) if exc.error_code else None
+            )
+            notification.error_message = str(exc)
+            notification.save(
+                update_fields=[
+                    "status",
+                    "error_code",
+                    "error_message",
+                    "updated_at",
+                ]
+            )
+
         logger.exception(
             "Permanent WhatsApp API failure for order %s",
             order_id,
@@ -242,7 +294,6 @@ def send_whatsapp_order_notification(self, order_id):
         requests.exceptions.Timeout,
         requests.exceptions.ConnectionError,
     ) as exc:
-
         raise self.retry(exc=exc)
 
     except Exception:
